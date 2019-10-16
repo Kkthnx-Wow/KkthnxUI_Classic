@@ -13,10 +13,8 @@ _G.KkthnxUIConfig["zhCN"] = {
 		-- Let's Keep This In Alphabetical Order, Shall We?
 		["ActionBar"] = "动作条",
 		["Announcements"] = "公告",
-		["Arena"] = "竞技场",
 		["Auras"] = "光环",
 		["Automation"] = "自动操作",
-		["Boss"] = "Boss",
 		["Chat"] = "聊天",
 		["DataBars"] = "数据条",
 		["DataText"] = "数据文本",
@@ -42,10 +40,12 @@ _G.KkthnxUIConfig["zhCN"] = {
 	["ActionBar"] = {
 		["Cooldowns"] = {
 			["Name"] = "显示冷却时间",
+			["Desc"] = "在动作条和其他元素上显示冷却时间。",
 		},
 
 		["Count"] = {
 			["Name"] = "显示物品数量",
+			["Desc"] = "在动作条上显示你包里有多少物品。",
 		},
 
 		["DecimalCD"] = {
@@ -57,7 +57,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["DisableStancePages"] = {
-			["Name"] = "禁用姿态页 (德鲁伊和 潜行者)",
+			["Name"] = "禁用姿态页 (德鲁伊和潜行者)",
 		},
 
 		["Enable"] = {
@@ -66,6 +66,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 
 		["EquipBorder"] = {
 			["Name"] = "装备边框指示",
+			["Desc"] = "为你装备的物品显示一个绿色的边框，并放到你的动作条上。|n|n例如，你把饰品放在动作条上将显示一个绿色边框。",
 		},
 
 		["FadeRightBar"] = {
@@ -140,11 +141,11 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["AutoDisenchant"] = {
-			["Name"] = "按住'CTRL'自动分解",
+			["Name"] = "按住'ALT'自动分解",
 		},
 
 		["AutoQuest"] = {
-			["Name"] = "自动接受任务",
+			["Name"] = "自动接续任务",
 		},
 
 		["AutoRelease"] = {
@@ -156,7 +157,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["AutoResurrectThank"] = {
-			["Name"] = "当你被复活时,说 '谢谢你' ",
+			["Name"] = "当你被复活时,自动感谢",
 		},
 
 		["AutoReward"] = {
@@ -164,11 +165,11 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["AutoTabBinder"] = {
-			["Name"] = "仅使用TAB选择目标敌对玩家",
+			["Name"] = "仅使用TAB选择敌对玩家",
 		},
 
 		["BuffThanks"] = {
-			["Name"] = "感谢玩家给BUFF",
+			["Name"] = "感谢玩家给的BUFF（仅开放世界）",
 		},
 
 		["BlockMovies"] = {
@@ -176,7 +177,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["DeclinePvPDuel"] = {
-			["Name"] = "拒绝PVP决斗",
+			["Name"] = "自动拒绝PVP决斗",
 		},
 
 		["WhisperInvite"] = {
@@ -199,44 +200,63 @@ _G.KkthnxUIConfig["zhCN"] = {
 			["Name"] = "渐隐背包条",
 		},
 
-		["BagColumns"] = {
-			["Name"] = "背包空间行数",
-		},
-
-		["BankColumns"] = {
-			["Name"] = "银行空间行数",
-		},
-
-		["ButtonSize"] = {
-			["Name"] = "背包按钮大小",
-		},
-
-		["ButtonSpace"] = {
-			["Name"] = "背包按钮间隔",
-		},
-
-		["DetailedReport"] = {
-			["Name"] = "出售灰色物品报告",
-			["Desc"] = "显示一个出售细节报告.",
-		},
-
 		["Enable"] = {
 			["Name"] = "启用",
-			["Desc"] = "启用/禁用 存货模块.",
+			["Desc"] = "启用/禁用 背包模块.",
 		},
 
-		["ItemLevel"] = {
+		["ClassRelatedFilter"] = {
+			["Name"] = "过滤职业物品",
+		},
+
+		["QuestItemFilter"] = {
+			["Name"] = "过滤任务物品",
+		},
+
+		["TradeGoodsFilter"] = {
+			["Name"] = "过滤商品/消耗品",
+		},
+
+		["BagsWidth"] = {
+			["Name"] = "背包宽度",
+		},
+
+		["BankWidth"] = {
+			["Name"] = "银行宽度",
+		},
+
+		["DeleteButton"] = {
+			["Name"] = "背包删除按钮",
+		},
+
+		["GatherEmpty"] = {
+			["Name"] = "将空格收集到一个格中",
+		},
+
+		["IconSize"] = {
+			["Name"] = "空格图标大小",
+		},
+
+		["ItemFilter"] = {
+			["Name"] = "物品过滤中",
+		},
+
+		["ItemSetFilter"] = {
+			["Name"] = "使用物品过滤器",
+		},
+
+		["ReverseSort"] = {
+			["Name"] = "背包反向排序",
+		},
+
+		["SpecialBagsColor"] = {
+			["Name"] = "显示特殊背包颜色",
+			["Desc"] = "显示为特殊背包的颜色:|n|n- |CFFABD473猎人|r 箭袋或弹药包|n- |CFF8787ED术士|r 灵魂碎片包|n- 附魔材料袋|n- 草药包"
+		},
+
+		["BagsiLvl"] = {
 			["Name"] = "显示物品等级",
-			["Desc"] = "在可装备物品上显示物品等级.",
-		},
-
-		["JunkIcon"] = {
-			["Name"] = "显示垃圾图标",
-			["Desc"] = "在所有可出售灰色物品上显示一个图标.",
-		},
-
-		["PulseNewItem"] = {
-			["Name"] = "高亮显示新物品",
+			["Desc"] = "显示可装备物品的物品等级",
 		},
 
 		["AutoRepair"] = {
@@ -323,7 +343,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 
 		["QuickJoin"] = {
 			["Name"] = "快速加入消息",
-			["Desc"] = "显示聊天内可单击的快速连接消息"
+			["Desc"] = "显示聊天内可点击的快速加入消息"
 		},
 
 		["ScrollByX"] = {
@@ -456,6 +476,9 @@ _G.KkthnxUIConfig["zhCN"] = {
 
 	-- General Local
 	["General"] = {
+		["AutoScale"] = {
+			["Name"] = "自动缩放",
+		},
 		["ColorTextures"] = {
 			["Name"] = "着色 '大部分' KkthnxUI 边框",
 		},
@@ -465,7 +488,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["ShowTooltip"] = {
-			["Name"] = "解决垃圾收集",
+			["Name"] = "修复垃圾收集",
 		},
 
 		["FontSize"] = {
@@ -553,6 +576,11 @@ _G.KkthnxUIConfig["zhCN"] = {
 		["Size"] = {
 			["Name"] = "小地图大小",
 		},
+
+		["BlipTexture"] = {
+			["Name"] = "信号图标样式",
+			["Desc"] = "更改小地图上的小队等图标样式",
+		},
 	},
 
 	-- Miscellaneous Local
@@ -575,15 +603,25 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["EnhancedMenu"] = {
-			["Name"] = "添加公会邀请和更多的下拉框",
+			["Name"] = "添加公会邀请和更多的下拉列表",
+			["Desc"] = "添加 '公会邀请' 和 '添加好友' 选项到目标右键菜单."
 		},
 
 		["GemEnchantInfo"] = {
-			["Name"] = "角色/观察宝石/附魔 信息",
+			["Name"] = "角色/检查 宝石/附魔 信息",
+		},
+
+		["ImprovedProfessionWindow"] = {
+			["Name"] = "显示一个更好的专业窗口",
 		},
 
 		["ImprovedQuestLog"] = {
-			["Name"] = "显示一个更好的任务日志样式",
+			["Name"] = "显示一个更好的任务日志",
+			["Desc"] = "扩展默认任务日志.|n|n你不再需要像ClassicQuestLog的插件了."
+		},
+
+		["ImprovedTrainerWindow"] = {
+			["Name"] = "显示一个更好训练窗口",
 		},
 
 		["ItemLevel"] = {
@@ -607,7 +645,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["SlotDurability"] = {
-			["Name"] = "显示耐久度 %",
+			["Name"] = "显示耐久度百分比",
 		},
 	},
 
@@ -634,8 +672,9 @@ _G.KkthnxUIConfig["zhCN"] = {
 			["Desc"] = "在视野之外时,将姓名板留在屏幕顶部."
 		},
 
-		["ClassResource"] = {
-			["Name"] = "显示职业资源",
+		["ClassIcons"] = {
+			["Name"] = "显示敌对玩家职业图标",
+			["Desc"] = "显示敌对玩家的职业图标，以帮助更方便地确定他们是什么职业。 |n|n这对色盲的人很有帮助!"
 		},
 
 		["Combat"] = {
@@ -671,7 +710,11 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["SelectedScale"] = {
-			["Name"] = "选中的姓名板缩放",
+			["Name"] = "选中的姓名版缩放",
+		},
+
+		["ShowFullHealth"] = {
+			["Name"] = "显示完整生命值",
 		},
 
 		["Smooth"] = {
@@ -753,7 +796,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 	-- Unitframe Local
 	["Unitframe"] = {
 		["AdditionalPower"] = {
-			["Name"] = "显示德鲁伊法力值 (仅变身)",
+			["Name"] = "显示额外法力条 (|CFFFF7D0A德鲁伊|r)",
 		},
 
 		["CastClassColor"] = {
@@ -772,8 +815,12 @@ _G.KkthnxUIConfig["zhCN"] = {
 			["Name"] = "启用施法条",
 		},
 
-		["ClassResource"] = {
-			["Name"] = "显示职业资源",
+		["ComboPoints"] = {
+			["Name"] = "显示连击点 (|CFFFFF569潜行者|r/|CFFFF7D0A德鲁伊|r)",
+		},
+
+		["Totems"] = {
+			["Name"] = "显示图腾 (|CFF0070DE萨满|r)",
 		},
 
 		["CombatFade"] = {
@@ -829,7 +876,11 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["PvPIndicator"] = {
-			["Name"] = "在玩家 / 目标上显示PvP指示器",
+			["Name"] = "显示PVP监视器在 玩家 / 目标",
+		},
+
+		["ShowHealPrediction"] = {
+			["Name"] = "显示治疗预读状态条",
 		},
 
 		["ShowPetHappinessIcon"] = {
@@ -939,6 +990,10 @@ _G.KkthnxUIConfig["zhCN"] = {
 
 		["ShowBuffs"] = {
 			["Name"] = "显示小队增益",
+		},
+
+		["ShowHealPrediction"] = {
+			["Name"] = "显示预读状态条",
 		},
 
 		["ShowPlayer"] = {
@@ -1120,7 +1175,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["HideRealm"] = {
-			["Name"] = "SHIFT显示服务器名",
+			["Name"] = "按SHIFT显示服务器名",
 		},
 
 		["HideTitle"] = {
@@ -1140,7 +1195,7 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["SpecLevelByShift"] = {
-			["Name"] = "SHIFT显示 专精/物品等级",
+			["Name"] = "按SHIFT显示 专精/物品等级",
 		},
 
 		["TargetBy"] = {
@@ -1167,7 +1222,11 @@ _G.KkthnxUIConfig["zhCN"] = {
 		},
 
 		["DataTextFonts"] = {
-			["Name"] = "数据文本",
+			["Name"] = "数据文字",
+		},
+
+		["FilgerFonts"] = {
+			["Name"] = "Filger 字体",
 		},
 
 		["GeneralFonts"] = {
