@@ -71,7 +71,7 @@ if GetLocale() == "zhCN" then
 	L["Equipement Set"] = "装备套装物品"
 	L["Everlook"] = "永望镇"
 	L["Experience"] = "经验"
-	L["Favourite Mode Enabled"] = "|n你现在可以用星号标记物品。|n|n如果启用了"背包物品过滤器",你星标的物品将被添加到"首选项"的过滤栏。|n|n这不适用于|cff9d9d9d垃圾|r"
+	L["Favourite Mode Enabled"] = "|n你现在可以用星号标记物品。|n|n如果启用了'背包物品过滤器',你星标的物品将被添加到'首选项'的过滤栏。|n|n这不适用于|cff9d9d9d垃圾|r"
 	L["Favourite Mode"] = "收藏模式"
 	L["Feathermoon Stronghold"] = "羽月要塞"
 	L["Felwood"] = "费伍德"
