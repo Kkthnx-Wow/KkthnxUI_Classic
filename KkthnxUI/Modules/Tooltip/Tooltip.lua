@@ -409,8 +409,8 @@ function Module:ReskinTooltip()
 
 		local lvl = self:GetFrameLevel()
 		local bg = CreateFrame("Frame", nil, self)
-		bg:SetPoint("TOPLEFT", self, 2, -2) -- Might need to be 0
-		bg:SetPoint("BOTTOMRIGHT", self, -2, 2) -- Might need to be 0
+		bg:SetPoint("TOPLEFT", self, 2, -2)
+		bg:SetPoint("BOTTOMRIGHT", self, -2, 2)
 		bg:SetFrameLevel(lvl == 0 and 0 or lvl - 1)
 		bg:CreateBorder()
 		self.bg = bg

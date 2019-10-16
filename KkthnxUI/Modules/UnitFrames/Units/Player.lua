@@ -260,7 +260,7 @@ function Module:CreatePlayer(unit)
 		self.Totems:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -6)
 		self.Totems:SetSize(156, 14)
 
-		local Width = (138 / 4) - 1
+		local Width = (144 / 4) - 1
 		local Color
 
 		for i = 1, 4 do
