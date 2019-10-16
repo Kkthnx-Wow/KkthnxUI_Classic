@@ -3,7 +3,7 @@
 ## Title: |cff4488ffKkthnxUI|r Classic |cff4488ffConfig|r
 ## Notes: Options for KkthnxUI Classic
 ## Author: Kkthnx
-## Version: 1.08
+## Version: 1.09
 ## DefaultState: Enabled
 ## SavedVariables: KkthnxUIConfigShared, KkthnxUIConfigPerAccount
 ## SavedVariablesPerCharacter: KkthnxUIConfigNotShared
