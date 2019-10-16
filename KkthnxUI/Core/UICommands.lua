@@ -13,7 +13,6 @@ local UI_COMMANDS = {
     "• '/clearcombat' - Clear your combatlog window of any text",
     "• '/convert' - Switch from party to raid or raid to party",
     "• '/dbmtest' - Run a dummy test with DeadlyBossMods if enabled",
-    "• '/deleteheirlooms' - Deletes all |cff00ccffheirlooms|r in your inventory",
     "• '/deletequestitems' - Deletes all questitems in your inventory",
     "• '/fixplates' - Could help fix buggy nameplates or just to reset them to default",
     "• '/install' - Brings up the installer again",
@@ -25,7 +24,6 @@ local UI_COMMANDS = {
     "• '/rc' - Quick way to do a ready check",
     "• '/rd' - Disbands your raid group",
     "• '/resetinstance' - Reset your instances",
-    "• '/teleport' - Port in/out of your current instance quickly",
     "• '/kstatus' - Show a window with info to help with bug reports if needed",
 }
 
