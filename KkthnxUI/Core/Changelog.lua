@@ -3,7 +3,7 @@ local Module = K:NewModule("Changelog")
 
 local ChangeLogData = {
 	"Changes:",
-	"• Released v1.08",
+	"• Released v1.09",
 	"• Fix pet happy icon falling behind portrait",
     "• Update Sapped.lua",
     "• Update AutoBuffThanks.lua",
