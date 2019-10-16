@@ -1139,6 +1139,25 @@ _G.KkthnxUIConfig["enUS"] = {
 			["Name"] = "Worldmap Scale",
 		},
 
+		["MapReveal"] = {
+			["Name"] = "Map Reveal",
+			["Desc"] = "Show areas on the world map you have yet to discover",
+		},
+
+		["PartyIconSize"] = {
+			["Name"] = "Party Icon Size",
+			["Desc"] = "Adjust the size of player party icons on the world map",
+		},
+
+		["PlayerIconSize"] = {
+			["Name"] = "Player Icon Size",
+			["Desc"] = "Adjust the size of your player icon on the world map",
+		},
+
+		["WorldMapIcons"] = {
+			["Name"] = "Worldmap Scale",
+		},
+
 		["SmallWorldMap"] = {
 			["Name"] = "Show Smaller Worldmap",
 		},

@@ -16,6 +16,8 @@ local GetQuestIndexForWatch = _G.GetQuestIndexForWatch
 local GetQuestLogLeaderBoard = _G.GetQuestLogLeaderBoard
 local GetQuestLogTitle = _G.GetQuestLogTitle
 local IsShiftKeyDown = _G.IsShiftKeyDown
+local PlaySound = _G.PlaySound
+local SOUNDKIT_IG_MAINMENU_OPTION_CHECKBOX_ON = _G.SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON
 local hooksecurefunc = _G.hooksecurefunc
 
 local MAX_QUESTLOG_QUESTS = _G.MAX_QUESTLOG_QUESTS or 20
@@ -84,6 +86,7 @@ function Module:EnhancedQuestTracker()
 
 	bu:SetScript("OnClick", function(self)
 		self.collapse = not self.collapse
+		PlaySound(SOUNDKIT_IG_MAINMENU_OPTION_CHECKBOX_ON)
 		if self.collapse then
 			self:SetNormalTexture("Interface\\AddOns\\KkthnxUI\\Media\\Textures\\TrackerButton")
 			self:GetNormalTexture():SetTexCoord(0, 0.5, 0, 0.5)
@@ -222,7 +225,7 @@ function Module:QuestTracker()
 	-- Mover for quest tracker
 	frame = CreateFrame("Frame", "KKUIQuestMover", UIParent)
 	frame:SetSize(240, 50)
-	K.Mover(frame, "QuestTracker", "QuestTracker", {"TOPRIGHT", Minimap, "BOTTOMRIGHT", -70, -55})
+	K.Mover(frame, "QuestTracker", "QuestTracker", {"TOPRIGHT", Minimap, "BOTTOMRIGHT", -130, -100})
 
 	-- QuestWatchFrame:SetHeight(GetScreenHeight()*.65)
 	QuestWatchFrame:SetClampedToScreen(false)

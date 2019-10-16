@@ -112,7 +112,7 @@ function Module:UpdateReputation()
 
 		self.bars.reputation:SetStatusBarColor(factionColor.r, factionColor.g, factionColor.b)
 
-		self.bars.reputation.text:SetText(string_format("%s/%s (%d%%)", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100)))
+		self.bars.reputation.text:SetText(string_format("%s - %s (%d%%) [%s]", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100), K.ShortenString(_G["FACTION_STANDING_LABEL" .. rank], 1, false)))
 
 		self.bars.reputation:Show()
 	else
@@ -132,7 +132,7 @@ function Module:UpdateExperience()
 		self.bars.experience.rested:SetValue(rest and current + rest or 0)
 
 		if rest and rest > 0 then
-			self.bars.experience.text:SetText(string_format("%s - %s (%s%%) R:%s%%", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100), K.Round(rest / max * 100)))
+			self.bars.experience.text:SetText(string_format("%s - %s (%s%%) [%s%%]", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100), K.Round(rest / max * 100)))
 		else
 			self.bars.experience.text:SetText(string_format("%s - %s (%s%%)", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100)))
 		end
@@ -151,7 +151,7 @@ function Module:OnEnter()
 		local current, max = UnitXP("player"), UnitXPMax("player")
 		local rest = GetXPExhaustion()
 
-		GameTooltip:AddDoubleLine("Experience:", string_format("%s/%s (%s%%)", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100)), nil, nil, nil, 1, 1, 1)
+		GameTooltip:AddDoubleLine("Experience:", string_format("%s - %s (%s%%)", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100)), nil, nil, nil, 1, 1, 1)
 		GameTooltip:AddDoubleLine(L["Remaining"], K.CommaValue(max-current), nil, nil, nil, 1, 1, 1)
 		if rest then
 			GameTooltip:AddDoubleLine(L["Rested"], string_format("%s (%s%%)", K.CommaValue(rest), K.Round(rest / max*100)), nil, nil, nil, 0, 0.6, 1)

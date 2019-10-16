@@ -1,7 +1,4 @@
 local K, C, L = unpack(select(2, ...))
-if C["WorldMap"].WorldMapPlus ~= true then
-	return
-end
 
 local tNTex = "TaxiNode_Neutral"
 local dnTex, rdTex = "Dungeon", "Raid"

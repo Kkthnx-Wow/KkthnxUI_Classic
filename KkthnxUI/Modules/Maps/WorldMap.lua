@@ -2,13 +2,18 @@ local K, C = unpack(select(2, ...))
 local Module = K:NewModule("WorldMap")
 
 local _G = _G
+local table_insert = _G.table.insert
+local select = _G.select
 
-local select = select
-local WorldMapFrame = _G.WorldMapFrame
-local CreateVector2D = _G.CreateVector2D
-local UnitPosition = _G.UnitPosition
-local C_Map_GetWorldPosFromMapPos = _G.C_Map.GetWorldPosFromMapPos
 local C_Map_GetBestMapForUnit = _G.C_Map.GetBestMapForUnit
+local C_Map_GetWorldPosFromMapPos = _G.C_Map.GetWorldPosFromMapPos
+local CreateFrame = _G.CreateFrame
+local CreateVector2D = _G.CreateVector2D
+local IsAddOnLoaded = _G.IsAddOnLoaded
+local PLAYER = _G.PLAYER
+local UnitPosition = _G.UnitPosition
+local WorldMapFrame = _G.WorldMapFrame
+local hooksecurefunc = _G.hooksecurefunc
 
 local mapRects = {}
 local tempVec2D = CreateVector2D(0, 0)
@@ -79,7 +84,9 @@ function Module:UpdateMapID()
 end
 
 function Module:SetupCoords()
-	if not C["WorldMap"].Coordinates then return end
+	if not C["WorldMap"].Coordinates then
+		return
+	end
 
 	playerCoords = K.CreateFontString(WorldMapFrame, 12, nil, "", "system", "TOPLEFT", 20, -7)
 	cursorCoords = K.CreateFontString(WorldMapFrame, 12, nil, "", "system", "TOPLEFT", 170, -7)
@@ -144,7 +151,8 @@ function Module:SetupWorldMap()
 	WorldMapFrame.HandleUserActionToggleSelf = function()
 		if WorldMapFrame:IsShown() then WorldMapFrame:Hide() else WorldMapFrame:Show() end
 	end
-	tinsert(UISpecialFrames, "WorldMapFrame")
+
+	table_insert(UISpecialFrames, "WorldMapFrame")
 end
 
 local function isMouseOverMap()
@@ -164,5 +172,6 @@ function Module:OnEnable()
 	self:SetupCoords()
 	self:MapFader()
 
-	self:CreateWorldMapPlus()
+	self:CreateWorldMapReveal()
+	self:CreateWorldMapIcons()
 end

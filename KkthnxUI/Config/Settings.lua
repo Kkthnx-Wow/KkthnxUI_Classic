@@ -463,7 +463,10 @@ end
 -- Worldmap
 C["WorldMap"] = {
 	["Coordinates"] = true,
-	["WorldMapPlus"] = false,
-	["MapScale"] = 0.7,
 	["MapFader"] = true,
+	["MapReveal"] = false,
+	["MapScale"] = 0.7,
+	["PartyIconSize"] = 14,
+	["PlayerIconSize"] = 24,
+	["WorldMapIcons"] = false,
 }
