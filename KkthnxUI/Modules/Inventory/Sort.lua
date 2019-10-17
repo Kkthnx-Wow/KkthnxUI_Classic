@@ -241,15 +241,40 @@ function Move(src, dst)
 	end
 end
 
-function TooltipInfo(container, position)
-	-- local chargesPattern = "^" .. gsub(gsub(ITEM_SPELL_CHARGES_P1, "%%d", "(%%d+)"), "%%%d+%$d", "(%%d+)") .. "$" TODO retail
-	local chargesPattern = "^" .. string_gsub(string_gsub(ITEM_SPELL_CHARGES, "%%d", "(%%d+)"), "%%%d+%$d", "(%%d+)") .. "$"
+do
+    local patterns = {}
+    for i = 1, 10 do
+    	local text = gsub(ITEM_SPELL_CHARGES, "(-?%d+)(.-)|4([^;]-);", function(numberString, gap, numberForms)
+	        local singular, dual, plural
+	        _, _, singular, dual, plural = string_find(numberForms, "(.+):(.+):(.+)");
+	        if not singular then
+	            _, _, singular, plural = string_find(numberForms, "(.+):(.+)")
+	        end
+	        local i = abs(tonumber(numberString))
+	        local numberForm
+	        if i == 1 then
+	            numberForm = singular
+	        elseif i == 2 then
+	            numberForm = dual or plural
+	        else
+	            numberForm = plural
+	        end
+	        return numberString .. gap .. numberForm
+	    end)
+        patterns[text] = i
+    end
 
-	K.ScanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+	function itemCharges(text)
+        return patterns[text]
+	end
+end
+
+function TooltipInfo(container, position)
+	K.ScanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
 	K.ScanTooltip:ClearLines()
 
 	if container == BANK_CONTAINER then
-		K.ScanTooltip:SetInventoryItem("player", BankButtonIDToInvSlotID(position))
+		K.ScanTooltip:SetInventoryItem('player', BankButtonIDToInvSlotID(position))
 	else
 		K.ScanTooltip:SetBagItem(container, position)
 	end
@@ -258,10 +283,10 @@ function TooltipInfo(container, position)
 	for i = 1, K.ScanTooltip:NumLines() do
 		local text = _G[K.ScanTooltip:GetName().."TextLeft"..i]:GetText()
 
-		local _, _, chargeString = string_find(text, chargesPattern)
-		if chargeString then
-			charges = tonumber(chargeString)
-		elseif string_find(text, "^" .. ITEM_SPELL_TRIGGER_ONUSE) then
+		local charges = itemCharges(text)
+		if charges then
+			charges = charges
+		elseif string_find(text, '^' .. ITEM_SPELL_TRIGGER_ONUSE) then
 			usable = true
 		elseif text == ITEM_SOULBOUND then
 			soulbound = true
@@ -429,7 +454,7 @@ function Item(container, position)
 	if link then
 		local _, _, itemID, enchantID, suffixID, uniqueID = string_find(link, "item:(%d+):(%d*):(%d*):(%d*)")
 		itemID = tonumber(itemID)
-		local _, _, quality, _, _, _, _, stack, slot, _, _, classId, subClassId = GetItemInfo("item:" .. itemID)
+		local _, _, quality, _, _, _, _, stack, slot, _, sellPrice, classId, subClassId = GetItemInfo("item:"..itemID)
 		local charges, usable, soulbound, quest, conjured = TooltipInfo(container, position)
 
 		local sortKey = {}
@@ -493,10 +518,12 @@ function Item(container, position)
 			-- common quality
 		elseif quality == 1 then
 			table_insert(sortKey, 13)
+			table_insert(sortKey, -sellPrice)
 
 			-- junk
 		elseif quality == 0 then
 			table_insert(sortKey, 14)
+			table_insert(sortKey, sellPrice)
 		end
 
 		table_insert(sortKey, classId)

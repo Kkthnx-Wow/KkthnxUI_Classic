@@ -30,7 +30,7 @@ local AutoBuffThanksList = {
 function Module:SetupAutoBuffThanksAnnounce()
 	local _, event, _, sourceGUID, sourceName, _, _, destGUID, _, _, _, _, spellName = CombatLogGetCurrentEventInfo()
 
-	if not (event == "SPELL_AURA_APPLIED") then
+	if not (event == "SPELL_AURA_APPLIED") or (event == "PLAYER_ENTERING_WORLD") then
 		return
 	end
 
@@ -41,7 +41,7 @@ function Module:SetupAutoBuffThanksAnnounce()
 			local sourceType = string_split("-", sourceGUID) -- `type` is a reserved word for a Lua function
 			-- Make sure the other source is a player
 			if sourceType == "Player" then
-				K.Delay(1.0, function() -- Give this more time to say thanks, so we do not look like we are bots.
+				K.Delay(1.2, function() -- Give this more time to say thanks, so we do not look like we are bots.
 					DoEmote(EMOTE98_TOKEN, sourceName)
 				end)
 			end

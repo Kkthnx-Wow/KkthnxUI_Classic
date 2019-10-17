@@ -10,7 +10,9 @@ local UNKNOWN = _G.UNKNOWN
 
 -- Build Spell list (this ignores ranks)
 local SaySappedList = {
-	[GetSpellInfo(11297)] = true, -- Sapped
+	[GetSpellInfo(11297)] = true,
+	[GetSpellInfo(6770)] = true,
+	[GetSpellInfo(2070)] = true,
 }
 
 function Module:SetupSaySapped()
