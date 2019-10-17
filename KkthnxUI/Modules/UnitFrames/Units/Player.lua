@@ -317,7 +317,9 @@ function Module:CreatePlayer(unit)
 		self.DruidMana:SetStatusBarColor(unpack(K.Colors.power["MANA"]))
 		self.DruidMana:CreateBorder()
 
-		-- K.SmoothBar(self.DruidMana)
+		if C["Unitframe"].Smooth then
+			self.DruidMana.Smooth = true
+		end
 
 		self.DruidMana.Text = self.DruidMana:CreateFontString(nil, "OVERLAY")
 		self.DruidMana.Text:SetFontObject(K.GetFont(C["UIFonts"].UnitframeFonts))
@@ -431,6 +433,7 @@ function Module:CreatePlayer(unit)
 			self.Swing.TextOH:SetPoint("CENTER", 1, 0)
 			self.Swing.TextOH:SetWordWrap(false)
 		end
+
 		self.Swing.hideOoc = true
 	end
 

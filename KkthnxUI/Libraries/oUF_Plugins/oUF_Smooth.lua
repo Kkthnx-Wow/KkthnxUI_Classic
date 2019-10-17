@@ -70,6 +70,10 @@ local Enable = function(self)
 		self:SmoothBar(self.Power)
 	end
 
+	if (self.DruidMana and self.DruidMana.Smooth) then
+		self:SmoothBar(self.DruidMana)
+	end
+
 	ActiveCount = ActiveCount + 1
 
 	if (ActiveCount > 0 and not Running) then

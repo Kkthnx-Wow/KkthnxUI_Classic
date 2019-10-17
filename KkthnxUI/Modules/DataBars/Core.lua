@@ -43,6 +43,12 @@ function Module:Update()
 	Module:UpdateExperience()
 	Module:UpdateReputation()
 
+	if C["DataBars"].MouseOver then
+		Module.container:SetAlpha(0.25)
+	else
+		Module.container:SetAlpha(1)
+	end
+
 	local num_bars = 0
 	local prev
 	for _, bar in pairs(Module.bars) do
@@ -112,7 +118,9 @@ function Module:UpdateReputation()
 
 		self.bars.reputation:SetStatusBarColor(factionColor.r, factionColor.g, factionColor.b)
 
-		self.bars.reputation.text:SetText(string_format("%s - %s (%d%%) [%s]", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100), K.ShortenString(_G["FACTION_STANDING_LABEL" .. rank], 1, false)))
+		if C["DataBars"].Text then
+			self.bars.reputation.text:SetText(string_format("%s - %s (%d%%) [%s]", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100), K.ShortenString(_G["FACTION_STANDING_LABEL" .. rank], 1, false)))
+		end
 
 		self.bars.reputation:Show()
 	else
@@ -131,10 +139,12 @@ function Module:UpdateExperience()
 		self.bars.experience.rested:SetMinMaxValues(0, max)
 		self.bars.experience.rested:SetValue(rest and current + rest or 0)
 
-		if rest and rest > 0 then
-			self.bars.experience.text:SetText(string_format("%s - %s (%s%%) [%s%%]", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100), K.Round(rest / max * 100)))
-		else
-			self.bars.experience.text:SetText(string_format("%s - %s (%s%%)", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100)))
+		if C["DataBars"].Text then
+			if rest and rest > 0 then
+				self.bars.experience.text:SetText(string_format("%s - %s (%s%%) [%s%%]", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100), K.Round(rest / max * 100)))
+			else
+				self.bars.experience.text:SetText(string_format("%s - %s (%s%%)", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100)))
+			end
 		end
 
 		self.bars.experience:Show()
@@ -146,6 +156,10 @@ end
 function Module:OnEnter()
 	GameTooltip:SetOwner(self, "ANCHOR_LEFT")
 	GameTooltip:ClearLines()
+
+	if C["DataBars"].MouseOver then
+		K.UIFrameFadeIn(Module.container, 0.25, Module.container:GetAlpha(), 1)
+	end
 
 	if MAX_PLAYER_LEVEL ~= UnitLevel("player") then
 		local current, max = UnitXP("player"), UnitXPMax("player")
@@ -180,15 +194,25 @@ function Module:OnEnter()
 end
 
 function Module:OnLeave()
+	if C["DataBars"].MouseOver then
+		K.UIFrameFadeOut(Module.container, 1, Module.container:GetAlpha(), 0.25)
+	end
+
 	GameTooltip:Hide()
 end
 
 function Module:OnEnable()
+	if C["DataBars"].Enable ~= true or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("Dominos") then
+		return
+	end
+
 	self.container = CreateFrame("frame", "KKUI_Experience", UIParent)
 	self.container:SetWidth(C["DataBars"].Width)
 	self.container:SetPoint("TOP", "Minimap", "BOTTOM", 0, -6)
 	self.container:SetScript("OnEnter", self.OnEnter)
 	self.container:SetScript("OnLeave", self.OnLeave)
+
+	K.Mover(self.container, "Databars", "Databars", {"TOP", "Minimap", "BOTTOM", 0, -6}, C["DataBars"].Width, C["DataBars"].Height)
 
 	self.bars = {}
 	self:SetupExperience()
