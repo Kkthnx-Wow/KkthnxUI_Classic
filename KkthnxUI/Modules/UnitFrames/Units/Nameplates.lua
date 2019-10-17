@@ -147,7 +147,7 @@ function Module:CreateNameplates(unit)
 		self.Auras.CustomFilter = function(_, unit, _, name, _, _, _, _, _, caster, _, nameplateShowSelf, _, _, _, _, nameplateShowAll)
 			local allow = false
 
-			if caster == "player" then
+			if ((caster == "player") or (caster == "pet")) then
 				if UnitIsUnit(unit, "player") then
 					if ((nameplateShowAll or nameplateShowSelf) and not K.BuffBlackList[name]) then
 						allow = true
