@@ -463,24 +463,65 @@ K.AuraBlackList = {
 }
 
 K.ChannelingTicks = {
-	-- Druid
-	[SpellName(740)] = 5, -- Tranquility
-	[SpellName(16914)] = 10, -- Hurricane
-	-- Hunter
-	[SpellName(136)] = 5, -- Mend Pet
-	[SpellName(1510)] = 6, -- Volley
-	-- Mage
-	[SpellName(10)] = 8, -- Blizzard
-	[SpellName(5143)] = 3, -- Arcane Missiles
-	[SpellName(12051)]  = 3,  -- Evocation
-	-- Priest
-	[SpellName(15407)] = 3, -- Mind Flay
-	[SpellName(10797)] = 6, -- Star Shards
 	-- Warlock
-	[SpellName(1949)] = 15, -- Hellfire
-	[SpellName(5740)] = 4, -- Rain of Fire
-	[SpellName(5138)] = 5, -- Drain Mana
-	[SpellName(689)] = 5, -- Drain Life
-	[SpellName(1120)] = 5, -- Drain Soul
-	[SpellName(755)] = 10, -- Health Funnel
+	[SpellName(1120)] = 5, -- Drain Soul(Rank 1)
+	[SpellName(8288)] = 5, -- Drain Soul(Rank 2)
+	[SpellName(8289)] = 5, -- Drain Soul(Rank 3)
+	[SpellName(11675)] = 5, -- Drain Soul(Rank 4)
+	[SpellName(755)] = 10, -- Health Funnel(Rank 1)
+	[SpellName(3698)] = 10, -- Health Funnel(Rank 2)
+	[SpellName(3699)] = 10, -- Health Funnel(Rank 3)
+	[SpellName(3700)] = 10, -- Health Funnel(Rank 4)
+	[SpellName(11693)] = 10, -- Health Funnel(Rank 5)
+	[SpellName(11694)] = 10, -- Health Funnel(Rank 6)
+	[SpellName(11695)] = 10, -- Health Funnel(Rank 7)
+	[SpellName(689)] = 5, -- Drain Life(Rank 1)
+	[SpellName(699)] = 5, -- Drain Life(Rank 2)
+	[SpellName(709)] = 5, -- Drain Life(Rank 3)
+	[SpellName(7651)] = 5, -- Drain Life(Rank 4)
+	[SpellName(11699)] = 5, -- Drain Life(Rank 5)
+	[SpellName(11700)] = 5, -- Drain Life(Rank 6)
+	[SpellName(5740)] =  4, -- Rain of Fire(Rank 1)
+	[SpellName(6219)] =  4, -- Rain of Fire(Rank 2)
+	[SpellName(11677)] =  4, -- Rain of Fire(Rank 3)
+	[SpellName(11678)] =  4, -- Rain of Fire(Rank 4)
+	[SpellName(1949)] = 15, -- Hellfire(Rank 1)
+	[SpellName(11683)] = 15, -- Hellfire(Rank 2)
+	[SpellName(11684)] = 15, -- Hellfire(Rank 3)
+	[SpellName(5138)] = 5, -- Drain Mana(Rank 1)
+	[SpellName(6226)] = 5, -- Drain Mana(Rank 2)
+	[SpellName(11703)] = 5, -- Drain Mana(Rank 3)
+	[SpellName(11704)] = 5, -- Drain Mana(Rank 4)
+	-- Priest
+	[SpellName(15407)] = 3, -- Mind Flay(Rank 1)
+	[SpellName(17311)] = 3, -- Mind Flay(Rank 2)
+	[SpellName(17312)] = 3, -- Mind Flay(Rank 3)
+	[SpellName(17313)] = 3, -- Mind Flay(Rank 4)
+	[SpellName(17314)] = 3, -- Mind Flay(Rank 5)
+	[SpellName(18807)] = 3, -- Mind Flay(Rank 6)
+	-- Mage
+	[SpellName(5143)] = 3, -- Arcane Missiles(Rank 1)
+	[SpellName(5144)] = 4, -- Arcane Missiles(Rank 2)
+	[SpellName(5145)] = 5, -- Arcane Missiles(Rank 3)
+	[SpellName(8416)] = 5, -- Arcane Missiles(Rank 4)
+	[SpellName(8417)] = 5, -- Arcane Missiles(Rank 5)
+	[SpellName(10211)] = 5, -- Arcane Missiles(Rank 6)
+	[SpellName(10212)] = 5, -- Arcane Missiles(Rank 7)
+	[SpellName(12051)] = 4, -- Evocation
+	-- Druid
+	[SpellName(740)] = 5, -- Tranquility(Rank 1)
+	[SpellName(8918)] = 5, -- Tranquility(Rank 2)
+	[SpellName(9862)] = 5, -- Tranquility(Rank 3)
+	[SpellName(9863)] = 5, -- Tranquility(Rank 4)
+	-- Hunter
+	[SpellName(1510)] = 6, -- Volley(Rank 1)
+	[SpellName(14294)] = 6, -- Volley(Rank 2)
+	[SpellName(14295)] = 6, -- Volley(Rank 3)
+	[SpellName(136)] = 5, -- Mend Pet(Rank 1)
+	[SpellName(3111)] = 5, -- Mend Pet(Rank 2)
+	[SpellName(3661)] = 5, -- Mend Pet(Rank 3)
+	[SpellName(3662)] = 5, -- Mend Pet(Rank 4)
+	[SpellName(13542)] = 5, -- Mend Pet(Rank 5)
+	[SpellName(13543)] = 5, -- Mend Pet(Rank 6)
+	[SpellName(13544)] = 5, -- Mend Pet(Rank 7)
 }

@@ -1,11 +1,21 @@
-local K, C, L = unpack(select(2, ...))
-local module = K:NewModule("Infobar")
+local K, C = unpack(select(2, ...))
+local Module = K:NewModule("Infobar")
 
-function module:RegisterInfobar(name, point)
-	if not self.modules then self.modules = {} end
+local _G = _G
+local table_insert = _G.table.insert
+local unpack = _G.unpack
 
-	local info = CreateFrame("Frame", name, UIParent)
-	--info:SetHitRectInsets(0, 0, -10, -10)
+local CreateFrame = _G.CreateFrame
+local UIParent = _G.UIParent
+local GetTime = _G.GetTime
+
+function Module:RegisterInfobar(name, point)
+	if not self.Modules then
+		self.Modules = {}
+	end
+
+	local info = CreateFrame("Frame", nil, UIParent)
+	info:SetHitRectInsets(0, 0, -10, -10)
 	info.text = info:CreateFontString(nil, "OVERLAY")
 	info.text:SetFontObject(K.GetFont(C["UIFonts"].DataTextFonts))
 	info.text:SetFont(select(1, info.text:GetFont()), 13, select(3, info.text:GetFont()))
@@ -20,37 +30,40 @@ function module:RegisterInfobar(name, point)
 
 	info:SetAllPoints(info.text)
 
-
 	info.name = name
-	tinsert(self.modules, info)
+	table_insert(self.Modules, info)
 
 	return info
 end
 
-function module:LoadInfobar(info)
+function Module:LoadInfobar(info)
 	if info.eventList then
 		for _, event in pairs(info.eventList) do
 			info:RegisterEvent(event)
 		end
 		info:SetScript("OnEvent", info.onEvent)
 	end
+
 	if info.onEnter then
 		info:SetScript("OnEnter", info.onEnter)
 	end
+
 	if info.onLeave then
 		info:SetScript("OnLeave", info.onLeave)
 	end
+
 	if info.onMouseUp then
 		info:SetScript("OnMouseUp", info.onMouseUp)
 	end
+
 	if info.onUpdate then
 		info:SetScript("OnUpdate", info.onUpdate)
 	end
 end
 
-function module:OnEnable()
-	if not self.modules then return end
-	for _, info in pairs(self.modules) do
+function Module:OnEnable()
+	if not self.Modules then return end
+	for _, info in pairs(self.Modules) do
 		self:LoadInfobar(info)
 	end
 

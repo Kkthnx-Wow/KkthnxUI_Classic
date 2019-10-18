@@ -223,8 +223,7 @@ local function getFloatingIconTexture(iconType, spellName, isPet)
 	elseif iconType == "range" then
 		texture = getTexture(75)
 	elseif iconType == "env" then
-		texture = getTextureForName[spellName] or "ability_creature_cursed_05"
-		texture = "Interface\\Icons\\"..texture
+        texture = getTextureForName[spellName] or "Interface\\Icons\\ability_creature_cursed_05"
 	end
 
 	return texture

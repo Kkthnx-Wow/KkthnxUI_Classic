@@ -30,7 +30,7 @@ local SortBags = _G.SortBags
 local SortBankBags = _G.SortBankBags
 
 local bagsFont = K.GetFont(C["UIFonts"].InventoryFonts)
-local goldProfit, goldSpent, sortCache, deleteEnable, favouriteEnable = 0, 0, {}
+local sortCache, deleteEnable, favouriteEnable = {}
 
 function Module:ReverseSort()
 	for bag = 0, 4 do
@@ -92,126 +92,10 @@ function Module:CreateInfoFrame()
 	search.Backdrop:SetPoint("TOPLEFT", -5, -7)
 	search.Backdrop:SetPoint("BOTTOMRIGHT", 5, 7)
 
-	-- local tag = self:SpawnPlugin("TagDisplay", "[money]", infoFrame)
-	-- tag:SetFont(C.Media.Font, 12, "OUTLINE")
-	-- tag:SetShadowOffset(0, 0)
-	-- tag:SetPoint("RIGHT", -5, 0)
-
-	-- Need to turn this into a plugin.
-	do
-		local gold = CreateFrame("Button", nil, infoFrame)
-		gold:RegisterForClicks("AnyUp")
-
-		gold.text = infoFrame:CreateFontString(nil, "OVERLAY")
-		gold.text:SetPoint("RIGHT", -5, 0)
-		gold.text:SetFontObject(bagsFont)
-		gold.text:SetFont(select(1, gold.text:GetFont()), 12, select(3, gold.text:GetFont()))
-
-		gold:SetAllPoints(gold.text)
-
-		local function OnGoldEvent(self)
-			if not _G.IsLoggedIn() then
-				return
-			end
-
-			local NewMoney = GetMoney()
-			KkthnxUIData = KkthnxUIData or {}
-			KkthnxUIData["Gold"] = KkthnxUIData["Gold"] or {}
-			KkthnxUIData["Gold"][K.Realm] = KkthnxUIData["Gold"][K.Realm] or {}
-			KkthnxUIData["Gold"][K.Realm][K.Name] = KkthnxUIData["Gold"][K.Realm][K.Name] or NewMoney
-
-			KkthnxUIData["Class"] = KkthnxUIData["Class"] or {}
-			KkthnxUIData["Class"][K.Realm] = KkthnxUIData["Class"][K.Realm] or {}
-			KkthnxUIData["Class"][K.Realm][K.Name] = K.Class
-
-			local OldMoney = KkthnxUIData["Gold"][K.Realm][K.Name] or NewMoney
-
-			local Change = NewMoney - OldMoney -- Positive If We Gain Money
-			if OldMoney > NewMoney then -- Lost Money
-				goldSpent = goldSpent - Change
-			else -- Gained Moeny
-				goldProfit = goldProfit + Change
-			end
-
-			self.text:SetText(K.FormatMoney(NewMoney))
-
-			KkthnxUIData["Gold"][K.Realm][K.Name] = NewMoney
-		end
-
-		local function OnGoldClick(self, btn)
-			if btn == "RightButton" then
-				if IsShiftKeyDown() then
-					KkthnxUIData.Gold = nil
-					OnGoldEvent(self)
-					GameTooltip:Hide()
-				elseif _G.IsControlKeyDown() then
-					goldProfit = 0
-					goldSpent = 0
-					GameTooltip:Hide()
-				end
-			end
-		end
-
-		local myGold = {}
-		local function OnGoldEnter(self)
-			GameTooltip:SetOwner(self, "ANCHOR_NONE")
-			GameTooltip:SetPoint(K.GetAnchors(self))
-			GameTooltip:ClearLines()
-
-			GameTooltip:AddLine("Session:")
-			GameTooltip:AddDoubleLine("Earned:", K.FormatMoney(goldProfit), 1, 1, 1, 1, 1, 1)
-			GameTooltip:AddDoubleLine("Spent:", K.FormatMoney(goldSpent), 1, 1, 1, 1, 1, 1)
-			if goldProfit < goldSpent then
-				GameTooltip:AddDoubleLine("Deficit:", K.FormatMoney(goldProfit - goldSpent), 1, 0, 0, 1, 1, 1)
-			elseif (goldProfit - goldSpent)>0 then
-				GameTooltip:AddDoubleLine("Profit:", K.FormatMoney(goldProfit - goldSpent), 0, 1, 0, 1, 1, 1)
-			end
-			GameTooltip:AddLine(" ")
-
-			local totalGold = 0
-			GameTooltip:AddLine("Character: ")
-
-			table.wipe(myGold)
-			for k, _ in pairs(KkthnxUIData["Gold"][K.Realm]) do
-				if KkthnxUIData["Gold"][K.Realm][k] then
-					local class = KkthnxUIData["Class"][K.Realm][k] or "PRIEST"
-					local color = class and (_G.CUSTOM_CLASS_COLORS and _G.CUSTOM_CLASS_COLORS[class] or _G.RAID_CLASS_COLORS[class])
-					table.insert(myGold, {name = k, amount = KkthnxUIData["Gold"][K.Realm][k], amountText = K.FormatMoney(KkthnxUIData["Gold"][K.Realm][k]), r = color.r, g = color.g, b = color.b,})
-				end
-				totalGold = totalGold + KkthnxUIData["Gold"][K.Realm][k]
-			end
-
-			for _, g in ipairs(myGold) do
-				GameTooltip:AddDoubleLine(g.name == K.Name and g.name.." |TInterface\\COMMON\\Indicator-Green:14|t" or g.name, g.amountText, g.r, g.g, g.b, 1, 1, 1)
-			end
-
-			GameTooltip:AddLine(" ")
-			GameTooltip:AddLine("Server: ")
-			GameTooltip:AddDoubleLine("Total: ", K.FormatMoney(totalGold), 1, 1, 1, 1, 1, 1)
-
-			GameTooltip:AddLine(" ")
-			GameTooltip:AddLine(string.join("", "|cffaaaaaa", "Reset Counters: Hold Shift + Left Click", "|r"))
-			GameTooltip:AddLine(string.join("", "|cffaaaaaa", "Reset Data: Hold Shift + Right Click", "|r"))
-
-			GameTooltip:Show()
-		end
-
-		local function OnGoldLeave()
-			GameTooltip:Hide()
-		end
-
-		gold:RegisterEvent("PLAYER_ENTERING_WORLD")
-		gold:RegisterEvent("PLAYER_MONEY")
-		gold:RegisterEvent("SEND_MAIL_MONEY_CHANGED")
-		gold:RegisterEvent("SEND_MAIL_COD_CHANGED")
-		gold:RegisterEvent("PLAYER_TRADE_MONEY")
-		gold:RegisterEvent("TRADE_MONEY_CHANGED")
-
-		gold:SetScript("OnEvent", OnGoldEvent)
-		gold:SetScript("OnMouseUp", OnGoldClick)
-		gold:SetScript("OnEnter", OnGoldEnter)
-		gold:SetScript("OnLeave", OnGoldLeave)
-	end
+	local tag = self:SpawnPlugin("TagDisplay", "[money]", infoFrame)
+	tag:SetFontObject(bagsFont)
+	tag:SetFont(select(1, tag:GetFont()), 13, select(3, tag:GetFont()))
+	tag:SetPoint("RIGHT", -5, 0)
 end
 
 function Module:CreateBagBar(settings, columns)

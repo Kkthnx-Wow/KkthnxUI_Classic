@@ -201,16 +201,37 @@ function Module:OnLeave()
 	GameTooltip:Hide()
 end
 
+function Module:OnClick(btn)
+	if K.CodeDebug then
+		K.Print("|cFFFF0000DEBUG:|r |cFF808080Line 430 - KkthnxUI|Modules|DataBars|Core -|r |cFFFFFF00"..btn.." Clicked|r")
+	end
+
+	if btn == "LeftButton" and IsShiftKeyDown() then
+		if MAX_PLAYER_LEVEL ~= K.Level then
+			local current, max = UnitXP("player"), UnitXPMax("player")
+			local rest = GetXPExhaustion()
+
+			SendChatMessage("Experience:".." "..string_format("%s - %s (%s%%)", K.ShortValue(current, 1), K.ShortValue(max, 1), K.Round(current / max * 100)), "PARTY")
+			SendChatMessage(L["Remaining"].." "..K.CommaValue(max-current), "PARTY")
+
+			if rest then
+				SendChatMessage(L["Rested"].." "..string_format("%s (%s%%)", K.CommaValue(rest), K.Round(rest / max * 100)), "PARTY")
+			end
+		end
+	end
+end
+
 function Module:OnEnable()
 	if C["DataBars"].Enable ~= true or IsAddOnLoaded("Bartender4") or IsAddOnLoaded("Dominos") then
 		return
 	end
 
-	self.container = CreateFrame("frame", "KKUI_Experience", UIParent)
+	self.container = CreateFrame("button", "KKUI_Experience", UIParent)
 	self.container:SetWidth(C["DataBars"].Width)
 	self.container:SetPoint("TOP", "Minimap", "BOTTOM", 0, -6)
 	self.container:SetScript("OnEnter", self.OnEnter)
 	self.container:SetScript("OnLeave", self.OnLeave)
+	self.container:SetScript("OnClick", self.OnClick)
 
 	K.Mover(self.container, "Databars", "Databars", {"TOP", "Minimap", "BOTTOM", 0, -6}, C["DataBars"].Width, C["DataBars"].Height)
 
