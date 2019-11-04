@@ -30,6 +30,7 @@ C["ActionBar"] = {
 		["Options"] = {
 			["Mainbar 3x12"] = "Default Style",
 			["Mainbar 4x12"] = "Four Stacked",
+			["Mainbar 2x3x4"] = "3x4 Boxed arrangement"
 		},
 		["Value"] = "Default Style"
 	},

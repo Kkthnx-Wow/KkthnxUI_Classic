@@ -22,6 +22,8 @@ function Module:CreateStancebar()
 	frame:SetHeight(FilterConfig.size + 2 * padding + 2)
 	if layout == "Four Stacked" then
 		frame.Pos = {"BOTTOM", UIParent, "BOTTOM", -70, 164}
+	elseif layout == "3x4 Boxed arrangement" then		
+		frame.Pos = {"BOTTOM", UIParent, "BOTTOM", -70, 44}
 	else
 		frame.Pos = {"BOTTOM", UIParent, "BOTTOM", -70, 124}
 	end
