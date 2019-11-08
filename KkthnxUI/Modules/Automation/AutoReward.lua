@@ -25,7 +25,7 @@ function Module:QUEST_COMPLETE()
 		return -- no choices, quick exit
 	end
 
-	if not self.QuestRewardGoldIconFrame then
+	if not QuestRewardGoldIconFrame then
 		local frame = CreateFrame("Frame", nil, _G.QuestInfoRewardsFrameQuestInfoItem1)
 		frame:SetFrameStrata("HIGH")
 		frame:SetSize(20, 20)
@@ -33,10 +33,11 @@ function Module:QUEST_COMPLETE()
 		frame.Icon = frame:CreateTexture(nil, "OVERLAY")
 		frame.Icon:SetAllPoints(frame)
 		frame.Icon:SetTexture("Interface\\MONEYFRAME\\UI-GoldIcon")
-		self.QuestRewardGoldIconFrame = frame
+		print(frame)
+		QuestRewardGoldIconFrame = frame
 	end
 
-	self.QuestRewardGoldIconFrame:Hide()
+	QuestRewardGoldIconFrame:Hide()
 
 	for i = 1, numQuests do
 		questLink = GetQuestItemLink("choice", i)
@@ -53,9 +54,9 @@ function Module:QUEST_COMPLETE()
 	if bestItem then
 		local btn = _G["QuestInfoRewardsFrameQuestInfoItem"..bestItem]
 		if btn.type == "choice" then
-			self.QuestRewardGoldIconFrame:ClearAllPoints()
-			self.QuestRewardGoldIconFrame:SetPoint("TOPRIGHT", btn, "TOPRIGHT", -2, -2)
-			self.QuestRewardGoldIconFrame:Show()
+			QuestRewardGoldIconFrame:ClearAllPoints()
+			QuestRewardGoldIconFrame:SetPoint("TOPRIGHT", btn, "TOPRIGHT", -2, -2)
+			QuestRewardGoldIconFrame:Show()
 		end
 	end
 end
