@@ -10,7 +10,6 @@ local unpack = _G.unpack
 local BAG_ITEM_QUALITY_COLORS = _G.BAG_ITEM_QUALITY_COLORS
 local C_NewItems_IsNewItem = _G.C_NewItems.IsNewItem
 local C_NewItems_RemoveNewItem = _G.C_NewItems.RemoveNewItem
-local C_Timer_After = _G.C_Timer.After
 local ClearCursor = _G.ClearCursor
 local CreateFrame = _G.CreateFrame
 local DeleteCursorItem = _G.DeleteCursorItem
@@ -30,27 +29,7 @@ local SortBags = _G.SortBags
 local SortBankBags = _G.SortBankBags
 
 local bagsFont = K.GetFont(C["UIFonts"].InventoryFonts)
-local sortCache, deleteEnable, favouriteEnable = {}
-
-function Module:ReverseSort()
-	for bag = 0, 4 do
-		local numSlots = GetContainerNumSlots(bag)
-		for slot = 1, numSlots do
-			local texture, _, locked = GetContainerItemInfo(bag, slot)
-			if (slot <= numSlots / 2) and texture and not locked and not sortCache["b"..bag.."s"..slot] then
-				ClearCursor()
-				PickupContainerItem(bag, slot)
-				PickupContainerItem(bag, numSlots + 1 - slot)
-				sortCache["b"..bag.."s"..slot] = true
-				C_Timer_After(0.1, Module.ReverseSort)
-				return
-			end
-		end
-	end
-
-	KKUI_Backpack.isSorting = false
-	KKUI_Backpack:BAG_UPDATE()
-end
+local deleteEnable, favouriteEnable
 
 function Module:UpdateAnchors(parent, bags)
 	local anchor = parent
@@ -206,14 +185,7 @@ function Module:CreateSortButton(name)
 		if name == "Bank" then
 			SortBankBags()
 		else
-			if C["Inventory"].ReverseSort then
-				SortBags()
-				wipe(sortCache)
-				KKUI_Backpack.isSorting = true
-				C_Timer_After(0.5, Module.ReverseSort)
-			else
-				SortBags()
-			end
+			SortBags()
 		end
 	end)
 	sortButton.title = "Sort"
@@ -477,8 +449,14 @@ function Module:OnEnable()
 		f.bankConsumble:SetFilter(bankConsumble, true)
 	end
 
+	local initBagType
 	function Backpack:OnBankOpened()
 		self:GetContainer("Bank"):Show()
+
+		if not initBagType then
+			KKUI_Backpack:BAG_UPDATE() -- Initialize bagType
+			initBagType = true
+		end
 	end
 
 	function Backpack:OnBankClosed()

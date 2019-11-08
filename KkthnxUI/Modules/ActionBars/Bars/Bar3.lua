@@ -28,7 +28,6 @@ function Module:CreateBar3()
 		frame:SetHeight(FilterConfig.size + 2 * padding)
 		frame.Pos = {"BOTTOM", UIParent, "BOTTOM", 0, 84}
 	end
-	
 
 	-- Move The Buttons Into Position And Reparent Them
 	_G.MultiBarBottomRight:SetParent(frame)

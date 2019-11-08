@@ -250,6 +250,11 @@ end
 SLASH_KKUI_UIPROFILES1 = "/profile"
 SLASH_KKUI_UIPROFILES2 = "/profiles"
 
+-- Restore original stopwatch commands
+SlashCmdList["STOPWATCH"] = function()
+	Stopwatch_Toggle()
+end
+
 -- Fixes the issue when the dialog to release spirit does not come up.
 SlashCmdList["KKUI_FIXRELEASE"] = function()
 	RetrieveCorpse()

@@ -15,11 +15,11 @@ function Module:RegisterInfobar(name, point)
 	end
 
 	local info = CreateFrame("Frame", nil, UIParent)
-	info:SetHitRectInsets(0, 0, -10, -10)
 	info.text = info:CreateFontString(nil, "OVERLAY")
 	info.text:SetFontObject(K.GetFont(C["UIFonts"].DataTextFonts))
 	info.text:SetFont(select(1, info.text:GetFont()), 13, select(3, info.text:GetFont()))
-	info.text:SetPoint(unpack(point))
+
+	info.point = info.text:SetPoint(unpack(point))
 
 	info.text.glow = info:CreateTexture(nil, "BACKGROUND", nil, -1)
 	info.text.glow:SetHeight(12)
@@ -62,7 +62,10 @@ function Module:LoadInfobar(info)
 end
 
 function Module:OnEnable()
-	if not self.Modules then return end
+	if not self.Modules then
+		return
+	end
+
 	for _, info in pairs(self.Modules) do
 		self:LoadInfobar(info)
 	end

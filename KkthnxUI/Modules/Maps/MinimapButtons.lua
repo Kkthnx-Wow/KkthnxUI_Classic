@@ -98,7 +98,13 @@ function Module:CreateRecycleBin()
 		end
 	end
 
+	local isCollecting
 	local function CollectRubbish()
+		if isCollecting then
+			return
+		end
+		isCollecting = true
+
 		for _, child in ipairs({Minimap:GetChildren()}) do
 			local name = child:GetName()
 			if name and not blackList[name] and not isButtonSecure(name) then
@@ -128,9 +134,9 @@ function Module:CreateRecycleBin()
 						child:SetScript("OnDragStop", nil)
 					end
 
-					if child:HasScript("OnClick") then
-						child:HookScript("OnClick", clickFunc)
-					end
+					-- if child:HasScript("OnClick") then
+					-- 	child:HookScript("OnClick", clickFunc)
+					-- end
 
 					if child:GetObjectType() == "Button" then
 						child:SetHighlightTexture(C["Media"].Blank) -- prevent nil function
@@ -146,14 +152,16 @@ function Module:CreateRecycleBin()
 					if name == "DBMMinimapButton" then
 						child:SetScript("OnMouseDown", nil)
 						child:SetScript("OnMouseUp", nil)
-					elseif name == "BagSync_MinimapButton" then
-						child:HookScript("OnMouseUp", clickFunc)
+					-- elseif name == "BagSync_MinimapButton" then
+					-- 	child:HookScript("OnMouseUp", clickFunc)
 					end
 
 					table_insert(buttons, child)
 				end
 			end
 		end
+
+		isCollecting = nil
 	end
 
 	local function SortRubbish()

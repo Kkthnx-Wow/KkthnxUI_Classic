@@ -91,8 +91,13 @@ function Module:UpdateSettings()
 
 	if MiniMapMailFrame then
 		MiniMapMailFrame:ClearAllPoints()
-		MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 4)
+		if C["DataText"].Time then
+			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 4)
+		else
+			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, -6)
+		end
 		MiniMapMailFrame:SetScale(1.2)
+		MiniMapMailFrame:SetHitRectInsets(8, 8, 12, 11)
 	end
 
 	if MiniMapTrackingFrame then
@@ -199,8 +204,15 @@ function Module:OnEnable()
 		return
 	end
 
+	local pos
 	local MinimapFrameHolder = CreateFrame("Frame", "MinimapFrameHolder", Minimap)
-	MinimapFrameHolder:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -4, -4)
+	if K.CheckAddOnState("TitanClassic") then
+		-- MinimapFrameHolder:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -4, -50)
+		pos = {"TOPRIGHT", UIParent, "TOPRIGHT", -4, -30}
+	else
+		MinimapFrameHolder:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -4, -4)
+		pos = {"TOPRIGHT", UIParent, "TOPRIGHT", -4, -4}
+	end
 	MinimapFrameHolder:SetSize(C["Minimap"].Size, C["Minimap"].Size)
 
 	Minimap:ClearAllPoints()
@@ -260,7 +272,7 @@ function Module:OnEnable()
 
 	_G.MinimapCluster:EnableMouse(false)
 
-	K.Mover(MinimapFrameHolder, "Minimap", "Minimap", {"TOPRIGHT", UIParent, "TOPRIGHT", -4, -4})
+	K.Mover(MinimapFrameHolder, "Minimap", "Minimap", pos)
 
 	Minimap:EnableMouseWheel(true)
 	Minimap:SetScript("OnMouseWheel", Module.OnMouseWheelScroll)

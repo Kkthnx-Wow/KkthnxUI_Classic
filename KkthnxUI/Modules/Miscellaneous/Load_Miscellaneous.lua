@@ -435,7 +435,9 @@ end
 -- Add friend and guild invite on target menu
 function Module:MenuButton_OnClick(info)
 	local name, server = UnitName(info.unit)
-	if server and server ~= "" then name = name.."-"..server end
+	if server and server ~= "" then
+		name = name.."-"..server
+	end
 
 	if info.value == "name" then
 		if MailFrame:IsShown() then
@@ -447,7 +449,9 @@ function Module:MenuButton_OnClick(info)
 			local hasText = (editBox:GetText() ~= "")
 			ChatEdit_ActivateChat(editBox)
 			editBox:Insert(name)
-			if not hasText then editBox:HighlightText() end
+			if not hasText then
+				editBox:HighlightText()
+			end
 		end
 	elseif info.value == "guild" then
 		GuildInvite(name)
@@ -455,7 +459,9 @@ function Module:MenuButton_OnClick(info)
 end
 
 function Module:MenuButton_Show(_, unit)
-	if UIDROPDOWNMENU_MENU_LEVEL > 1 then return end
+	if UIDROPDOWNMENU_MENU_LEVEL > 1 then
+		return
+	end
 
 	if unit and (unit == "target" or string.find(unit, "party") or string.find(unit, "raid")) then
 		local info = UIDropDownMenu_CreateInfo()
@@ -631,7 +637,7 @@ function Module:CreateWowHeadLinks()
 end
 
 function Module:OnEnable()
-	-- self:CreateKillingBlow() -- Not Ready
+	self:CreateKillingBlow() -- Not Ready
 	-- self:CreateChatBubble() -- Place Holder
 
 	self:CreateAFKCam()
@@ -649,6 +655,7 @@ function Module:OnEnable()
 	self:CreateSlotDurability()
 	self:CreateSlotItemLevel()
 	self:CreateToggleHelmCloak()
+	self:CreateTradeTabs()
 	self:CreateWowHeadLinks()
 	self:FixQuestFrameIcons()
 	self:TradeTargetInfo()

@@ -3,48 +3,42 @@ local Module = K:GetModule("Automation")
 
 local _G = _G
 local string_split = _G.string.split
+local math_random = _G.math.random
 
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo
-local EMOTE98_TOKEN = _G.EMOTE98_TOKEN
+local DoEmote = _G.DoEmote
+local GetSpellInfo = _G.GetSpellInfo
+local IsAddOnLoaded = _G.IsAddOnLoaded
 local UnitInParty = _G.UnitInParty
 local UnitInRaid = _G.UnitInRaid
-local UnitGUID = _G.UnitGUID
-local GetSpellInfo = _G.GetSpellInfo
-local DoEmote = _G.DoEmote
-local IsAddOnLoaded = _G.IsAddOnLoaded
-
-local playerGUID = UnitGUID("player")
 
 -- Build Spell list (this ignores ranks)
-local AutoBuffThanksList = {
-	[GetSpellInfo(1255)] = true, -- Power Word: Fortitude
-	[GetSpellInfo(1459)] = true, -- Arcane Intellect
-	[GetSpellInfo(19742)] = true, -- Blessing Of Wisdom
-	[GetSpellInfo(19834)] = true, -- Blessing Of Might
-	[GetSpellInfo(20217)] = true, -- Blessing Of Kings
-	[GetSpellInfo(467)] = true, -- Thorns
-	[GetSpellInfo(5231)] = true, -- Mark of the Wild
-	[GetSpellInfo(5697)] = true, -- Unending Breath
+local AutoBuffThanksSpells = {
+	[1255] = true, -- Power Word: Fortitude
+	[1459] = true, -- Arcane Intellect
+	[19742] = true, -- Blessing Of Wisdom
+	[19834] = true, -- Blessing Of Might
+	[20217] = true, -- Blessing Of Kings
+	[467] = true, -- Thorns
+	[5231] = true, -- Mark of the Wild
+	[5697] = true, -- Unending Breath
+}
+
+local AutoBuffThanksEmotes = {
+	"THANK",
+	"FLEX",
+	"CHEER",
 }
 
 function Module:SetupAutoBuffThanksAnnounce()
-	local _, event, _, sourceGUID, sourceName, _, _, destGUID, _, _, _, _, spellName = CombatLogGetCurrentEventInfo()
+	local _, event, _, _, sourceName, _, _, _, destName, _, _, _, spellName = CombatLogGetCurrentEventInfo()
+	local spellID = K.GetSpellID(spellName)
 
-	if not (event == "SPELL_AURA_APPLIED") or (event == "PLAYER_ENTERING_WORLD") then
-		return
-	end
-
-	-- Make sure its cast on us from another source and they are not in our raidgroup / party
-	-- do not consider source-less buffs, sourceGUID ~= playerGUID is not enough because nil ~= playerGUID == true
-	if (destGUID and sourceGUID) and (destGUID == playerGUID) and (sourceGUID ~= destGUID) and not (UnitInParty(sourceName) or UnitInRaid(sourceName)) then
-		if AutoBuffThanksList[spellName] then
-			local sourceType = string_split("-", sourceGUID) -- `type` is a reserved word for a Lua function
-			-- Make sure the other source is a player
-			if sourceType == "Player" then
-				K.Delay(1.2, function() -- Give this more time to say thanks, so we do not look like we are bots.
-					DoEmote(EMOTE98_TOKEN, sourceName)
-				end)
-			end
+	for key, value in pairs(AutoBuffThanksSpells) do
+		if spellID == key and value == true and destName == K.Name and sourceName ~= K.Name and not (UnitInParty(sourceName) or UnitInRaid(sourceName)) and event == "SPELL_CAST_SUCCESS" then
+			K.Delay(1.4, function() -- Give this more time to say emote, so we do not look like we are bots.
+				DoEmote(AutoBuffThanksEmotes[math_random(1, #AutoBuffThanksEmotes)], sourceName)
+			end)
 		end
 	end
 end

@@ -518,6 +518,58 @@ function K.RestoreMoverFrame(self)
 	end
 end
 
+local spellLookup = {
+	-- Say Sapped
+	11297, -- Sapped
+	6770, -- Sapped
+	2070, -- Sapped
+
+	-- Buff Thanks
+	1255, -- Power Word: Fortitude
+	1459, -- Arcane Intellect
+	19742, -- Blessing Of Wisdom
+	19834, -- Blessing Of Might
+	20217, -- Blessing Of Kings
+	467, -- Thorns
+	5231, -- Mark of the Wild
+	5697, -- Unending Breath
+}
+
+local spellLookupLocalized = {}
+for i = 1, #spellLookup do
+	local name = GetSpellInfo(spellLookup[i])
+	if not name then
+		print("|cffff0000WARNING: spell ID ["..tostring(spellLookup[i]).."] no longer exists! Report this to Kkthnx.|r")
+	else
+		spellLookupLocalized[name] = spellLookup[i]
+	end
+end
+spellLookup = nil
+
+function K.GetSpellID(spellName, unit, auraType)
+	-- change localized MELEE string into the appropriate spellID
+	if spellName == MELEE then
+		return 6603
+		-- get spellID from auras
+	elseif auraType and unit then
+		if auraType == AURA_TYPE_DEBUFF then
+			return select(10, AuraUtil.FindAuraByName(spellName, unit, "HARMFUL")) or 0
+		else
+			return select(10, AuraUtil.FindAuraByName(spellName, unit)) or 0
+		end
+		-- get spellID from lookup/spellbook
+	else
+		-- eventually build a cache from UNIT_SPELLCAST_* events to track lower ranks
+		-- for now, we just assume max rank and get that spellID from the spellbook
+		local spellID = spellLookupLocalized[spellName]
+		if not spellID then
+			spellID = select(7, GetSpellInfo(spellName))
+		end
+
+		return spellID or 0
+	end
+end
+
 function K.ShortenString(string, numChars, dots)
 	local bytes = string:len()
 	if (bytes <= numChars) then
@@ -591,7 +643,7 @@ function K.ColorGradient(perc, ...)
 	local segment, relperc = math.modf(perc * (num - 1))
 	local r1, g1, b1, r2, g2, b2 = select((segment * 3) + 1, ...)
 
-	return r1 + (r2-r1) * relperc, g1 + (g2 - g1) * relperc, b1 + (b2 - b1) * relperc
+	return r1 + (r2 - r1) * relperc, g1 + (g2 - g1) * relperc, b1 + (b2 - b1) * relperc
 end
 
 function K.HideInterfaceOption(self)
@@ -601,11 +653,10 @@ function K.HideInterfaceOption(self)
 end
 
 -- Format seconds to min/hour/day
+local Day, Hour, Minute = 86400, 3600, 60
 function K.FormatTime(s)
-	local Day, Hour, Minute = 86400, 3600, 60
-
 	if s == math_huge then
-		s = 0
+		return
 	end
 
 	if s >= Day then

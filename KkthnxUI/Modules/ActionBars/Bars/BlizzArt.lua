@@ -97,6 +97,7 @@ function Module:HideBlizz()
 	end
 	hooksecurefunc("MultiActionBar_UpdateGridVisibility", ToggleButtonGrid)
 	hooksecurefunc("MultiActionBar_HideAllGrids", ToggleButtonGrid)
+	K:RegisterEvent("ACTIONBAR_HIDEGRID", ToggleButtonGrid)
 
 	_G.InterfaceOptionsActionBarsPanelStackRightBars:Kill()
 end

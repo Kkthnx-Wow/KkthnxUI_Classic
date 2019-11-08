@@ -5,7 +5,7 @@
    <Script file="CallbackHandler-1.0\CallbackHandler-1.0.lua" />
    <Include file="LibClassicDurations\LibClassicDurations.xml"/>
 	<Script file="LibClassicCasterino\LibClassicCasterino.lua"/>
-   <Include file="LibClassicHealComm\LibClassicHealComm.xml"/>
+   <Include file="LibHealComm-4.0\LibHealComm-4.0.xml"/>
    <Script file="LibSharedMedia-3.0\LibSharedMedia-3.0.lua" />
    <Include file="cargBags\cargBags.xml"/>
    <Include file="oUF\oUF.xml"/>

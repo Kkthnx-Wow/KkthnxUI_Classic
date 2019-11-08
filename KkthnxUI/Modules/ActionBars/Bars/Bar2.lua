@@ -16,7 +16,7 @@ function Module:CreateBar2()
 	local num = NUM_ACTIONBAR_BUTTONS
 	local buttonList = {}
 	local layout = C["ActionBar"].Layout.Value
-	
+
 	-- Create The Frame To Hold The Buttons
 	local frame = CreateFrame("Frame", "KkthnxUI_ActionBar2", UIParent, "SecureHandlerStateTemplate")
 	if layout == "3x4 Boxed arrangement" then
@@ -28,11 +28,11 @@ function Module:CreateBar2()
 		frame:SetHeight(FilterConfig.size + 2 * padding)
 		frame.Pos = {"BOTTOM", UIParent, "BOTTOM", 0, 44}
 	end
-	
+
 	-- Move The Buttons Into Position And Reparent Them
 	_G.MultiBarBottomLeft:SetParent(frame)
 	_G.MultiBarBottomLeft:EnableMouse(false)
-	
+
 	if layout == "3x4 Boxed arrangement" then
 		for i = 1, num do
 			local button = _G["MultiBarBottomLeftButton"..i]

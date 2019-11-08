@@ -28,9 +28,9 @@ C["ActionBar"] = {
 	["StancePetSize"] = 28,
 	["Layout"] = {
 		["Options"] = {
+			["Mainbar 2x3x4"] = "3x4 Boxed arrangement"
 			["Mainbar 3x12"] = "Default Style",
 			["Mainbar 4x12"] = "Four Stacked",
-			["Mainbar 2x3x4"] = "3x4 Boxed arrangement"
 		},
 		["Value"] = "Default Style"
 	},
@@ -85,7 +85,6 @@ C["Inventory"] = {
 	["IconSize"] = 34,
 	["ItemFilter"] = true,
 	["QuestItemFilter"] = false,
-	["ReverseSort"] = false,
 	["SpecialBagsColor"] = true,
 	["TradeGoodsFilter"] = false,
 }
@@ -226,6 +225,7 @@ C["Misc"] = {
 	["ShowHelmCloak"] = false,
 	["ShowWowHeadLinks"] = false,
 	["SlotDurability"] = false,
+	["TradeTabs"] = false,
 }
 
 C["Nameplates"] = {
@@ -281,14 +281,13 @@ C["Nameplates"] = {
 
 -- Skins
 C["Skins"] = {
-	--["BlizzardBags"] = false,
-
 	["ChatBubbles"] = true,
 	["DBM"] = false,
 	["Details"] = false,
-	["Hekili"] = false,
 	["Skada"] = false,
+	["TitanClassic"] = false,
 	["WeakAuras"] = false,
+	["Spy"] = false,
 }
 
 -- Tooltip
@@ -358,6 +357,7 @@ C["Unitframe"] = {
 	["GlobalCooldown"] = false,
 	["HideTargetofTarget"] = false,
 	["OnlyShowPlayerDebuff"] = false,
+	["PlayerAuraBars"] = false,
 	["PlayerBuffs"] = false,
 	["PlayerCastbarHeight"] = 24,
 	["PlayerCastbarWidth"] = 260,
@@ -370,6 +370,7 @@ C["Unitframe"] = {
 	["Smooth"] = false,
 	["Swingbar"] = false,
 	["SwingbarTimer"] = false,
+	["TargetAuraBars"] = false,
 	["TargetCastbarHeight"] = 24,
 	["TargetCastbarWidth"] = 260,
 	["Totems"] = K.Class == "SHAMAN",
@@ -389,6 +390,7 @@ C["Party"] = {
 	["PortraitTimers"] = false,
 	["ShowBuffs"] = true,
 	["ShowHealPrediction"] = true,
+	["ShowPets"] = true,
 	["ShowPlayer"] = true,
 	["Smooth"] = false,
 	["TargetHighlight"] = false,

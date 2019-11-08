@@ -70,7 +70,7 @@ local function ReskinDetails()
 				height = 112
 				EmbedWindow(instance2, -3, 140, 260, height)
 			end
-			EmbedWindow(instance1, -370, 4, 260, height)
+			EmbedWindow(instance1, -320, 4, 260, height)
 		end
 	end
 

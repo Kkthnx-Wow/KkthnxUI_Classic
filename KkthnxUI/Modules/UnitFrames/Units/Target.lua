@@ -117,7 +117,21 @@ function Module:CreateTarget(unit)
 	self.Health:SetPoint("TOPLEFT")
 	self.Health:SetPoint("TOPRIGHT", -self.Portrait:GetWidth() - 6, 0)
 
-	if C["Unitframe"].DebuffsOnTop then
+	if C["Unitframe"].TargetAuraBars then
+		self.AuraBars = CreateFrame("Frame", self:GetName().."AuraBars", self)
+		self.AuraBars:SetHeight(18)
+		self.AuraBars:SetWidth(210)
+		self.AuraBars:SetPoint("TOPLEFT", 0, 38)
+		self.AuraBars.auraBarTexture = UnitframeTexture
+		self.AuraBars.onlyShowPlayer = C["Unitframe"].OnlyShowPlayerDebuff
+		self.AuraBars.PostCreateBar = Module.PostCreateAuraBar
+		self.AuraBars.spacing = 6
+		self.AuraBars.gap = 6
+		self.AuraBars.width = 186
+		self.AuraBars.height = 18
+
+		K.Mover(self.AuraBars, "TargetAuraBars", "TargetAuraBars", {"TOPLEFT", self, 0, 38})
+	elseif C["Unitframe"].DebuffsOnTop then
 		self.Buffs = CreateFrame("Frame", self:GetName().."Buffs", self)
 		self.Buffs:SetWidth(156)
 		self.Buffs:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -6)
@@ -164,7 +178,7 @@ function Module:CreateTarget(unit)
 
 	if (C["Unitframe"].Castbars) then
 		self.Castbar = CreateFrame("StatusBar", "TargetCastbar", self)
-		self.Castbar:SetPoint("BOTTOM", UIParent, "BOTTOM", 15, 400)
+		self.Castbar:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 335)
 		self.Castbar:SetStatusBarTexture(UnitframeTexture)
 		self.Castbar:SetSize(C["Unitframe"].TargetCastbarWidth, C["Unitframe"].TargetCastbarHeight)
 		self.Castbar:SetClampedToScreen(true)
@@ -218,25 +232,28 @@ function Module:CreateTarget(unit)
 
 		self.Castbar.Button:SetAllPoints(self.Castbar.Icon)
 
-		K.Mover(self.Castbar, "TargetCastBar", "TargetCastBar", {"BOTTOM", UIParent, "BOTTOM", 15, 400})
+		K.Mover(self.Castbar, "TargetCastBar", "TargetCastBar", {"BOTTOM", UIParent, "BOTTOM", 0, 335})
 	end
 
 	if C["Unitframe"].ShowHealPrediction then
-		local myBar = CreateFrame("StatusBar", nil, self)
-		myBar:SetWidth(156)
-		myBar:SetPoint("TOP", self.Health, "TOP")
-		myBar:SetPoint("BOTTOM", self.Health, "BOTTOM")
-		myBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
-		myBar:SetStatusBarTexture(HealPredictionTexture)
-		myBar:SetStatusBarColor(0, 1, 0.5, 0.25)
+		local myBar = CreateFrame("StatusBar", nil, self.Health)
+		local otherBar = CreateFrame("StatusBar", nil, self.Health)
 
-		local otherBar = CreateFrame("StatusBar", nil, self)
-		otherBar:SetWidth(156)
-		otherBar:SetPoint("TOP", self.Health, "TOP")
-		otherBar:SetPoint("BOTTOM", self.Health, "BOTTOM")
+		myBar:SetFrameLevel(self.Health:GetFrameLevel())
+		myBar:SetStatusBarTexture(HealPredictionTexture)
+		myBar:SetPoint("TOP")
+		myBar:SetPoint("BOTTOM")
+		myBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
+		myBar:SetWidth(156)
+		myBar:SetStatusBarColor(0.29, 1, 0.30)
+
+		otherBar:SetFrameLevel(self.Health:GetFrameLevel())
+		otherBar:SetPoint("TOP")
+		otherBar:SetPoint("BOTTOM")
 		otherBar:SetPoint("LEFT", myBar:GetStatusBarTexture(), "RIGHT")
+		otherBar:SetWidth(156)
 		otherBar:SetStatusBarTexture(HealPredictionTexture)
-		otherBar:SetStatusBarColor(0, 1, 0, 0.25)
+		otherBar:SetStatusBarColor(1, 1, 0.36)
 
 		self.HealthPrediction = {
 			myBar = myBar,
@@ -333,8 +350,8 @@ function Module:CreateTarget(unit)
 	self.Highlight:SetBlendMode("ADD")
 	self.Highlight:Hide()
 
-	self.SpellRange = {
+	self.Range = {
 		insideAlpha = 1,
-		outsideAlpha = 0.4
+		outsideAlpha = 0.5,
 	}
 end

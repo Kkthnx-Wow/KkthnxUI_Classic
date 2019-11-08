@@ -132,8 +132,8 @@ function Module:CreateTargetOfTarget()
 	self.Highlight:SetBlendMode("ADD")
 	self.Highlight:Hide()
 
-	self.SpellRange = {
+	self.Range = {
 		insideAlpha = 1,
-		outsideAlpha = 0.4
+		outsideAlpha = 0.5,
 	}
 end

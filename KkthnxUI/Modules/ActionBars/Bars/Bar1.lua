@@ -1,5 +1,5 @@
 local K, C = unpack(select(2, ...))
-local Module = K:NewModule("ActionBar", "AceEvent-3.0", "AceHook-3.0")
+local Module = K:NewModule("ActionBar")
 local FilterConfig = K.ActionBars.actionBar1
 
 local _G = _G
@@ -7,7 +7,6 @@ local next = _G.next
 local table_insert = _G.table.insert
 
 local CreateFrame = _G.CreateFrame
-local GetActionTexture = _G.GetActionTexture
 local NUM_ACTIONBAR_BUTTONS = _G.NUM_ACTIONBAR_BUTTONS
 local RegisterStateDriver = _G.RegisterStateDriver
 local UIParent = _G.UIParent
@@ -51,7 +50,7 @@ function Module:OnEnable()
 
 	-- Create The Frame To Hold The Buttons
 	local frame = CreateFrame("Frame", "KkthnxUI_ActionBar1", UIParent, "SecureHandlerStateTemplate")
-	
+
 	if layout == "3x4 Boxed arrangement" then
 		frame:SetWidth(3 * FilterConfig.size + (3 - 1) * margin + 2 * padding)
 		frame:SetHeight(4 * FilterConfig.size + (4 - 1) * margin + 2 * padding)
@@ -151,11 +150,9 @@ function Module:OnEnable()
 			page = 12;
 		end
 	end
-
 	if page then
 		newstate = page;
 	end
-
 	for i, button in ipairs(buttons) do
 		button:SetAttribute("actionpage", tonumber(newstate))
 	end

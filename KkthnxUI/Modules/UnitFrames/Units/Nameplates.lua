@@ -10,7 +10,6 @@ end
 local _G = _G
 
 local CreateFrame = _G.CreateFrame
-local UIParent = _G.UIParent
 local UnitIsUnit = _G.UnitIsUnit
 local UnitPower = _G.UnitPower
 
@@ -228,22 +227,25 @@ function Module:CreateNameplates(unit)
 	self.Castbar:SetScript("OnShow", Module.DisplayNameplatePowerAndCastBar)
 	self.Castbar:SetScript("OnHide", Module.DisplayNameplatePowerAndCastBar)
 
-	if C["Nameplates"].ShowHealPrediction then
-		local myBar = CreateFrame("StatusBar", nil, self)
-		myBar:SetWidth(self:GetWidth())
-		myBar:SetPoint("TOP", self.Health, "TOP")
-		myBar:SetPoint("BOTTOM", self.Health, "BOTTOM")
-		myBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
-		myBar:SetStatusBarTexture(HealPredictionTexture)
-		myBar:SetStatusBarColor(0, 1, 0.5, 0.25)
+	if C["Unitframe"].ShowHealPrediction then
+		local myBar = CreateFrame("StatusBar", nil, self.Health)
+		local otherBar = CreateFrame("StatusBar", nil, self.Health)
 
-		local otherBar = CreateFrame("StatusBar", nil, self)
-		otherBar:SetWidth(self:GetWidth())
-		otherBar:SetPoint("TOP", self.Health, "TOP")
-		otherBar:SetPoint("BOTTOM", self.Health, "BOTTOM")
+		myBar:SetFrameLevel(self.Health:GetFrameLevel())
+		myBar:SetStatusBarTexture(HealPredictionTexture)
+		myBar:SetPoint("TOP")
+		myBar:SetPoint("BOTTOM")
+		myBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
+		myBar:SetWidth(C["Nameplates"].Width)
+		myBar:SetStatusBarColor(0.29, 1, 0.30)
+
+		otherBar:SetFrameLevel(self.Health:GetFrameLevel())
+		otherBar:SetPoint("TOP")
+		otherBar:SetPoint("BOTTOM")
 		otherBar:SetPoint("LEFT", myBar:GetStatusBarTexture(), "RIGHT")
+		otherBar:SetWidth(C["Nameplates"].Width)
 		otherBar:SetStatusBarTexture(HealPredictionTexture)
-		otherBar:SetStatusBarColor(0, 1, 0, 0.25)
+		otherBar:SetStatusBarColor(1, 1, 0.36)
 
 		self.HealthPrediction = {
 			myBar = myBar,
@@ -290,47 +292,17 @@ function Module:CreateNameplates(unit)
 	self.creatureIcon:SetSize(16, 16)
 	self.creatureIcon:SetAlpha(0)
 
-	-- Target Arrow.
-	if C["Nameplates"].TargetArrowMark.Value ~= "NONE" then
-		self.targetArrowMark = self:CreateTexture(nil, "OVERLAY", nil, 1)
-		self.targetArrowMark:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Nameplates\\arrow_single_right_64")
-		self.targetArrowMark:SetSize(64, 64)
-		self.targetArrowMark:SetScale(0.8)
-
-		self.targetArrowMarkLeft = self:CreateTexture(nil, "OVERLAY", nil, 1)
-		self.targetArrowMarkLeft:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Nameplates\\arrow_single_right_64")
-		self.targetArrowMarkLeft:SetSize(64, 64)
-		self.targetArrowMarkLeft:SetScale(0.6)
-
-		self.targetArrowMarkRight = self:CreateTexture(nil, "OVERLAY", nil, 1)
-		self.targetArrowMarkRight:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Nameplates\\arrow_single_right_64")
-		self.targetArrowMarkRight:SetTexCoord(1, 0, 0, 1)
-		self.targetArrowMarkRight:SetSize(64, 64)
-		self.targetArrowMarkRight:SetScale(0.6)
-
-		if C["Nameplates"].TargetArrowMark.Value == "LEFT/RIGHT" then
-			self.targetArrowMarkLeft:SetPoint("RIGHT", self, "LEFT", -4, 0)
-			self.targetArrowMarkRight:SetPoint("LEFT", self, "RIGHT", 4, 0)
-		else
-			self.targetArrowMark:SetPoint("BOTTOM", self, "TOP", 0, 60)
-			self.targetArrowMark:SetRotation(math.rad(-90))
-		end
-
-		self.targetArrowMark:Hide()
-		self.targetArrowMarkLeft:Hide()
-		self.targetArrowMarkRight:Hide()
-	end
-
-	-- Target Highlight.
-	self.targetHightlightMark = self.Health:CreateTexture(nil, "BACKGROUND", nil, -1)
-	self.targetHightlightMark:SetHeight(12)
-	self.targetHightlightMark:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", -20, -2)
-	self.targetHightlightMark:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 20, -2)
-	self.targetHightlightMark:SetTexture("Interface\\GLUES\\Models\\UI_Draenei\\GenericGlow64")
-	self.targetHightlightMark:SetVertexColor(0, .6, 1)
-	self.targetHightlightMark:Hide()
+	self.Highlight = CreateFrame("Frame", nil, self)
+	self.Highlight:SetBackdrop({edgeFile = C["Media"].Glow, edgeSize = 4})
+	self.Highlight:SetOutside(self, 4, 4)
+	self.Highlight:SetBackdropBorderColor(1, 1, 0)
+	self.Highlight:SetFrameLevel(4)
+	self.Highlight:Hide()
 
 	-- Register Events For Functions As Needed.
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", Module.UpdateNameplateTarget, true)
+	self:RegisterEvent("NAME_PLATE_UNIT_ADDED", Module.UpdateNameplateTarget, true)
+	self:RegisterEvent("NAME_PLATE_UNIT_REMOVED", Module.UpdateNameplateTarget, true)
+
 	self:RegisterEvent("QUEST_LOG_UPDATE", Module.UpdateQuestUnit, true)
 end

@@ -1,23 +1,14 @@
 --[[
 # Element: Range Fader
-
 Changes the opacity of a unit frame based on whether the frame's unit is in the player's range.
-
 ## Widget
-
 Range - A table containing opacity values.
-
 ## Notes
-
 Offline units are handled as if they are in range.
-
 ## Options
-
 .outsideAlpha - Opacity when the unit is out of range. Defaults to 0.55 (number)[0-1].
 .insideAlpha  - Opacity when the unit is within range. Defaults to 1 (number)[0-1].
-
 ## Examples
-
     -- Register with oUF
     self.Range = {
         insideAlpha = 1,
@@ -30,8 +21,9 @@ local oUF = ns.oUF
 
 local _FRAMES = {}
 local OnRangeFrame
-
-local UnitInRange, UnitIsConnected = UnitInRange, UnitIsConnected
+local UnitInRange = UnitInRange
+local UnitIsConnected = UnitIsConnected
+local next = next
 
 local function Update(self, event)
 	local element = self.Range
@@ -39,7 +31,6 @@ local function Update(self, event)
 
 	--[[ Callback: Range:PreUpdate()
 	Called before the element has been updated.
-
 	* self - the Range element
 	--]]
 	if(element.PreUpdate) then
@@ -61,7 +52,6 @@ local function Update(self, event)
 
 	--[[ Callback: Range:PostUpdate(object, inRange, checkedRange, isConnected)
 	Called after the element has been updated.
-
 	* self         - the Range element
 	* object       - the parent object
 	* inRange      - indicates if the unit was within 40 yards of the player (boolean)
@@ -76,7 +66,6 @@ end
 local function Path(self, ...)
 	--[[ Override: Range.Override(self, event)
 	Used to completely override the internal update function.
-
 	* self  - the parent object
 	* event - the event triggering the update (string)
 	--]]

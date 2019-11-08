@@ -647,6 +647,11 @@ _G.KkthnxUIConfig["enUS"] = {
 		["SlotDurability"] = {
 			["Name"] = "Show Slot Durability %",
 		},
+
+		["TradeTabs"] = {
+			["Name"] = "Show TradeTabs",
+			["Desc"] = "Add spellbook-like tabs to the TradeSkillFrame. It will add one for each of your professions and one for each of the profession 'suppliment' abilities (cooking, disenchant, etc)"
+		},
 	},
 
 	-- Nameplates Local
@@ -859,6 +864,10 @@ _G.KkthnxUIConfig["enUS"] = {
 			["Name"] = "Only Show Your Debuffs",
 		},
 
+		["PlayerAuraBars"] = {
+			["Name"] = "Show Player Aura Bars Instead Of Aura Icons",
+		},
+
 		["PlayerBuffs"] = {
 			["Name"] = "Show Player Frame Buffs",
 		},
@@ -905,6 +914,10 @@ _G.KkthnxUIConfig["enUS"] = {
 
 		["SwingbarTimer"] = {
 			["Name"] = "Unitframe Swingbar Timer",
+		},
+
+		["TargetAuraBars"] = {
+			["Name"] = "Show Target Aura Bars Instead Of Aura Icons",
 		},
 
 		["TargetCastbarHeight"] = {

@@ -204,40 +204,7 @@ function Module:CreateRaid()
 	end
 
 	if C["Raid"].AuraWatch then
-		Module:CreateAuraWatch(self)
-
-		self.RaidDebuffs = CreateFrame("Frame", nil, self.Health)
-		self.RaidDebuffs:SetHeight(C["Raid"].AuraDebuffIconSize)
-		self.RaidDebuffs:SetWidth(C["Raid"].AuraDebuffIconSize)
-		self.RaidDebuffs:SetPoint("CENTER", self.Health)
-		self.RaidDebuffs:SetFrameLevel(self.Health:GetFrameLevel() + 20)
-		self.RaidDebuffs:CreateBorder()
-
-		self.RaidDebuffs.icon = self.RaidDebuffs:CreateTexture(nil, "ARTWORK")
-		self.RaidDebuffs.icon:SetTexCoord(.1, .9, .1, .9)
-		self.RaidDebuffs.icon:SetAllPoints(self.RaidDebuffs)
-
-		self.RaidDebuffs.cd = CreateFrame("Cooldown", nil, self.RaidDebuffs, "CooldownFrameTemplate")
-		self.RaidDebuffs.cd:SetAllPoints(self.RaidDebuffs, 1, 1)
-		self.RaidDebuffs.cd:SetReverse(true)
-		self.RaidDebuffs.cd.noOCC = true
-		self.RaidDebuffs.cd.noCooldownCount = true
-		self.RaidDebuffs.cd:SetHideCountdownNumbers(true)
-
-		self.RaidDebuffs.showDispellableDebuff = true
-		self.RaidDebuffs.onlyMatchSpellID = true
-		self.RaidDebuffs.FilterDispellableDebuff = true
-
-		-- self.RaidDebuffs.forceShow = true -- TEST
-
-		self.RaidDebuffs.time = self.RaidDebuffs:CreateFontString(nil, "OVERLAY")
-		self.RaidDebuffs.time:SetFont(C["Media"].Font, 12, "OUTLINE")
-		self.RaidDebuffs.time:SetPoint("CENTER", self.RaidDebuffs, 0, 0)
-
-		self.RaidDebuffs.count = self.RaidDebuffs:CreateFontString(nil, "OVERLAY")
-		self.RaidDebuffs.count:SetFont(C["Media"].Font, 12, "OUTLINE")
-		self.RaidDebuffs.count:SetPoint("BOTTOMRIGHT", self.RaidDebuffs, "BOTTOMRIGHT", 2, 0)
-		self.RaidDebuffs.count:SetTextColor(1, .9, 0)
+		self.AuraWatch = Module.CreateAuraWatch(self)
 	end
 
 	if C["Raid"].TargetHighlight then
@@ -280,8 +247,8 @@ function Module:CreateRaid()
 	self.Highlight:SetBlendMode("ADD")
 	self.Highlight:Hide()
 
-	self.SpellRange = {
+	self.Range = {
 		insideAlpha = 1,
-		outsideAlpha = 0.4
+		outsideAlpha = 0.5,
 	}
 end

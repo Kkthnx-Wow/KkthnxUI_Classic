@@ -77,6 +77,7 @@ K.Welcome = "|cff4488ffKkthnxUI "..K.Version.." "..K.Client.."|r - /helpui"
 K.ScanTooltip = CreateFrame("GameTooltip", "KkthnxUI_ScanTooltip", _G.UIParent, "GameTooltipTemplate")
 K.WowPatch, K.WowBuild, K.WowRelease, K.TocVersion = GetBuildInfo()
 K.WowBuild = tonumber(K.WowBuild)
+K.GreyColor = "|cff7b8489"
 K.InfoColor = "|cff4488ff"
 K.SystemColor = "|cffffcc00"
 
