@@ -279,7 +279,7 @@ function Module:UpdateQuestUnit(_, unit)
 	end
 end
 
-function Module:UpdateForQuestie(name)
+function Module:UpdateForQuestie(frame, name)
 	local data = name and QuestieTooltips.tooltipLookup["u_"..name]
 	if data then
 		local foundObjective, progressText
@@ -299,13 +299,13 @@ function Module:UpdateForQuestie(name)
 		end
 
 		if foundObjective then
-			self.questIcon:Show()
-			self.questCount:SetText(progressText)
+			frame.questIcon:Show()
+			frame.questCount:SetText(progressText)
 		end
 	end
 end
 
-function Module:UpdateCodexQuestUnit(name)
+function Module:UpdateCodexQuestUnit(frame, name)
 	if name and CodexMap.tooltips[name] then
 		for _, meta in pairs(CodexMap.tooltips[name]) do
 			local questData = meta["quest"]
@@ -341,10 +341,10 @@ function Module:UpdateCodexQuestUnit(name)
 						end
 
 						if foundObjective and progressText > 0 then
-							self.questIcon:Show()
-							self.questCount:SetText(progressText)
+							frame.questIcon:Show()
+							frame.questCount:SetText(progressText)
 						elseif not foundObjective then
-							self.questIcon:Show()
+							frame.questIcon:Show()
 						end
 					end
 				end
@@ -363,9 +363,9 @@ function Module:UpdateQuestIndicator()
 
 	local name = self.unitName
 	if CodexMap then
-		Module.UpdateCodexQuestUnit(self, name)
+		Module:UpdateCodexQuestUnit(self, name)
 	elseif QuestieTooltips then
-		Module.UpdateForQuestie(self, name)
+		Module:UpdateForQuestie(self, name)
 	end
 end
 
