@@ -399,7 +399,7 @@ function Module:OnEnable()
 	Module.BagsType[-1] = 0
 
 	local f = {}
-	local onlyBags, bagAmmo, bagEquipment, bagConsumble, bagTradeGoods, bagQuestItem, bagsJunk, onlyBank, bankAmmo, bankLegendary, bankEquipment, bankConsumble, onlyReagent, bagFavourite, bankFavourite = self:GetFilters()
+	local onlyBags, bagAmmo, bagEquipment, bagConsumble, bagTradeGoods, bagQuestItem, bagsJunk, onlyBank, bankAmmo, bankLegendary, bankEquipment, bankConsumble, onlyReagent, bagFavourite, bankFavourite, onlyKeyring = self:GetFilters()
 	function Backpack:OnInit()
 		local MyContainer = self:GetContainerClass()
 
@@ -421,6 +421,9 @@ function Module:OnEnable()
 
 		f.consumble = MyContainer:New("Consumble", {Columns = bagsWidth, Parent = f.main})
 		f.consumble:SetFilter(bagConsumble, true)
+
+		f.keyring = MyContainer:New("Keyring", {Columns = bagsWidth, Parent = f.main})
+		f.keyring:SetFilter(onlyKeyring, true)
 
 		f.tradegoods = MyContainer:New("TradeGoods", {Columns = bagsWidth, Parent = f.main})
 		f.tradegoods:SetFilter(bagTradeGoods, true)
@@ -649,7 +652,7 @@ function Module:OnEnable()
 		end
 		self:SetSize(width + xOffset * 2, height + offset)
 
-		Module:UpdateAnchors(f.main, {f.ammoItem, f.equipment, f.bagFavourite, f.consumble, f.tradegoods, f.questitem, f.junk})
+		Module:UpdateAnchors(f.main, {f.ammoItem, f.equipment, f.bagFavourite, f.consumble, f.tradegoods, f.questitem, f.keyring, f.junk})
 		Module:UpdateAnchors(f.bank, {f.bankAmmoItem, f.bankEquipment, f.bankLegendary, f.bankFavourite, f.bankConsumble})
 	end
 
@@ -682,6 +685,8 @@ function Module:OnEnable()
 			label = BAG_FILTER_JUNK
 		elseif strmatch(name, "Favourite") then
 			label = PREFERENCES
+		elseif name == "Keyring" then
+			label = KEYRING
 		end
 
 		if label then

@@ -1,21 +1,21 @@
 --[[
-	cargBags: An inventory framework addon for World of Warcraft
+cargBags: An inventory framework addon for World of Warcraft
 
-	Copyright (C) 2010  Constantin "Cargor" Schomburg <xconstruct@gmail.com>
+Copyright (C) 2010 Constantin "Cargor" Schomburg <xconstruct@gmail.com>
 
-	cargBags is free software; you can redistribute it and/or
-	modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 2
-	of the License, or (at your option) any later version.
+cargBags is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
 
-	cargBags is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+cargBags is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with cargBags; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+You should have received a copy of the GNU General Public License
+along with cargBags; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 ]]
 local _, ns = ...
 local cargBags = ns.cargBags
@@ -23,29 +23,29 @@ local cargBags = ns.cargBags
 local _G = _G
 
 --[[!
-	@class ItemButton
-		This class serves as the basis for all itemSlots in a container
+@class ItemButton
+This class serves as the basis for all itemSlots in a container
 ]]
 local ItemButton = cargBags:NewClass("ItemButton", nil, "Button")
 
 --[[!
-	Gets a template name for the bagID
-	@param bagID <number> [optional]
-	@return tpl <string>
+Gets a template name for the bagID
+@param bagID <number> [optional]
+@return tpl <string>
 ]]
 function ItemButton:GetTemplate(bagID)
 	bagID = bagID or self.bagID
 	return (bagID == -3 and "ReagentBankItemButtonGenericTemplate") or (bagID == -1 and "BankItemButtonGenericTemplate") or (bagID and "ContainerFrameItemButtonTemplate") or "ItemButtonTemplate",
-      (bagID == -3 and ReagentBankFrame) or (bagID == -1 and BankFrame) or (bagID and _G["ContainerFrame"..bagID + 1]) or "ItemButtonTemplate";
+	(bagID == -3 and ReagentBankFrame) or (bagID == -1 and BankFrame) or (bagID and _G["ContainerFrame"..bagID + 1]) or ContainerFrame1;
 end
 
 local mt_gen_key = {__index = function(self,k) self[k] = {}; return self[k]; end}
 
 --[[!
-	Fetches a new instance of the ItemButton, creating one if necessary
-	@param bagID <number>
-	@param slotID <number>
-	@return button <ItemButton>
+Fetches a new instance of the ItemButton, creating one if necessary
+@param bagID <number>
+@param slotID <number>
+@return button <ItemButton>
 ]]
 function ItemButton:New(bagID, slotID)
 	self.recycled = self.recycled or setmetatable({}, mt_gen_key)
@@ -63,10 +63,10 @@ function ItemButton:New(bagID, slotID)
 end
 
 --[[!
-	Creates a new ItemButton
-	@param tpl <string> The template to use [optional]
-	@return button <ItemButton>
-	@callback button:OnCreate(tpl)
+Creates a new ItemButton
+@param tpl <string> The template to use [optional]
+@return button <ItemButton>
+@callback button:OnCreate(tpl)
 ]]
 function ItemButton:Create(tpl, parent)
 	local impl = self.implementation
@@ -88,7 +88,7 @@ function ItemButton:Create(tpl, parent)
 end
 
 --[[!
-	Frees an ItemButton, storing it for later use
+Frees an ItemButton, storing it for later use
 ]]
 function ItemButton:Free()
 	self:Hide()
@@ -96,9 +96,9 @@ function ItemButton:Free()
 end
 
 --[[!
-	Fetches the item-info of the button, just a small wrapper for comfort
-	@param item <table> [optional]
-	@return item <table>
+Fetches the item-info of the button, just a small wrapper for comfort
+@param item <table> [optional]
+@return item <table>
 ]]
 function ItemButton:GetItemInfo(item)
 	return self.implementation:GetItemInfo(self.bagID, self.slotID, item)

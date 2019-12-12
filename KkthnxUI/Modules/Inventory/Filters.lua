@@ -120,6 +120,10 @@ local function isEmptySlot(item)
 	return not item.texture and Module.BagsType[item.bagID] == 0
 end
 
+local function isItemKeyRing(item)
+	return item.bagID == -2
+end
+
 function Module:GetFilters()
 	local onlyBags = function(item)
 		return isItemInBag(item) and not isItemEquipment(item) and not isItemConsumble(item) and not isItemTrade(item) and not isItemQuest(item) and not isItemAmmo(item) and not isItemJunk(item) and not isItemFavourite(item) and not isEmptySlot(item)
@@ -181,5 +185,9 @@ function Module:GetFilters()
 		return isItemInBank(item) and isItemFavourite(item)
 	end
 
-	return onlyBags, bagAmmo, bagEquipment, bagConsumble, bagTradeGoods, bagQuestItem, bagsJunk, onlyBank, bankAmmo, bankLegendary, bankEquipment, bankConsumble, onlyReagent, bagFavourite, bankFavourite
+	local onlyKeyring = function(item)
+		return isItemKeyRing(item)
+	end
+
+	return onlyBags, bagAmmo, bagEquipment, bagConsumble, bagTradeGoods, bagQuestItem, bagsJunk, onlyBank, bankAmmo, bankLegendary, bankEquipment, bankConsumble, onlyReagent, bagFavourite, bankFavourite, onlyKeyring
 end
