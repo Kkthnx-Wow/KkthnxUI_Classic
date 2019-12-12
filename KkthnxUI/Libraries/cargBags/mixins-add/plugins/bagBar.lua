@@ -145,7 +145,7 @@ function BagButton:OnLeave()
 	GameTooltip:Hide()
 end
 
-function BagButton:OnClick()
+function BagButton:OnClick(btn)
 	if (self.notBought) then
 		BankFrame.nextSlotCost = GetBankSlotCost(GetNumBankSlots())
 		return StaticPopup_Show("CONFIRM_BUY_BANK_SLOT")
@@ -155,6 +155,7 @@ function BagButton:OnClick()
 		return
 	end
 
+	if btn ~= "RightButton" then return end
 	-- Somehow we need to disconnect this from the filter-sieve
 	local container = self.bar.container
 	if (container and container.SetFilter) then

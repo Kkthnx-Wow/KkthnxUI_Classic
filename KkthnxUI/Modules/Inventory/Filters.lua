@@ -117,7 +117,7 @@ local function isEmptySlot(item)
 		return
 	end
 
-	return not item.texture and Module.BagsType[item.bagID] == 0
+	return Module.initComplete and not item.texture and Module.BagsType[item.bagID] == 0
 end
 
 local function isItemKeyRing(item)

@@ -123,7 +123,6 @@ function Module:UpdateSettings()
 		MiniMapTrackingFrame.Backdrop:SetBackdropBorderColor(1, 1, 0)
 	end
 
-	local MiniMapBattlefieldFrame = _G.MiniMapBattlefieldFrame
 	if MiniMapBattlefieldFrame then
 		MiniMapBattlefieldFrame:ClearAllPoints()
 		MiniMapBattlefieldFrame:Point("BOTTOMLEFT", Minimap, "BOTTOMLEFT", -2, -2)
