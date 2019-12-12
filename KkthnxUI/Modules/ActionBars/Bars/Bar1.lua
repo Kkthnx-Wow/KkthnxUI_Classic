@@ -72,7 +72,6 @@ function Module:OnEnable()
 			if i == 1 then
 				button:SetPoint("TOPLEFT", frame, padding, padding)
 			elseif (i-1)%3 == 0 then
-				print(i)
 				local previous = _G["ActionButton"..i - 3]
 				button:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, margin*(-1))
 			else
