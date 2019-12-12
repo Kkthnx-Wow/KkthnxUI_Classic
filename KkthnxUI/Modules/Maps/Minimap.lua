@@ -123,6 +123,40 @@ function Module:UpdateSettings()
 		MiniMapTrackingFrame.Backdrop:SetBackdropBorderColor(1, 1, 0)
 	end
 
+	local MiniMapBattlefieldFrame = _G.MiniMapBattlefieldFrame
+	if MiniMapBattlefieldFrame then
+		MiniMapBattlefieldFrame:ClearAllPoints()
+		MiniMapBattlefieldFrame:Point("BOTTOMLEFT", Minimap, "BOTTOMLEFT", -2, -2)
+		MiniMapBattlefieldBorder:Hide()
+		MiniMapBattlefieldIcon:SetAlpha(0)
+		BattlegroundShine:SetTexture(nil)
+
+		local queueIcon = Minimap:CreateTexture(nil, "ARTWORK")
+		queueIcon:SetPoint("CENTER", MiniMapBattlefieldFrame)
+		queueIcon:SetSize(50, 50)
+		queueIcon:SetTexture("Interface\\Minimap\\Raid_Icon")
+		queueIcon:Hide()
+
+		local anim = queueIcon:CreateAnimationGroup()
+		anim:SetLooping("REPEAT")
+		anim.rota = anim:CreateAnimation("Rotation")
+		anim.rota:SetDuration(2)
+		anim.rota:SetDegrees(360)
+
+		hooksecurefunc("BattlefieldFrame_UpdateStatus", function()
+			queueIcon:SetShown(MiniMapBattlefieldFrame:IsShown())
+
+			anim:Play()
+			for i = 1, MAX_BATTLEFIELD_QUEUES do
+				local status = GetBattlefieldStatus(i)
+				if status == "confirm" then
+					anim:Stop()
+					break
+				end
+			end
+		end)
+	end
+
 	if StreamingIcon then
 		StreamingIcon:ClearAllPoints()
 		StreamingIcon:SetPoint("TOP", UIParent, "TOP", 0, -6)
