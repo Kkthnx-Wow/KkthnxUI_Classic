@@ -125,7 +125,7 @@ function Module:UpdateSettings()
 
 	if MiniMapBattlefieldFrame then
 		MiniMapBattlefieldFrame:ClearAllPoints()
-		MiniMapBattlefieldFrame:Point("BOTTOMLEFT", Minimap, "BOTTOMLEFT", -2, -2)
+		MiniMapBattlefieldFrame:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", -2, -2)
 		MiniMapBattlefieldBorder:Hide()
 		MiniMapBattlefieldIcon:SetAlpha(0)
 		BattlegroundShine:SetTexture(nil)
