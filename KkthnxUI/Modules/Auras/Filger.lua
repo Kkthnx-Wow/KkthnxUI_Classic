@@ -592,7 +592,7 @@ if C["FilgerSpells"] and C["FilgerSpells"][K.Class] then
 
 	for i = 1, #SpellGroups, 1 do
 		local data = SpellGroups[i].data
-		local frame = CreateFrame("Frame", "FilgerFrame"..i.."_"..data.Name, K.PetBattleHider)
+		local frame = CreateFrame("Frame", "FilgerFrame"..i.."_"..data.Name, UIParent)
 		frame.Id = i
 		frame.Name = data.Name
 		frame.Direction = data.Direction or "DOWN"

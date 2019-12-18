@@ -8,11 +8,11 @@ local getmetatable = _G.getmetatable
 local pairs = _G.pairs
 local select = _G.select
 
-local CreateFrame = _G.CreateFrame
 local CUSTOM_CLASS_COLORS = _G.CUSTOM_CLASS_COLORS
+local CreateFrame = _G.CreateFrame
 local EnumerateFrames = _G.EnumerateFrames
 local RAID_CLASS_COLORS = _G.RAID_CLASS_COLORS
-local RegisterStateDriver = _G.RegisterStateDriver
+local RegisterAttributeDriver = _G.RegisterAttributeDriver
 local UIParent = _G.UIParent
 local UnitClass = _G.UnitClass
 
@@ -27,11 +27,6 @@ K.UIFrameHider:Hide()
 K.UIFrameHider:SetPoint("TOPLEFT", 0, 0)
 K.UIFrameHider:SetPoint("BOTTOMRIGHT", 0, 0)
 RegisterAttributeDriver(K.UIFrameHider, "state-visibility", "hide")
-
-K.PetBattleHider = CreateFrame("Frame", nil, UIParent, "SecureHandlerStateTemplate")
-K.PetBattleHider:SetAllPoints()
-K.PetBattleHider:SetFrameStrata("LOW")
-RegisterStateDriver(K.PetBattleHider, "state-visibility", "[petbattle] hide; show")
 
 function K.PointsRestricted(frame)
 	if frame and not pcall(frame.GetPoint, frame) then
