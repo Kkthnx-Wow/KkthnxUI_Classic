@@ -22,6 +22,6 @@
 ## X-Translation: deDE: |cff666666Baine|r, ruRU: |cff666666EnumaElis|r, zhCN: |cff666666yaoenqi|r
 ## X-oUF: oUFKkthnxUI
 ## X-Website: https://github.com/kkthnx-wow/KkthnxUI_Classic
-
+ 
 # -- Load Core File
 KkthnxUI.xml
