@@ -1,60 +1,57 @@
 local K, C, L = unpack(select(2, ...))
 local Module = K:NewModule("Mover")
 
+-- Sourced: NDui (siweia)
+-- Edited: KkthnxUI (Kkthnx)
+
 local _G = _G
-local math_floor = _G.math.floor
 local table_wipe = _G.table.wipe
 local unpack = _G.unpack
 
 local CANCEL = _G.CANCEL
 local CreateFrame = _G.CreateFrame
 local ERR_NOT_IN_COMBAT = _G.ERR_NOT_IN_COMBAT
-local GetRealmName = _G.GetRealmName
 local InCombatLockdown = _G.InCombatLockdown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsModifierKeyDown = _G.IsModifierKeyDown
 local IsShiftKeyDown = _G.IsShiftKeyDown
 local LOCK = _G.LOCK
+local NONE = _G.NONE
 local OKAY = _G.OKAY
 local PlaySound = _G.PlaySound
 local RESET = _G.RESET
+local SOUNDKIT = _G.SOUNDKIT
 local StaticPopup_Show = _G.StaticPopup_Show
 local UIErrorsFrame = _G.UIErrorsFrame
 local UIParent = _G.UIParent
-local UnitName = _G.UnitName
 
 -- Frame Mover
 local MoverList, f = {}
 local updater
 
-function K:Mover(text, value, anchor, width, height)
+function K:Mover(text, value, anchor, width, height, isAuraWatch)
 	local key = "Mover"
-
-	if KkthnxUIData[GetRealmName()][UnitName("player")] and not KkthnxUIData[GetRealmName()][UnitName("player")][key] then
-		KkthnxUIData[GetRealmName()][UnitName("player")][key] = {}
+	if isAuraWatch then
+		key = "AuraWatchMover"
 	end
 
 	local mover = CreateFrame("Button", nil, UIParent)
-	mover:SetFrameLevel(self:GetFrameLevel() + 1)
 	mover:SetWidth(width or self:GetWidth())
 	mover:SetHeight(height or self:GetHeight())
+
+	mover.bg = mover:CreateTexture(nil, "BACKGROUND", nil, 0)
+	mover.bg:SetColorTexture(38/255, 125/255, 206/255, 90/255)
+	mover.bg:SetPoint("TOPLEFT", mover, "TOPLEFT", 1, -1)
+	mover.bg:SetPoint("BOTTOMRIGHT", mover, "BOTTOMRIGHT", -1, 1)
 	mover:Hide()
-	mover:SetHighlightTexture("Interface\\BUTTONS\\WHITE8X8")
-	mover:GetHighlightTexture():SetAlpha(0.3)
-	local bg = mover:CreateTexture(nil, "BACKGROUND", nil, 0)
-	bg:SetColorTexture(38/255, 125/255, 206/255, 90/255)
-	bg:SetAllPoints()
 
-	mover.text = mover:CreateFontString(nil, "OVERLAY")
-	mover.text:SetPoint("CENTER")
-	mover.text:FontTemplate()
-	mover.text:SetText(text)
-	mover.text:SetWidth(mover:GetWidth())
+	mover.text = K.CreateFontString(mover, 12, text, "")
+	mover.text:SetWordWrap(true)
 
-	if not KkthnxUIData[GetRealmName()][UnitName("player")][key][value] then
+	if not KkthnxUIDB.Variables[K.Realm][K.Name][key][value] then
 		mover:SetPoint(unpack(anchor))
 	else
-		mover:SetPoint(unpack(KkthnxUIData[GetRealmName()][UnitName("player")][key][value]))
+		mover:SetPoint(unpack(KkthnxUIDB.Variables[K.Realm][K.Name][key][value]))
 	end
 
 	mover:EnableMouse(true)
@@ -65,12 +62,16 @@ function K:Mover(text, value, anchor, width, height)
 	mover.__key = key
 	mover.__value = value
 	mover.__anchor = anchor
+	mover.isAuraWatch = isAuraWatch
 	mover:SetScript("OnEnter", Module.Mover_OnEnter)
 	mover:SetScript("OnLeave", Module.Mover_OnLeave)
 	mover:SetScript("OnDragStart", Module.Mover_OnDragStart)
 	mover:SetScript("OnDragStop", Module.Mover_OnDragStop)
 	mover:SetScript("OnMouseUp", Module.Mover_OnClick)
-	table.insert(MoverList, mover)
+
+	if not isAuraWatch then
+		table.insert(MoverList, mover)
+	end
 
 	self:ClearAllPoints()
 	self:SetPoint("TOPLEFT", mover)
@@ -79,9 +80,9 @@ function K:Mover(text, value, anchor, width, height)
 end
 
 function Module:CalculateMoverPoints(mover, trimX, trimY)
-	local screenWidth = math_floor(UIParent:GetRight() + .5)
-	local screenHeight = math_floor(UIParent:GetTop() + .5)
-	local screenCenter = math_floor(UIParent:GetCenter() + .5)
+	local screenWidth = K.Round(UIParent:GetRight())
+	local screenHeight = K.Round(UIParent:GetTop())
+	local screenCenter = K.Round(UIParent:GetCenter(), nil)
 	local x, y = mover:GetCenter()
 
 	local LEFT = screenWidth / 3
@@ -115,7 +116,7 @@ end
 
 function Module:UpdateTrimFrame()
 	local x, y = Module:CalculateMoverPoints(self)
-	x, y = math_floor(x + .5), math_floor(y + .5)
+	x, y = K.Round(x), K.Round(y)
 	f.__x:SetText(x)
 	f.__y:SetText(y)
 	f.__x.__current = x
@@ -127,24 +128,28 @@ function Module:DoTrim(trimX, trimY)
 	local mover = updater.__owner
 	if mover then
 		local x, y, point = Module:CalculateMoverPoints(mover, trimX, trimY)
-		x, y = math_floor(x + .5), math_floor(y + .5)
+		x, y = K.Round(x), K.Round(y)
 		f.__x:SetText(x)
 		f.__y:SetText(y)
 		f.__x.__current = x
 		f.__y.__current = y
 		mover:ClearAllPoints()
 		mover:SetPoint(point, UIParent, point, x, y)
-		KkthnxUIData[GetRealmName()][UnitName("player")][mover.__key][mover.__value] = {point, "UIParent", point, x, y}
+		KkthnxUIDB.Variables[K.Realm][K.Name][mover.__key][mover.__value] = {point, "UIParent", point, x, y}
 	end
 end
 
 function Module:Mover_OnClick(btn)
 	if IsShiftKeyDown() and btn == "RightButton" then
-		self:Hide()
+		if self.isAuraWatch then
+			UIErrorsFrame:AddMessage(K.InfoColor.."You can't hide AuraWatch mover by that.")
+		else
+			self:Hide()
+		end
 	elseif IsControlKeyDown() and btn == "RightButton" then
 		self:ClearAllPoints()
 		self:SetPoint(unpack(self.__anchor))
-		KkthnxUIData[GetRealmName()][UnitName("player")][self.__key][self.__value] = nil
+		KkthnxUIDB.Variables[K.Realm][K.Name][self.__key][self.__value] = nil
 	end
 
 	updater.__owner = self
@@ -152,12 +157,12 @@ function Module:Mover_OnClick(btn)
 end
 
 function Module:Mover_OnEnter()
-	self:SetBackdropBorderColor(K.r, K.g, K.b)
+	self.bg:SetColorTexture(K.r, K.g, K.b, 0.9)
 	self.text:SetTextColor(1, .8, 0)
 end
 
 function Module:Mover_OnLeave()
-	self:SetBackdropBorderColor(0, 0, 0)
+	self.bg:SetColorTexture(38/255, 125/255, 206/255, 90/255)
 	self.text:SetTextColor(1, 1, 1)
 end
 
@@ -171,12 +176,12 @@ end
 function Module:Mover_OnDragStop()
 	self:StopMovingOrSizing()
 	local orig, _, tar, x, y = self:GetPoint()
-	x = math_floor(x + .5)
-	y = math_floor(y + .5)
+	x = K.Round(x)
+	y = K.Round(y)
 
 	self:ClearAllPoints()
 	self:SetPoint(orig, "UIParent", tar, x, y)
-	KkthnxUIData[GetRealmName()][UnitName("player")][self.__key][self.__value] = {orig, "UIParent", tar, x, y}
+	KkthnxUIDB.Variables[K.Realm][K.Name][self.__key][self.__value] = {orig, "UIParent", tar, x, y}
 	Module.UpdateTrimFrame(self)
 	updater:Hide()
 end
@@ -188,6 +193,7 @@ function Module:UnlockElements()
 			mover:Show()
 		end
 	end
+
 	f:Show()
 end
 
@@ -198,15 +204,17 @@ function Module:LockElements()
 	end
 
 	f:Hide()
-	SlashCmdList["KKUI_TOGGLEGRID"]("1")
+	_G.SlashCmdList["KKUI_TOGGLEGRID"]("1")
+	SlashCmdList.AuraWatch("lock")
 end
 
 _G.StaticPopupDialogs["RESET_MOVER"] = {
-	text = "Reset Mover Confirm",
+	text = "Are you sure to reset frames position?",
 	button1 = OKAY,
 	button2 = CANCEL,
 	OnAccept = function()
-		table_wipe(KkthnxUIData[GetRealmName()][UnitName("player")]["Mover"])
+		table_wipe(KkthnxUIDB.Variables[K.Realm][K.Name]["Mover"])
+		table_wipe(KkthnxUIDB.Variables[K.Realm][K.Name]["AuraWatchMover"])
 		_G.ReloadUI()
 	end,
 }
@@ -219,7 +227,7 @@ local function CreateConsole()
 
 	f = CreateFrame("Frame", nil, UIParent)
 	f:SetPoint("CENTER", 0, 150)
-	f:SetSize(264, 62)
+	f:SetSize(218, 90)
 	f:CreateBorder()
 
 	f.text = f:CreateFontString(nil, "OVERLAY")
@@ -228,10 +236,10 @@ local function CreateConsole()
 	f.text:SetText(K.Title.." Movers Config")
 	f.text:SetWordWrap(false)
 
-	local bu, text = {}, {LOCK, "Grids", RESET}
-	for i = 1, 3 do
+	local bu, text = {}, {LOCK, "Grids", "AuraWatch", RESET}
+	for i = 1, 4 do
 		bu[i] = CreateFrame("Button", nil, f)
-		bu[i]:SetSize(80, 24)
+		bu[i]:SetSize(100, 24)
 		bu[i]:SkinButton()
 
 		bu[i].text = bu[i]:CreateFontString(nil, "OVERLAY")
@@ -241,7 +249,9 @@ local function CreateConsole()
 		bu[i].text:SetWordWrap(false)
 
 		if i == 1 then
-			bu[i]:SetPoint("BOTTOMLEFT", 6, 6)
+			bu[i]:SetPoint("BOTTOMLEFT", 6, 36)
+		elseif i == 3 then
+			bu[i]:SetPoint("TOP", bu[1], "BOTTOM", 0, -6)
 		else
 			bu[i]:SetPoint("LEFT", bu[i-1], "RIGHT", 6, 0)
 		end
@@ -250,10 +260,20 @@ local function CreateConsole()
 	bu[1]:SetScript("OnClick", Module.LockElements)
 
 	bu[2]:SetScript("OnClick", function()
-		SlashCmdList["KKUI_TOGGLEGRID"]("64")
+		_G.SlashCmdList["KKUI_TOGGLEGRID"]("64")
 	end)
 
-	bu[3]:SetScript("OnClick", function()
+	bu[3]:SetScript("OnClick", function(self)
+		self.state = not self.state
+		if self.state then
+			SlashCmdList.AuraWatch("move")
+		else
+			SlashCmdList.AuraWatch("lock")
+		end
+	end)
+
+	-- Reset
+	bu[4]:SetScript("OnClick", function()
 		StaticPopup_Show("RESET_MOVER")
 	end)
 
@@ -281,7 +301,7 @@ local function CreateConsole()
 	xBox:SetSize(60, 22)
 	xBox:SetAutoFocus(false)
 	xBox:SetTextInsets(5, 5, 0, 0)
-	xBox:SetFont(C.Media.Font, 12, "")
+	xBox:SetFont(C["Media"].Fonts.KkthnxUIFont, 12, "")
 	xBox:SetScript("OnEscapePressed", frame.ClearFocus)
 	xBox:SetScript("OnEnterPressed", frame.ClearFocus)
 	xBox:SetPoint("TOPRIGHT", frame, "TOP", -12, -5)
@@ -303,7 +323,7 @@ local function CreateConsole()
 	yBox:SetSize(60, 22)
 	yBox:SetAutoFocus(false)
 	yBox:SetTextInsets(5, 5, 0, 0)
-	yBox:SetFont(C.Media.Font, 12, "")
+	yBox:SetFont(C["Media"].Fonts.KkthnxUIFont, 12, "")
 	yBox:SetScript("OnEscapePressed", frame.ClearFocus)
 	yBox:SetScript("OnEnterPressed", frame.ClearFocus)
 	yBox:SetPoint("TOPRIGHT", frame, "TOP", -12, -29)
@@ -382,6 +402,14 @@ end
 _G.SLASH_KKUI_MOVEUI1 = "/moveui"
 _G.SLASH_KKUI_MOVEUI2 = "/mui"
 _G.SLASH_KKUI_MOVEUI3 = "/mm"
+_G.SLASH_KKUI_MOVEUI4 = "/mmm"
+
+_G.SlashCmdList["KKUI_LOCKUI"] = function()
+	CreateConsole()
+	Module:LockElements()
+end
+_G.SLASH_KKUI_LOCKUI1 = "/lockui"
+_G.SLASH_KKUI_LOCKUI2 = "/lui"
 
 function Module:OnEnable()
 	updater = CreateFrame("Frame")

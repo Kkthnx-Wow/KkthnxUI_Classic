@@ -1,162 +1,109 @@
-local K = unpack(select(2,...))
-local Module = K:NewModule("Changelog")
+local K, C = unpack(select(2,...))
 
-local ChangeLogData = {
-	"Changes:",
-	"• Released v1.09",
-	"• Fix pet happy icon falling behind portrait",
-    "• Update Sapped.lua",
-    "• Update AutoBuffThanks.lua",
-    "• Fix missing icons for spells in floating combat text",
-    "• Update deDE.lua",
-    "• Again format the chat install to better suit the avg user",
-    "• Fix copy and pasta",
-    "• Lib updates and protect FormatTime. Fix tooltip health bug",
-    "• Fix a bug that broke unitframes on druids",
-    "• Combo Points and Totems Cleanup",
-    "• Fix bug report #58",
-    "• Improve Vendor/Repair Module",
-    "• Fix a bug with Nameplate ClassIcon showing the wrong class icon",
-	"• Add part of request #57 ClassIcons for Nameplates",
+-- Sourced: NDui (siweia)
+-- Edited: KkthnxUI (Kkthnx)
 
-    -- Important Notes We Want The User To Know!
-    " ",
-    "Notes:",
-    "• If you are enjoying the UI do not forget to drop by our DISCORD!",
-    " ",
-    "Social URLs:",
-    "• |cff7289DADiscord:|r https://discordapp.com/invite/mKKySTY",
-    "• |cff3b5998Facebook:|r https://www.facebook.com/kkthnxui",
-    "• |cff1da1f2Twitter:|r https://twitter.com/kkthnxui",
+local _G = _G
+local string_split = _G.string.split
+local pairs = _G.pairs
+
+local CreateFrame = _G.CreateFrame
+local UIParent = _G.UIParent
+local CLOSE = _G.CLOSE
+
+-- Starting words used in changelog.
+-- Updated, Fixed, Added, Removed, Various.
+
+local changelogData = {
+	"Added health value decimal to tags",
+	"Added option for main tank frames",
+	"Added option to turn off the new maw threat bar",
+	"Fixed arena frames showing blizz frames",
+	"Fixed overlapping abilities when both zone/extra abilities are shown @AmiraVera",
+	"Fixed quest tracker bar texture setting not working @AmiraVera",
+	"Removed mover for class power",
+	"Updated LICENSE for 2021",
+	"Updated arena frames to show trinkets",
+	"Updated aurawatch auras",
+	"Updated french locale @Lionceaudor",
+	"Updated inventory upgrade/quest/favorite icon code",
+	"Updated nameplate auras",
+	"Updated ouf core",
+	"Updated raidframe auras",
+	"Updated the way we handle media files @AmiraVera",
 }
 
-local URL_PATTERNS = {
-	"^(%a[%w+.-]+://%S+)",
-	"%f[%S](%a[%w+.-]+://%S+)",
-	"^(www%.[-%w_%%]+%.(%a%a+))",
-	"%f[%S](www%.[-%w_%%]+%.(%a%a+))",
-	"(%S+@[%w_.-%%]+%.(%a%a+))",
-}
-
-local function formatURL(url)
-	url = "|cFFFFFFFF[|Hurl:"..url.."|h"..url.."|h]|r "
-	return url
-end
-
-local function ModifiedString(string)
-	local count = string.find(string, ":")
-	local newString = string
-
-	if count then
-		local prefix = string.sub(string, 0, count)
-		local suffix = string.sub(string, count + 1)
-		local subHeader = string.find(string, "•")
-
-		if subHeader then
-			newString = tostring("|cFFFFFF00"..prefix.."|r"..suffix)
-		else
-			newString = tostring("|cff4488ff"..prefix.."|r"..suffix)
-		end
+local changelogFrame
+local function changelog()
+	if changelogFrame then
+		changelogFrame:Show()
+		return
 	end
 
-	for pattern in gmatch(string, "('.*')") do
-		newString = newString:gsub(pattern, "|cff4488ff"..pattern:gsub("'", "").."|r")
+	changelogFrame = CreateFrame("Frame", "KKUI_ChangeLog", UIParent)
+	changelogFrame:SetPoint("CENTER")
+	changelogFrame:SetFrameStrata("HIGH")
+	changelogFrame:CreateBorder()
+
+	K.CreateFontString(changelogFrame, 30, K.Title, "", true, "TOPLEFT", 10, 28)
+	K.CreateFontString(changelogFrame, 14, K.Version, "", true, "TOPLEFT", 140, 16)
+	K.CreateFontString(changelogFrame, 16, "Changelog", "", true, "TOP", 0, -10)
+	K.CreateMoverFrame(changelogFrame)
+
+	local kkthnxLogo = changelogFrame:CreateTexture(nil, "OVERLAY")
+	kkthnxLogo:SetSize(512, 256)
+	kkthnxLogo:SetBlendMode("ADD")
+	kkthnxLogo:SetAlpha(0.06)
+	kkthnxLogo:SetTexture(C["Media"].Textures.LogoTexture)
+	kkthnxLogo:SetPoint("CENTER", changelogFrame, "CENTER", 0, 0)
+
+	local leftLine = CreateFrame("Frame", nil, changelogFrame)
+	leftLine:SetPoint("TOP", -50, -35)
+	K.CreateGF(leftLine, 100, 1, "Horizontal", 0.7, 0.7, 0.7, 0, 0.7)
+	leftLine:SetFrameStrata("HIGH")
+
+	local rightLine = CreateFrame("Frame", nil, changelogFrame)
+	rightLine:SetPoint("TOP", 50, -35)
+	K.CreateGF(rightLine, 100, 1, "Horizontal", 0.7, 0.7, 0.7, 0.7, 0)
+	rightLine:SetFrameStrata("HIGH")
+
+	local offset = 0
+	for n, t in pairs(changelogData) do
+		K.CreateFontString(changelogFrame, 12, K.InfoColor..n..": |r"..t, "", false, "TOPLEFT", 15, -(50 + offset))
+		offset = offset + 20
 	end
+	changelogFrame:SetSize(520, 60 + offset)
 
-	-- Find URLs
-	for _, v in pairs(URL_PATTERNS) do
-		if string.find(string, v) then
-			newString = gsub(string, v, formatURL("%1"))
-		end
-	end
-
-	return newString
-end
-
-local function GetChangeLogInfo(i)
-	for line, info in pairs(ChangeLogData) do
-		if line == i then
-			return info
-		end
-	end
-end
-
-function Module:CreateChangelog()
-	local frame = CreateFrame("Frame", "KkthnxUIChangeLog", UIParent)
-	frame:SetPoint("TOP", UIParent, "TOP", 0, -108)
-	frame:SetSize(480, 420)
-	frame:CreateBorder()
-	frame:SetMovable(true)
-	frame:EnableMouse(true)
-	frame:RegisterForDrag("LeftButton")
-	frame:SetScript("OnDragStart", frame.StartMoving)
-	frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-	frame:SetClampedToScreen(true)
-
-	local title = CreateFrame("Frame", nil, frame)
-	title:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, 6)
-	title:SetSize(480, 30)
-	title:CreateBorder()
-
-	title.text = title:CreateFontString(nil, "OVERLAY")
-	title.text:FontTemplate(nil, 20, "")
-	title.text:SetPoint("CENTER", title, 0, 0)
-	title.text:SetText(K.Title.." ChangeLog v"..string.format("|cff4488ff%s|r", K.Version))
-
-	frame.close = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	frame.close:SetPoint("BOTTOM", frame, "BOTTOM", 0, 10)
-	frame.close:SetText(CLOSE)
-	frame.close:SetSize(100, 22)
-	frame.close:SetScript("OnClick", function()
-		frame:Hide()
+	local close = CreateFrame("Button", nil, changelogFrame)
+	close:SkinButton()
+	close:SetSize(changelogFrame:GetWidth(), 24)
+	close:SetScript("OnClick", function()
+		changelogFrame:Hide()
 	end)
-	frame.close:StripTextures()
-	frame.close:SkinButton()
+	close:SetFrameLevel(changelogFrame:GetFrameLevel() + 1)
+	close:SetPoint("TOPLEFT", changelogFrame, "BOTTOMLEFT", 0, -6)
 
-	local offset = 4
-	for i = 1, #ChangeLogData do
-		local button = CreateFrame("Frame", "Button"..i, frame)
-		button:SetSize(375, 16)
-		button:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, -offset)
+	close.Text = close:CreateFontString(nil, "OVERLAY")
+	close.Text:FontTemplate(nil, 14, "")
+	close.Text:SetPoint("CENTER", close)
+	close.Text:SetTextColor(1, 0, 0)
+	close.Text:SetText(CLOSE)
+end
 
-		if i <= #ChangeLogData then
-			local string, isURL = ModifiedString(GetChangeLogInfo(i))
-
-			button.Text = button:CreateFontString(nil, "OVERLAY")
-			button.Text:FontTemplate(nil, 12, "")
-			button.Text:SetPoint("CENTER")
-			button.Text:SetPoint("LEFT", 0, 0)
-			button.Text:SetText(string)
-			button.Text:SetWordWrap(false)
-		end
-
-		offset = offset + 16
+local function compareToShow(event)
+	if _G.KKUI_Tutorial then
+		return
 	end
-end
 
-function Module:ToggleChangeLog()
-	if not KkthnxUIChangeLog then
-		self:CreateChangelog()
+	local old1, old2 = string_split(".", KkthnxUIDB.Variables[K.Realm][K.Name].ChangeLog.Version or "")
+	local cur1, cur2 = string_split(".", K.Version)
+	if old1 ~= cur1 or old2 ~= cur2 then
+		changelog()
+		KkthnxUIDB.Variables[K.Realm][K.Name].ChangeLog.Version = K.Version
 	end
-	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF or 857)
-
-	local fadeInfo = {}
-	fadeInfo.mode = "IN"
-	fadeInfo.timeToFade = 0.5
-	fadeInfo.startAlpha = 0
-	fadeInfo.endAlpha = 1
-	K.UIFrameFade(KkthnxUIChangeLog, fadeInfo)
+	K:UnregisterEvent(event, compareToShow)
 end
+K:RegisterEvent("PLAYER_ENTERING_WORLD", compareToShow)
 
-function Module:CheckVersion()
-	if not KkthnxUIData[K.Realm][K.Name]["Version"] or (KkthnxUIData[K.Realm][K.Name]["Version"] and KkthnxUIData[K.Realm][K.Name]["Version"] ~= K.Version) then
-		KkthnxUIData[K.Realm][K.Name]["Version"] = K.Version
-		Module:ToggleChangeLog()
-	end
-end
-
-function Module:OnEnable()
-	K.Delay(6, function()
-		Module:CheckVersion()
-	end)
-end
+_G.SlashCmdList["KKUI_CHANGELOG"] = changelog
+SLASH_KKUI_CHANGELOG1 = "/kcl"

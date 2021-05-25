@@ -2,10 +2,9 @@ local K, C = unpack(select(2, ...))
 local Module = K:NewModule("Cooldowns")
 
 local _G = _G
-local math_floor = math.floor
-local pairs = pairs
-local select = select
-local string_find = string.find
+local pairs = _G.pairs
+local select = _G.select
+local string_find = _G.string.find
 
 local CreateFrame = _G.CreateFrame
 local GetActionCooldown = _G.GetActionCooldown
@@ -31,10 +30,10 @@ function Module:ForceUpdate()
 	self:Show()
 end
 
-function Module:OnSizeChanged(width)
+function Module:OnSizeChanged(width, height)
 	local cooldownFont = K.GetFont(C["UIFonts"].ActionBarsFonts)
 
-	local fontScale = math_floor(width + 0.5) / ICON_SIZE
+	local fontScale = K.Round((width + height) / 2) / ICON_SIZE
 	if fontScale == self.fontScale then
 		return
 	end
@@ -68,6 +67,10 @@ function Module:TimerOnUpdate(elapsed)
 	end
 end
 
+function Module:ScalerOnSizeChanged(...)
+	Module.OnSizeChanged(self.timer, ...)
+end
+
 function Module:OnCreate()
 	local scaler = CreateFrame("Frame", nil, self)
 	scaler:SetAllPoints(self)
@@ -76,6 +79,7 @@ function Module:OnCreate()
 	timer:Hide()
 	timer:SetAllPoints(scaler)
 	timer:SetScript("OnUpdate", Module.TimerOnUpdate)
+	scaler.timer = timer
 
 	local text = timer:CreateFontString(nil, "BACKGROUND")
 	text:SetPoint("CENTER", 2, 0)
@@ -83,9 +87,7 @@ function Module:OnCreate()
 	timer.text = text
 
 	Module.OnSizeChanged(timer, scaler:GetSize())
-	scaler:SetScript("OnSizeChanged", function(_, ...)
-		Module.OnSizeChanged(timer, ...)
-	end)
+	scaler:SetScript("OnSizeChanged", Module.ScalerOnSizeChanged)
 
 	self.timer = timer
 	return timer
@@ -96,13 +98,13 @@ function Module:StartTimer(start, duration)
 		return
 	end
 
-	if self.noOCC or self.noCooldownCount or hideNumbers[self] then
+	if self.noCooldownCount or hideNumbers[self] then
 		return
 	end
 
-	local frameName = self.GetName and self:GetName() or ""
-	if C["ActionBar"].OverrideWA and string_find(frameName, "WeakAuras") then
-		self.noOCC = true
+	local frameName = self.GetName and self:GetName()
+	if C["ActionBar"].OverrideWA and frameName and string_find(frameName, "WeakAuras") then
+		self.noCooldownCount = true
 		return
 	end
 
@@ -197,9 +199,7 @@ function Module:OnEnable()
 
 	local cooldownIndex = getmetatable(ActionButton1Cooldown).__index
 	hooksecurefunc(cooldownIndex, "SetCooldown", Module.StartTimer)
-
 	hooksecurefunc("CooldownFrame_SetDisplayAsPercentage", Module.HideCooldownNumbers)
-
 	K:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN", Module.ActionbarUpateCooldown)
 
 	if _G["ActionBarButtonEventsFrame"].frames then
@@ -207,7 +207,7 @@ function Module:OnEnable()
 			Module.RegisterActionButton(frame)
 		end
 	end
-	hooksecurefunc("ActionBarButtonEventsFrame_RegisterFrame", Module.RegisterActionButton)
+	--hooksecurefunc("ActionBarButtonEventsFrame_RegisterFrame", Module.RegisterActionButton)
 
 	-- Hide Default Cooldown
 	if not InCombatLockdown() then

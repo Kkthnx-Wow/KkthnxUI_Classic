@@ -2,30 +2,30 @@ local K, C = unpack(select(2, ...))
 
 local _G = _G
 local math_abs = _G.math.abs
-local math_ceil = _G.math.ceil
 local math_floor = _G.math.floor
-local math_huge = _G.math.huge
 local mod = _G.mod
 local select = _G.select
+local string_find = _G.string.find
 local string_format = _G.string.format
-local string_gmatch = _G.string.gmatch
-local string_join = _G.string.join
+local string_gsub = _G.string.gsub
 local string_lower = _G.string.lower
-local table_insert = _G.table.insert
-local table_remove = _G.table.remove
+local string_match = _G.string.match
 local table_wipe = _G.table.wipe
+local tonumber = _G.tonumber
 local type = _G.type
 local unpack = _G.unpack
 
-local C_Timer_After = _G.C_Timer.After
-local CreateFrame = _G.CreateFrame
-local GetScreenHeight = _G.GetScreenHeight
-local GetScreenWidth = _G.GetScreenWidth
+local C_Map_GetWorldPosFromMapPos = _G.C_Map.GetWorldPosFromMapPos
+local CreateVector2D = _G.CreateVector2D
+local ENCHANTED_TOOLTIP_LINE = _G.ENCHANTED_TOOLTIP_LINE
+local GameTooltip = _G.GameTooltip
+local GetSpecialization = _G.GetSpecialization
+local GetSpecializationInfo = _G.GetSpecializationInfo
+local GetTime = _G.GetTime
+local ITEM_LEVEL = _G.ITEM_LEVEL
 local IsEveryoneAssistant = _G.IsEveryoneAssistant
 local IsInGroup = _G.IsInGroup
 local IsInRaid = _G.IsInRaid
-local LE_PARTY_CATEGORY_HOME = _G.LE_PARTY_CATEGORY_HOME
-local LE_PARTY_CATEGORY_INSTANCE = _G.LE_PARTY_CATEGORY_INSTANCE
 local UIParent = _G.UIParent
 local UnitClass = _G.UnitClass
 local UnitIsGroupAssistant = _G.UnitIsGroupAssistant
@@ -33,37 +33,18 @@ local UnitIsGroupLeader = _G.UnitIsGroupLeader
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitIsTapDenied = _G.UnitIsTapDenied
 local UnitReaction = _G.UnitReaction
-local GameTooltip = _G.GameTooltip
+
+local iLvlDB = {}
+local enchantString = string_gsub(ENCHANTED_TOOLTIP_LINE, "%%s", "(.+)")
+local essenceDescription = _G.GetSpellDescription(277253)
+local essenceTextureID = 2975691
+local itemLevelString = string_gsub(ITEM_LEVEL, "%%d", "")
+
+local mapRects = {}
+local tempVec2D = CreateVector2D(0, 0)
 
 function K.Print(...)
-	(_G.DEFAULT_CHAT_FRAME):AddMessage(string_join("", "|cff3c9bed", "KkthnxUI:|r ", ...))
-end
-
--- Table
-function K.CopyTable(source, target)
-	for key, value in pairs(source) do
-		if type(value) == "table" then
-			if not target[key] then
-				target[key] = {}
-			end
-
-			for k in pairs(value) do
-				target[key][k] = value[k]
-			end
-		else
-			target[key] = value
-		end
-	end
-end
-
-function K.SplitList(list, variable, cleanup)
-	if cleanup then
-		table_wipe(list)
-	end
-
-	for word in string_gmatch(variable, "%S+") do
-		list[word] = true
-	end
+	print("|cff3c9bedKkthnxUI:|r", ...)
 end
 
 -- Return short value of a number
@@ -95,18 +76,6 @@ function K.ShortValue(n)
 	end
 end
 
-function K.CommaValue(value)
-	local k
-	while true do
-		value, k = string.gsub(value, "^(-?%d+)(%d%d%d)", '%1,%2')
-		if (k == 0) then
-			break
-		end
-	end
-
-	return value
-end
-
 -- Return rounded number
 function K.Round(num, idp)
 	if (idp and idp > 0) then
@@ -127,7 +96,36 @@ function K.RGBToHex(r, g, b)
 				r, g, b = unpack(r)
 			end
 		end
-		return string_format("|cff%02x%02x%02x", r * 255, g * 255, b * 255)
+
+		return string_format("|cff%02x%02x%02x", r*255, g*255, b*255)
+	end
+end
+
+-- Table
+function K.CopyTable(source, target)
+	for key, value in pairs(source) do
+		if type(value) == "table" then
+			if not target[key] then
+				target[key] = {}
+			end
+
+			for k in pairs(value) do
+				target[key][k] = value[k]
+			end
+		else
+			target[key] = value
+		end
+	end
+end
+
+function K.SplitList(list, variable, cleanup)
+	if cleanup then
+		table_wipe(list)
+	end
+
+	for word in gmatch(variable, "%S+") do
+		word = tonumber(word) or word -- use number if exists, needs review
+		list[word] = true
 	end
 end
 
@@ -138,7 +136,7 @@ function K.CreateGF(self, w, h, o, r, g, b, a1, a2)
 
 	local gradientFrame = self:CreateTexture(nil, "BACKGROUND")
 	gradientFrame:SetAllPoints()
-	gradientFrame:SetTexture(C["Media"].Blank)
+	gradientFrame:SetTexture(C["Media"].Textures.BlankTexture)
 	gradientFrame:SetGradientAlpha(o, r, g, b, a1, r, g, b, a2)
 end
 
@@ -146,10 +144,10 @@ function K.CreateFontString(self, size, text, textstyle, classcolor, anchor, x, 
 	local fs = self:CreateFontString(nil, "OVERLAY")
 
 	if textstyle == " " or textstyle == "" or textstyle == nil then
-		fs:SetFont(C["Media"].Font, size, "")
+		fs:SetFont(C["Media"].Fonts.KkthnxUIFont, size, "")
 		fs:SetShadowOffset(1, -1 / 2)
 	else
-		fs:SetFont(C["Media"].Font, size, "OUTLINE")
+		fs:SetFont(C["Media"].Fonts.KkthnxUIFont, size, "OUTLINE")
 		fs:SetShadowOffset(0, 0)
 	end
 	fs:SetText(text)
@@ -187,7 +185,7 @@ function K.UnitColor(unit)
 			r, g, b = K.ColorClass(class)
 		end
 	elseif UnitIsTapDenied(unit) then
-		r, g, b = .6, .6, .6
+		r, g, b = 0.6, 0.6, 0.6
 	else
 		local reaction = UnitReaction(unit, "player")
 		if reaction then
@@ -199,8 +197,16 @@ function K.UnitColor(unit)
 	return r, g, b
 end
 
+function K.TogglePanel(frame)
+	if frame:IsShown() then
+		frame:Hide()
+	else
+		frame:Show()
+	end
+end
+
 function K.GetNPCID(guid)
-	local id = tonumber(string.match((guid or ""), "%-(%d-)%-%x-$"))
+	local id = tonumber(string_match((guid or ""), "%-(%d-)%-%x-$"))
 	return id
 end
 
@@ -212,64 +218,108 @@ function K.GetAddOnVersion(addon)
 	return K.AddOnVersion[string_lower(addon)] or nil
 end
 
--- Itemlevel
-local iLvlDB = {}
-local itemLevelString = gsub(ITEM_LEVEL, "%%d", "")
-local enchantString = gsub(ENCHANTED_TOOLTIP_LINE, "%%s", "(.+)")
-local texturesDB = {}
-function K:InspectItemTextures(clean, grabTextures)
-	wipe(texturesDB)
-
-	for i = 1, 5 do
-		local tex = _G[K.ScanTooltip:GetName().."Texture"..i]
-		local texture = tex and tex:GetTexture()
-		if not texture then break end
-
-		if grabTextures then
-			texturesDB[i] = texture
-		end
-
-		if clean then
-			tex:SetTexture()
-		end
-	end
-
-	return texturesDB
+function K.HelpInfoAcknowledge(callbackArg)
+	KkthnxUIDB.Variables[K.Realm][K.Name].Help[callbackArg] = true
 end
 
-function K:InspectItemInfo(text, iLvl, enchantText)
-	local itemLevel = strfind(text, itemLevelString) and strmatch(text, "(%d+)%)?$")
+-- Itemlevel
+function K.InspectItemTextures()
+	if not K.ScanTooltip.gems then
+		K.ScanTooltip.gems = {}
+	else
+		table_wipe(K.ScanTooltip.gems)
+	end
+
+	if not K.ScanTooltip.essences then
+		K.ScanTooltip.essences = {}
+	else
+		for _, essences in pairs(K.ScanTooltip.essences) do
+			table_wipe(essences)
+		end
+	end
+
+	local step = 1
+	for i = 1, 10 do
+		local tex = _G[K.ScanTooltip:GetName().."Texture"..i]
+		local texture = tex and tex:IsShown() and tex:GetTexture()
+		if texture then
+			if texture == essenceTextureID then
+				local selected = (K.ScanTooltip.gems[i-1] ~= essenceTextureID and K.ScanTooltip.gems[i-1]) or nil
+				if not K.ScanTooltip.essences[step] then
+					K.ScanTooltip.essences[step] = {}
+				end
+				K.ScanTooltip.essences[step][1] = selected -- essence texture if selected or nil
+				K.ScanTooltip.essences[step][2] = tex:GetAtlas() -- atlas place 'tooltip-heartofazerothessence-major' or 'tooltip-heartofazerothessence-minor'
+				K.ScanTooltip.essences[step][3] = texture -- border texture placed by the atlas
+
+				step = step + 1
+				if selected then K.ScanTooltip.gems[i-1] = nil end
+			else
+				K.ScanTooltip.gems[i] = texture
+			end
+		end
+	end
+
+	return K.ScanTooltip.gems, K.ScanTooltip.essences
+end
+
+function K.InspectItemInfo(text, slotInfo)
+	local itemLevel = string_find(text, itemLevelString) and string_match(text, "(%d+)%)?$")
 	if itemLevel then
-		iLvl = tonumber(itemLevel)
+		slotInfo.iLvl = tonumber(itemLevel)
 	end
 
-	local enchant = strmatch(text, enchantString)
+	local enchant = string_match(text, enchantString)
 	if enchant then
-		enchantText = enchant
+		slotInfo.enchantText = enchant
 	end
+end
 
-	return iLvl, enchantText
+function K.CollectEssenceInfo(index, lineText, slotInfo)
+	local step = 1
+	local essence = slotInfo.essences[step]
+	if essence and next(essence) and (string_find(lineText, ITEM_SPELL_TRIGGER_ONEQUIP, nil, true) and string_find(lineText, essenceDescription, nil, true)) then
+		for i = 4, 2, -1 do
+			local line = _G[K.ScanTooltip:GetName().."TextLeft"..index - i]
+			local text = line and line:GetText()
+
+			if text and (not string_match(text, "^[ +]")) and essence and next(essence) then
+				local r, g, b = line:GetTextColor()
+				essence[4] = r
+				essence[5] = g
+				essence[6] = b
+
+				step = step + 1
+				essence = slotInfo.essences[step]
+			end
+		end
+	end
 end
 
 function K.GetItemLevel(link, arg1, arg2, fullScan)
 	if fullScan then
-		K:InspectItemTextures(true)
 		K.ScanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
 		K.ScanTooltip:SetInventoryItem(arg1, arg2)
 
-		local iLvl, enchantText, gems, essences
-		gems, essences = K:InspectItemTextures(nil, true)
+		if not K.ScanTooltip.slotInfo then
+			K.ScanTooltip.slotInfo = {}
+		else
+			table_wipe(K.ScanTooltip.slotInfo)
+		end
+
+		local slotInfo = K.ScanTooltip.slotInfo
+		slotInfo.gems, slotInfo.essences = K.InspectItemTextures()
 
 		for i = 1, K.ScanTooltip:NumLines() do
 			local line = _G[K.ScanTooltip:GetName().."TextLeft"..i]
 			if line then
 				local text = line:GetText() or ""
-				iLvl, enchantText = K:InspectItemInfo(text, iLvl, enchantText)
-				if enchantText then break end
+				K.InspectItemInfo(text, slotInfo)
+				K.CollectEssenceInfo(i, text, slotInfo)
 			end
 		end
 
-		return iLvl, enchantText, gems, essences
+		return slotInfo
 	else
 		if iLvlDB[link] then
 			return iLvlDB[link]
@@ -288,9 +338,9 @@ function K.GetItemLevel(link, arg1, arg2, fullScan)
 			local line = _G[K.ScanTooltip:GetName().."TextLeft"..i]
 			if line then
 				local text = line:GetText() or ""
-				local found = strfind(text, itemLevelString)
+				local found = string_find(text, itemLevelString)
 				if found then
-					local level = strmatch(text, "(%d+)%)?$")
+					local level = string_match(text, "(%d+)%)?$")
 					iLvlDB[link] = tonumber(level)
 					break
 				end
@@ -301,132 +351,58 @@ function K.GetItemLevel(link, arg1, arg2, fullScan)
 	end
 end
 
--- Message for BG Queues (temporary)
-local hasShown = false
+-- RoleUpdater
+-- local function CheckRole()
+-- 	local tree = GetSpecialization()
+-- 	if not tree then
+-- 		return
+-- 	end
 
-local PvPMessage = CreateFrame("Frame")
-PvPMessage:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
-PvPMessage:SetScript("OnEvent", function()
-	if not hasShown and StaticPopup_Visible("CONFIRM_BATTLEFIELD_ENTRY") then
-		hasShown = true
-		print("|cffffff00".."There is an issue with entering BGs from the StaticPopupDialog. Please enter by right clicking the minimap icon.".."|r")
-	else
-		hasShown = false
+-- 	local _, _, _, _, role, stat = GetSpecializationInfo(tree)
+-- 	if role == "TANK" then
+-- 		K.Role = "Tank"
+-- 	elseif role == "HEALER" then
+-- 		K.Role = "Healer"
+-- 	elseif role == "DAMAGER" then
+-- 		if stat == 4 then	-- 1 Strength, 2 Agility, 4 Intellect
+-- 			K.Role = "Caster"
+-- 		else
+-- 			K.Role = "Melee"
+-- 		end
+-- 	end
+-- end
+-- K:RegisterEvent("PLAYER_LOGIN", CheckRole)
+-- K:RegisterEvent("PLAYER_TALENT_UPDATE", CheckRole)
+
+function K.GetGroupUnit(unit)
+	if UnitIsUnit(unit, 'player') then return end
+	if strfind(unit, 'party') or strfind(unit, 'raid') then
+		return unit
 	end
-end)
 
--- NOOP / Pass Functions not found in Classic
-UnitInVehicle = _G.UnitInVehicle or K.Noop
-
--- Specialization Functions
-function K.GetSpecialization(...)
-	local current = {}
-	local primaryTree = 1
-	for i = 1, 3 do
-		_, _, current[i] = GetTalentTabInfo(i, "player", nil)
-		if current[i] > current[primaryTree] then
-			primaryTree = i
-		end
-	end
-
-	return primaryTree
-end
-
-local isCaster = {
-	DRUID = {true},	 -- Balance
-	HUNTER = {nil, nil, nil},
-	MAGE = {true, true, true},
-	PALADIN = {nil, nil, nil},
-	PRIEST = {nil, nil, true}, -- Shadow
-	ROGUE = {nil, nil, nil},
-	SHAMAN = {true}, -- Elemental
-	WARLOCK = {true, true, true},
-	WARRIOR = {nil, nil, nil}
-}
-
-function K.GetSpecializationRole()
-	local tree = K.GetSpecialization()
-	-- eventually check for tank stats in case a tanking in a non-traditional spec (mostly for warriors)
-	if (K.Class == "PALADIN" and tree == 2) or (K.Class == "WARRIOR" and tree == 3) or (K.Class == "DRUID" and tree == 2 and GetBonusBarOffset() == 3) then
-		return "TANK"
-	elseif (K.Class == "PALADIN" and tree == 1) or (K.Class == "DRUID" and tree == 3) or (K.Class == "SHAMAN" and tree == 3) or (K.Class == "PRIEST" and tree ~= 3) then
-		return "HEALER"
-	else
-		local base, posBuff, negBuff = UnitAttackPower("player")
-
-		local current = {}
-		local best = 1
-		for i = 1, 7 do
-			 current[i] = GetSpellBonusDamage(i)
-			 if current[i] > current[best] then
-				best = i
+	-- returns the unit as raid# or party# when grouped
+	if UnitInParty(unit) or UnitInRaid(unit) then
+		local isInRaid = IsInRaid()
+		for i = 1, GetNumGroupMembers() do
+			local groupUnit = (isInRaid and 'raid' or 'party')..i
+			if UnitIsUnit(unit, groupUnit) then
+				return groupUnit
 			end
 		end
-
-		local ap = base + posBuff + negBuff
-		local spell = GetSpellBonusDamage(best)
-		local heal = GetSpellBonusHealing()
-
-		if K.Class ~= "HUNTER" and heal >= ap and heal >= spell then
-			return "HEALER" -- healing gear without having the majority of talents in a healing tree
-		elseif K.Class ~= "HUNTER" and (isCaster[K.Class][tree] or spell >= ap) then
-			return "CASTER" -- ordinarily "DAMAGER"
-		else
-			return "MELEE" -- ordinarily "DAMAGER"
-		end
 	end
 end
-
-UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned or function(unit) -- Needs work
-	if unit == "player" then
-		local role = K.GetSpecializationRole()
-		if role == "MELEE" or role == "CASTER" then
-			role = "DAMAGER"
-		else
-			role = role or ""
-		end
-
-		return role
-	end
-end
-
-local function CheckRole()
-	local spec = K.GetSpecialization()
-	local role = spec and K.GetSpecializationRole(spec)
-
-	K.Spec = spec
-	if role == "TANK" then
-		K.Role = "Tank"
-	elseif role == "HEALER" then
-		K.Role = "Healer"
-	elseif role == "DAMAGER" then
-		if isCaster[K.Class][spec] then
-			K.Role = "Caster"
-		else
-			K.Role = "Melee"
-		end
-	elseif role == "MELEE" then
-		K.Role = "Melee"
-	elseif role == "CASTER" then
-		K.Role = "Caster"
-	end
-end
-K:RegisterEvent("PLAYER_LOGIN", CheckRole)
-K:RegisterEvent("CHARACTER_POINTS_CHANGED", CheckRole)
-K:RegisterEvent("UNIT_INVENTORY_CHANGED", CheckRole)
-K:RegisterEvent("UPDATE_BONUS_ACTIONBAR", CheckRole)
 
 -- Chat channel check
-function K.CheckChat(warning)
-	if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
+function K.CheckChat(useRaidWarning)
+	if IsPartyLFG() then
 		return "INSTANCE_CHAT"
-	elseif IsInRaid(LE_PARTY_CATEGORY_HOME) then
-		if warning and (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player") or IsEveryoneAssistant()) then
+	elseif IsInRaid() then
+		if useRaidWarning and (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player") or IsEveryoneAssistant()) then
 			return "RAID_WARNING"
 		else
 			return "RAID"
 		end
-	elseif IsInGroup(LE_PARTY_CATEGORY_HOME) then
+	elseif IsInGroup() then
 		return "PARTY"
 	end
 
@@ -456,13 +432,21 @@ function K.HideTooltip()
 end
 
 local function tooltipOnEnter(self)
+	if GameTooltip:IsForbidden() then
+		return
+	end
+
 	GameTooltip:SetOwner(self, "ANCHOR_NONE")
 	GameTooltip:SetPoint(K.GetAnchors(self))
 	GameTooltip:ClearLines()
+
 	if self.title then
 		GameTooltip:AddLine(self.title)
 	end
-	if tonumber(self.text) then
+
+	if self.text and string_find(self.text, "|H.+|h") then
+		GameTooltip:SetHyperlink(self.text)
+	elseif tonumber(self.text) then
 		GameTooltip:SetSpellByID(self.text)
 	elseif self.text then
 		local r, g, b = 1, 1, 1
@@ -473,12 +457,18 @@ local function tooltipOnEnter(self)
 		elseif self.color == "info" then
 			r, g, b = .6, .8, 1
 		end
+
 		GameTooltip:AddLine(self.text, r, g, b, 1)
 	end
+
 	GameTooltip:Show()
 end
 
 function K.AddTooltip(self, anchor, text, color)
+	if not self then
+		return
+	end
+
 	self.anchor = anchor
 	self.text = text
 	self.color = color
@@ -505,68 +495,17 @@ function K.CreateMoverFrame(self, parent, saved)
 		if not saved then
 			return
 		end
+
 		local orig, _, tar, x, y = frame:GetPoint()
-		KkthnxUIData[K.Realm][K.Name]["TempAnchor"][frame:GetName()] = {orig, "UIParent", tar, x, y}
+		KkthnxUIDB.Variables[K.Realm][K.Name]["TempAnchor"][frame:GetName()] = {orig, "UIParent", tar, x, y}
 	end)
 end
 
 function K.RestoreMoverFrame(self)
 	local name = self:GetName()
-	if name and KkthnxUIData[K.Realm][K.Name]["TempAnchor"][name] then
+	if name and KkthnxUIDB.Variables[K.Realm][K.Name]["TempAnchor"][name] then
 		self:ClearAllPoints()
-		self:SetPoint(unpack(KkthnxUIData[K.Realm][K.Name]["TempAnchor"][name]))
-	end
-end
-
-local spellLookup = {
-	-- Say Sapped
-	11297, -- Sapped
-	6770, -- Sapped
-	2070, -- Sapped
-
-	-- Buff Thanks
-	1255, -- Power Word: Fortitude
-	1459, -- Arcane Intellect
-	19742, -- Blessing Of Wisdom
-	19834, -- Blessing Of Might
-	20217, -- Blessing Of Kings
-	467, -- Thorns
-	5231, -- Mark of the Wild
-	5697, -- Unending Breath
-}
-
-local spellLookupLocalized = {}
-for i = 1, #spellLookup do
-	local name = GetSpellInfo(spellLookup[i])
-	if not name then
-		print("|cffff0000WARNING: spell ID ["..tostring(spellLookup[i]).."] no longer exists! Report this to Kkthnx.|r")
-	else
-		spellLookupLocalized[name] = spellLookup[i]
-	end
-end
-spellLookup = nil
-
-function K.GetSpellID(spellName, unit, auraType)
-	-- change localized MELEE string into the appropriate spellID
-	if spellName == MELEE then
-		return 6603
-		-- get spellID from auras
-	elseif auraType and unit then
-		if auraType == AURA_TYPE_DEBUFF then
-			return select(10, AuraUtil.FindAuraByName(spellName, unit, "HARMFUL")) or 0
-		else
-			return select(10, AuraUtil.FindAuraByName(spellName, unit)) or 0
-		end
-		-- get spellID from lookup/spellbook
-	else
-		-- eventually build a cache from UNIT_SPELLCAST_* events to track lower ranks
-		-- for now, we just assume max rank and get that spellID from the spellbook
-		local spellID = spellLookupLocalized[spellName]
-		if not spellID then
-			spellID = select(7, GetSpellInfo(spellName))
-		end
-
-		return spellID or 0
+		self:SetPoint(unpack(KkthnxUIDB.Variables[K.Realm][K.Name]["TempAnchor"][name]))
 	end
 end
 
@@ -576,7 +515,7 @@ function K.ShortenString(string, numChars, dots)
 		return string
 	else
 		local len, pos = 0, 1
-		while(pos <= bytes) do
+		while (pos <= bytes) do
 			len = len + 1
 			local c = string:byte(pos)
 			if (c > 0 and c <= 127) then
@@ -588,7 +527,10 @@ function K.ShortenString(string, numChars, dots)
 			elseif (c >= 240 and c <= 247) then
 				pos = pos + 4
 			end
-			if (len == numChars) then break end
+
+			if (len == numChars) then
+				break
+			end
 		end
 
 		if (len == numChars and pos <= bytes) then
@@ -599,85 +541,97 @@ function K.ShortenString(string, numChars, dots)
 	end
 end
 
-function K.GetScreenQuadrant(frame)
-	local x, y = frame:GetCenter()
-	local screenWidth = GetScreenWidth()
-	local screenHeight = GetScreenHeight()
-	local point
-
-	if not frame:GetCenter() then
-		return "UNKNOWN", frame:GetName()
-	end
-
-	if (x > (screenWidth / 3) and x < (screenWidth / 3) * 2) and y > (screenHeight / 3) * 2 then
-		point = "TOP"
-	elseif x < (screenWidth / 3) and y > (screenHeight / 3)*2 then
-		point = "TOPLEFT"
-	elseif x > (screenWidth / 3) * 2 and y > (screenHeight / 3) * 2 then
-		point = "TOPRIGHT"
-	elseif (x > (screenWidth / 3) and x < (screenWidth / 3) * 2) and y < (screenHeight / 3) then
-		point = "BOTTOM"
-	elseif x < (screenWidth / 3) and y < (screenHeight / 3) then
-		point = "BOTTOMLEFT"
-	elseif x > (screenWidth / 3) * 2 and y < (screenHeight / 3) then
-		point = "BOTTOMRIGHT"
-	elseif x < (screenWidth / 3) and (y > (screenHeight / 3) and y < (screenHeight / 3) * 2) then
-		point = "LEFT"
-	elseif x > (screenWidth / 3) * 2 and y < (screenHeight / 3) * 2 and y > (screenHeight / 3) then
-		point = "RIGHT"
-	else
-		point = "CENTER"
-	end
-
-	return point
-end
-
-function K.ColorGradient(perc, ...)
-	if perc >= 1 then
-		return select(select("#", ...) - 2, ...)
-	elseif perc <= 0 then
-		return ...
-	end
-
-	local num = select("#", ...) / 3
-	local segment, relperc = math.modf(perc * (num - 1))
-	local r1, g1, b1, r2, g2, b2 = select((segment * 3) + 1, ...)
-
-	return r1 + (r2 - r1) * relperc, g1 + (g2 - g1) * relperc, b1 + (b2 - b1) * relperc
-end
-
 function K.HideInterfaceOption(self)
-	if not self then return end
-	self:SetAlpha(0)
-	self:SetScale(.0001)
-end
-
--- Format seconds to min/hour/day
-local Day, Hour, Minute = 86400, 3600, 60
-function K.FormatTime(s)
-	if s == math_huge then
+	if not self then
 		return
 	end
 
-	if s >= Day then
-		return string_format("%d"..K.MyClassColor.."d", s / Day), s % Day
-	elseif s >= Hour then
-		return string_format("%d"..K.MyClassColor.."h", s / Hour), s % Hour
-	elseif s >= Minute then
-		return string_format("%d"..K.MyClassColor.."m", s / Minute), s % Minute
+	self:SetAlpha(0)
+	self:SetScale(0.0001)
+end
+
+-- Timer Format
+local day, hour, minute = 86400, 3600, 60
+function K.FormatTime(s)
+	if s >= day then
+		return string_format("%d"..K.MyClassColor.."d", s / day), s % day
+	elseif s >= hour then
+		return string_format("%d"..K.MyClassColor.."h", s / hour), s % hour
+	elseif s >= minute then
+		return string_format("%d"..K.MyClassColor.."m", s / minute), s % minute
 	elseif s > 10 then
 		return string_format("|cffcccc33%d|r", s), s - math_floor(s)
 	elseif s > 3 then
 		return string_format("|cffffff00%d|r", s), s - math_floor(s)
 	else
-		return string_format("|cffff0000%.1f|r", s), s - string_format("%.1f", s)
+		if C["ActionBar"].DecimalCD then
+			return string_format("|cffff0000%.1f|r", s), s - string_format("%.1f", s)
+		else
+			return string_format("|cffff0000%d|r", s + .5), s - math_floor(s)
+		end
 	end
 end
 
+function K.FormatTimeRaw(s)
+	if s >= day then
+		return string_format("%dd", s / day)
+	elseif s >= hour then
+		return string_format("%dh", s / hour)
+	elseif s >= minute then
+		return string_format("%dm", s / minute)
+	elseif s >= 3 then
+		return math_floor(s)
+	else
+		return string_format("%d", s)
+	end
+end
+
+function K.CooldownOnUpdate(self, elapsed, raw)
+	local formatTime = raw and K.FormatTimeRaw or K.FormatTime
+	self.elapsed = (self.elapsed or 0) + elapsed
+	if self.elapsed >= 0.1 then
+		local timeLeft = self.expiration - GetTime()
+		if timeLeft > 0 then
+			local text = formatTime(timeLeft)
+			self.timer:SetText(text)
+		else
+			self:SetScript("OnUpdate", nil)
+			self.timer:SetText(nil)
+		end
+		self.elapsed = 0
+	end
+end
+
+function K.GetPlayerMapPos(mapID)
+	tempVec2D.x, tempVec2D.y = _G.UnitPosition("player")
+	if not tempVec2D.x then
+		return
+	end
+
+	local mapRect = mapRects[mapID]
+	if not mapRect then
+		local pos1 = select(2, C_Map_GetWorldPosFromMapPos(mapID, CreateVector2D(0, 0)))
+		local pos2 = select(2, C_Map_GetWorldPosFromMapPos(mapID, CreateVector2D(1, 1)))
+		if not pos1 or not pos2 then
+			return
+		end
+
+		mapRect = {pos1, pos2}
+		mapRect[2]:Subtract(mapRect[1])
+
+		mapRects[mapID] = mapRect
+	end
+	tempVec2D:Subtract(mapRect[1])
+
+	return tempVec2D.y / mapRect[2].y, tempVec2D.x / mapRect[2].x
+end
+
+-- Money text formatting, code taken from Scrooge by thelibrarian (http://www.wowace.com/addons/scrooge)
 function K.FormatMoney(amount)
 	local coppername = "|cffeda55fc|r"
 	local silvername = "|cffc7c7cfs|r"
 	local goldname = "|cffffd700g|r"
+
 	local value = math_abs(amount)
 	local gold = math_floor(value / 10000)
 	local silver = math_floor(mod(value / 100, 100))
@@ -697,87 +651,4 @@ function K.FormatMoney(amount)
 	end
 
 	return str
-end
-
--- aura time colors for days, hours, minutes, seconds, fadetimer
-K.TimeColors = {
-	[0] = "|cffeeeeee",
-	[1] = "|cffeeeeee",
-	[2] = "|cffeeeeee",
-	[3] = "|cffeeeeee",
-	[4] = "|cfffe0000",
-}
--- short and long aura time formats
-K.TimeFormats = {
-	[0] = {"%dd", "%dd"},
-	[1] = {"%dh", "%dh"},
-	[2] = {"%dm", "%dm"},
-	[3] = {"%ds", "%d"},
-	[4] = {"%.1fs", "%.1f"},
-}
-
-local DAY, HOUR, MINUTE = 86400, 3600, 60 --used for calculating aura time text
-local DAYISH, HOURISH, MINUTEISH = HOUR * 23.5, MINUTE * 59.5, 59.5 --used for caclculating aura time at transition points
-local HALFDAYISH, HALFHOURISH, HALFMINUTEISH = DAY / 2 + 0.5, HOUR / 2 + 0.5, MINUTE / 2 + 0.5 --used for calculating next update times
--- will return the the value to display, the formatter id to use and calculates the next update for the Aura
-function K.GetTimeInfo(s, threshhold)
-	if s < MINUTE then
-		if s >= threshhold then
-			return math_floor(s), 3, 0.51
-		else
-			return s, 4, 0.051
-		end
-	elseif s < HOUR then
-		local minutes = math_floor((s/MINUTE)+.5)
-		return math_ceil(s / MINUTE), 2, minutes > 1 and (s - (minutes*MINUTE - HALFMINUTEISH)) or (s - MINUTEISH)
-	elseif s < DAY then
-		local hours = math_floor((s/HOUR)+.5)
-		return math_ceil(s / HOUR), 1, hours > 1 and (s - (hours*HOUR - HALFHOURISH)) or (s - HOURISH)
-	else
-		local days = math_floor((s/DAY)+.5)
-		return math_ceil(s / DAY), 0, days > 1 and (s - (days*DAY - HALFDAYISH)) or (s - DAYISH)
-	end
-end
-
--- Add time before calling a function
-function K.WaitFunc(_, elapse)
-	local i = 1
-	while i <= #K.WaitTable do
-		local data = K.WaitTable[i]
-		if data[1] > elapse then
-			data[1], i = data[1] - elapse, i + 1
-		else
-			table_remove(K.WaitTable, i)
-			data[2](unpack(data[3]))
-
-			if #K.WaitTable == 0 then
-				K.WaitFrame:Hide()
-			end
-		end
-	end
-end
-
-K.WaitTable = {}
-K.WaitFrame = CreateFrame("Frame", "KkthnxUI_WaitFrame", _G.UIParent)
-K.WaitFrame:SetScript("OnUpdate", K.WaitFunc)
-
--- Add time before calling a function
-function K.Delay(delay, func, ...)
-	if type(delay) ~= "number" or type(func) ~= "function" then
-		return false
-	end
-
-	-- Restrict to the lowest time that the C_Timer API allows us
-	if delay < 0.01 then
-		delay = 0.01
-	end
-
-	if select("#", ...) <= 0 then
-		C_Timer_After(delay, func)
-	else
-		table_insert(K.WaitTable, {delay, func, {...}})
-		K.WaitFrame:Show()
-	end
-
-	return true
 end

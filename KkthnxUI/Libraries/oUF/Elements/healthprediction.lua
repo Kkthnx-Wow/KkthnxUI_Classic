@@ -93,7 +93,12 @@ local function Update(self, event, unit)
 	if(allIncomingHeal < myIncomingHeal) then
 		myIncomingHeal = allIncomingHeal
 	else
-		otherIncomingHeal = HealComm:GetOthersHealAmount(guid, HealComm.ALL_HEALS) or 0
+		otherIncomingHeal = allIncomingHeal - myIncomingHeal
+		--otherIncomingHeal = HealComm:GetOthersHealAmount(guid, HealComm.ALL_HEALS) or 0
+	end
+
+	if UnitIsDeadOrGhost(unit) then
+		myIncomingHeal, otherIncomingHeal = 0, 0
 	end
 
 	if(element.myBar) then
@@ -107,35 +112,7 @@ local function Update(self, event, unit)
 		element.otherBar:SetValue(otherIncomingHeal)
 		element.otherBar:Show()
 	end
---[[
-	if(element.absorbBar) then
-		element.absorbBar:SetMinMaxValues(0, maxHealth)
-		element.absorbBar:SetValue(absorb)
-		element.absorbBar:Show()
-	end
 
-	if(element.healAbsorbBar) then
-		element.healAbsorbBar:SetMinMaxValues(0, maxHealth)
-		element.healAbsorbBar:SetValue(healAbsorb)
-		element.healAbsorbBar:Show()
-	end
-
-	if(element.overAbsorb) then
-		if(hasOverAbsorb) then
-			element.overAbsorb:Show()
-		else
-			element.overAbsorb:Hide()
-		end
-	end
-
-	if(element.overHealAbsorb) then
-		if(hasOverHealAbsorb) then
-			element.overHealAbsorb:Show()
-		else
-			element.overHealAbsorb:Hide()
-		end
-	end
-]]
 	--[[ Callback: HealthPrediction:PostUpdate(unit, myIncomingHeal, otherIncomingHeal, absorb, healAbsorb, hasOverAbsorb, hasOverHealAbsorb)
 	Called after the element has been updated.
 
@@ -172,8 +149,8 @@ local function Enable(self)
 		element.ForceUpdate = ForceUpdate
 		element.healType = element.healType or HealComm.ALL_HEALS
 
-		self:RegisterEvent('UNIT_HEALTH_FREQUENT', Path)
 		self:RegisterEvent('UNIT_MAXHEALTH', Path)
+		self:RegisterEvent('UNIT_HEALTH_FREQUENT', Path)
 
 		local function HealCommUpdate(...)
 			if self.HealthPrediction and self:IsVisible() then
@@ -216,32 +193,6 @@ local function Enable(self)
 			end
 		end
 
-		if(element.absorbBar) then
-			if(element.absorbBar:IsObjectType('StatusBar') and not element.absorbBar:GetStatusBarTexture()) then
-				element.absorbBar:SetStatusBarTexture([[Interface\TargetingFrame\UI-StatusBar]])
-			end
-		end
-
-		if(element.healAbsorbBar) then
-			if(element.healAbsorbBar:IsObjectType('StatusBar') and not element.healAbsorbBar:GetStatusBarTexture()) then
-				element.healAbsorbBar:SetStatusBarTexture([[Interface\TargetingFrame\UI-StatusBar]])
-			end
-		end
-
-		if(element.overAbsorb) then
-			if(element.overAbsorb:IsObjectType('Texture') and not element.overAbsorb:GetTexture()) then
-				element.overAbsorb:SetTexture([[Interface\RaidFrame\Shield-Overshield]])
-				element.overAbsorb:SetBlendMode('ADD')
-			end
-		end
-
-		if(element.overHealAbsorb) then
-			if(element.overHealAbsorb:IsObjectType('Texture') and not element.overHealAbsorb:GetTexture()) then
-				element.overHealAbsorb:SetTexture([[Interface\RaidFrame\Absorb-Overabsorb]])
-				element.overHealAbsorb:SetBlendMode('ADD')
-			end
-		end
-
 		return true
 	end
 end
@@ -256,29 +207,6 @@ local function Disable(self)
 		if(element.otherBar) then
 			element.otherBar:Hide()
 		end
-
-		if(element.absorbBar) then
-			element.absorbBar:Hide()
-		end
-
-		if(element.healAbsorbBar) then
-			element.healAbsorbBar:Hide()
-		end
-
-		if(element.overAbsorb) then
-			element.overAbsorb:Hide()
-		end
-
-		if(element.overHealAbsorb) then
-			element.overHealAbsorb:Hide()
-		end
-
-		HealComm.UnregisterCallback(element, 'HealComm_HealStarted')
-		HealComm.UnregisterCallback(element, 'HealComm_HealUpdated')
-		HealComm.UnregisterCallback(element, 'HealComm_HealDelayed')
-		HealComm.UnregisterCallback(element, 'HealComm_HealStopped')
-		HealComm.UnregisterCallback(element, 'HealComm_ModifierChanged')
-		HealComm.UnregisterCallback(element, 'HealComm_GUIDDisappeared')
 
 		self:UnregisterEvent('UNIT_MAXHEALTH', Path)
 		self:UnregisterEvent('UNIT_HEALTH_FREQUENT', Path)

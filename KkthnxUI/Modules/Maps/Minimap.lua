@@ -1,323 +1,478 @@
-local K, C = unpack(select(2, ...))
-local Module = K:NewModule("Minimap", "AceEvent-3.0", "AceHook-3.0", "AceTimer-3.0")
+local K, C, L = unpack(select(2, ...))
+local Module = K:NewModule("Minimap")
 
 local _G = _G
-local string_sub = string.sub
+local pairs = _G.pairs
+local select = _G.select
+local string_format = _G.string.format
+local table_insert = _G.table.insert
 
-local C_Timer_After = _G.C_Timer.After
-local CreateFrame = _G.CreateFrame
-local hooksecurefunc = _G.hooksecurefunc
+-- local C_Calendar_GetNumPendingInvites = _G.C_Calendar.GetNumPendingInvites
+local ERR_NOT_IN_COMBAT = _G.ERR_NOT_IN_COMBAT
+local GetUnitName = _G.GetUnitName
 local InCombatLockdown = _G.InCombatLockdown
+local IsInGuild = _G.IsInGuild
 local Minimap = _G.Minimap
-local MiniMapMailFrame = _G.MiniMapMailFrame
-local UIParent = _G.UIParent
-local GetZonePVPInfo = _G.GetZonePVPInfo
+local UnitClass = _G.UnitClass
+local hooksecurefunc = _G.hooksecurefunc
 
-function Module:GetLocTextColor()
-	local pvpType = GetZonePVPInfo()
-	if pvpType == "friendly" then
-		return 0.05, 0.85, 0.03
-	elseif pvpType == "contested" then
-		return 0.9, 0.85, 0.05
-	elseif pvpType == "hostile" then
-		return 0.84, 0.03, 0.03
-	elseif pvpType == "sanctuary" then
-		return 0.035, 0.58, 0.84
-	elseif pvpType == "combat" then
-		return 0.84, 0.03, 0.03
-	else
-		return 0.9, 0.85, 0.05
-	end
+-- Create the new minimap tracking dropdown frame and initialize it
+local KKUI_MiniMapTrackingDropDown = CreateFrame("Frame", "KKUI_MiniMapTrackingDropDown", _G.UIParent, "UIDropDownMenuTemplate")
+KKUI_MiniMapTrackingDropDown:SetID(1)
+KKUI_MiniMapTrackingDropDown:SetClampedToScreen(true)
+KKUI_MiniMapTrackingDropDown:Hide()
+_G.UIDropDownMenu_Initialize(KKUI_MiniMapTrackingDropDown, _G.MiniMapTrackingDropDown_Initialize, "MENU")
+KKUI_MiniMapTrackingDropDown.noResize = true
+
+local checkMinLevel = 10 -- Previous Constants were removed but all these are unlocked at 10.
+
+-- Create the minimap micro menu
+local menuFrame = CreateFrame("Frame", "KKUI_MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate")
+local guildText = IsInGuild() and ACHIEVEMENTS_GUILD_TAB or LOOKINGFORGUILD
+local micromenu = {
+	{text = K.SystemColor.."Micro Menu", notClickable = true, notCheckable = true},
+	{text = "", notClickable = true, notCheckable = true},
+
+	{text = CHARACTER_BUTTON, notCheckable = 1, func = function()
+			ToggleCharacter("PaperDollFrame")
+	end},
+
+	{text = SPELLBOOK_ABILITIES_BUTTON, notCheckable = 1, func = function()
+			ToggleFrame(SpellBookFrame)
+	end},
+
+	{text = TALENTS_BUTTON, notCheckable = 1, func = function()
+			if not PlayerTalentFrame then
+				TalentFrame_LoadUI()
+			end
+			if K.Level >= 10 then
+				ShowUIPanel(PlayerTalentFrame)
+			else
+				K.Print(K.InfoColor..string_format(FEATURE_BECOMES_AVAILABLE_AT_LEVEL, checkMinLevel).."|r")
+			end
+	end},
+
+	{text = ACHIEVEMENT_BUTTON, notCheckable = 1, func = function()
+			ToggleAchievementFrame()
+	end},
+
+	{text = guildText, notCheckable = 1, func = function()
+			ToggleGuildFrame()
+	end},
+
+	{text = SOCIAL_BUTTON, notCheckable = 1, func = function()
+			ToggleFriendsFrame(1)
+	end},
+
+	{text = RAID, notCheckable = 1, func = function()
+			ToggleFriendsFrame(3)
+	end},
+
+	{text = CHAT_CHANNELS, notCheckable = 1, func = function()
+			ToggleChannelFrame()
+	end},
+
+	{text = PLAYER_V_PLAYER, notCheckable = 1, func = function()
+			if K.Level >= checkMinLevel then
+				TogglePVPUI()
+			else
+				K.Print(K.InfoColor..string_format(FEATURE_BECOMES_AVAILABLE_AT_LEVEL, checkMinLevel).."|r")
+			end
+	end},
+
+	{text = DUNGEONS_BUTTON, notCheckable = 1, func = function()
+			if K.Level >= checkMinLevel then
+				PVEFrame_ToggleFrame("GroupFinderFrame", nil)
+			else
+				K.Print(K.InfoColor..string_format(FEATURE_BECOMES_AVAILABLE_AT_LEVEL, checkMinLevel).."|r")
+			end
+	end},
+
+	{text = ADVENTURE_JOURNAL, notCheckable = 1, func = function()
+			if C_AdventureJournal.CanBeShown() then
+				ToggleEncounterJournal()
+			else
+				K.Print(K.InfoColor..FEATURE_NOT_YET_AVAILABLE.."|r")
+			end
+	end},
+
+	{text = MOUNTS, notCheckable = 1, func = function()
+			ToggleCollectionsJournal(1)
+	end},
+
+	{text = PETS, notCheckable = 1, func = function()
+			ToggleCollectionsJournal(2)
+	end},
+
+	{text = TOY_BOX, notCheckable = 1, func = function()
+			ToggleCollectionsJournal(3)
+	end},
+
+	{text = HEIRLOOMS, notCheckable = 1, func = function()
+			ToggleCollectionsJournal(4)
+	end},
+
+	{text = WARDROBE, notCheckable = 1, func = function()
+			if InCombatLockdown() then
+				K.Print(K.InfoColor..ERR_NOT_IN_COMBAT.."|r") return
+			end
+			ToggleCollectionsJournal(5)
+	end},
+
+	{text = HELP_BUTTON, notCheckable = 1, func = function()
+			ToggleHelpFrame()
+	end},
+
+	{text = EVENTS_LABEL, notCheckable = 1, func = function()
+			ToggleCalendar()
+	end},
+
+	{text = BATTLEFIELD_MINIMAP, notCheckable = 1, func = function()
+			ToggleBattlefieldMap()
+	end},
+
+	{text = LOOT_ROLLS, notCheckable = 1, func = function()
+			ToggleFrame(LootHistoryFrame)
+	end},
+}
+
+if not IsTrialAccount() and not C_StorePublic.IsDisabledByParentalControls() then
+	table_insert(micromenu, {text = BLIZZARD_STORE, notCheckable = 1, func = function()
+			StoreMicroButton:Click()
+	end})
 end
 
-function Module:OnMouseWheelScroll(d)
-	if d > 0 then
-		_G.MinimapZoomIn:Click()
-	elseif d < 0 then
-		_G.MinimapZoomOut:Click()
-	end
+if K.Level > 99 then
+	table_insert(micromenu, {text = ORDER_HALL_LANDING_PAGE_TITLE, notCheckable = 1, func = function()
+			GarrisonLandingPage_Toggle()
+	end})
+elseif K.Level > 89 then
+	table_insert(micromenu, {text = GARRISON_LANDING_PAGE_TITLE, notCheckable = 1, func = function()
+			GarrisonLandingPage_Toggle()
+	end})
 end
 
-local isResetting
-local function ResetZoom()
-	Minimap:SetZoom(0)
-	MinimapZoomIn:Enable() -- Reset enabled state of buttons
-	MinimapZoomOut:Disable()
-	isResetting = false
-end
+function Module:CreateStyle()
+	local minimapBorder = CreateFrame("Frame", "KKUI_MinimapBorder", Minimap)
+	minimapBorder:SetAllPoints(Minimap)
+	minimapBorder:SetFrameLevel(Minimap:GetFrameLevel())
+	minimapBorder:SetFrameStrata("LOW")
+	minimapBorder:CreateBorder()
 
-local function SetupZoomReset()
-	if C["Minimap"].ResetZoom and not isResetting then
-		isResetting = true
-		C_Timer_After(C["Minimap"].ResetZoomTime, ResetZoom)
-	end
-end
-hooksecurefunc(Minimap, "SetZoom", SetupZoomReset)
+	local minimapMailPulse = CreateFrame("Frame", nil, Minimap, "BackdropTemplate")
+	minimapMailPulse:SetBackdrop({edgeFile = "Interface\\AddOns\\KkthnxUI\\Media\\Border\\Border_Glow_Overlay", edgeSize = 12})
+	minimapMailPulse:SetPoint("TOPLEFT", minimapBorder, -5, 5)
+	minimapMailPulse:SetPoint("BOTTOMRIGHT", minimapBorder, 5, -5)
+	minimapMailPulse:SetBackdropBorderColor(1, 1, 0, 0.8)
+	minimapMailPulse:Hide()
 
-function Module:UpdateZoneText()
-	if not C["Minimap"].Enable then
-		return
-	end
+	local anim = minimapMailPulse:CreateAnimationGroup()
+	anim:SetLooping("BOUNCE")
+	anim.fader = anim:CreateAnimation("Alpha")
+	anim.fader:SetFromAlpha(0.8)
+	anim.fader:SetToAlpha(0.2)
+	anim.fader:SetDuration(1)
+	anim.fader:SetSmoothing("OUT")
 
-	Minimap.Location:SetText(GetMinimapZoneText())
-	Minimap.Location:SetTextColor(Module:GetLocTextColor())
-	Minimap.Location:SetFontObject(K.GetFont(C["UIFonts"].DataTextFonts))
-	Minimap.Location:SetFont(select(1, Minimap.Location:GetFont()), 13, select(3, Minimap.Location:GetFont()))
-end
-
-function Module:UpdateSettings()
-	if InCombatLockdown() then
-		K:RegisterEvent("PLAYER_REGEN_ENABLED", self.PLAYER_REGEN_ENABLED)
-		return
-	end
-
-	K.MinimapSize = C["Minimap"].Enable and C["Minimap"].Size or Minimap:GetWidth() + 10
-	K.MinimapWidth, K.MinimapHeight = K.MinimapSize, K.MinimapSize
-
-	Minimap:SetSize(K.MinimapSize, K.MinimapSize)
-
-	local MinimapFrameHolder = _G.MinimapFrameHolder
-	if MinimapFrameHolder then
-		MinimapFrameHolder:SetWidth(Minimap:GetWidth())
-	end
-
-	-- Stop here if KkthnxUI Minimap is disabled.
-	if not C["Minimap"].Enable then
-		return
-	end
-
-	Minimap.Location:SetWidth(K.MinimapSize)
-	Minimap.Location:Hide()
-
-	if MiniMapMailFrame then
-		MiniMapMailFrame:ClearAllPoints()
-		if C["DataText"].Time then
-			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 4)
-		else
-			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, -6)
-		end
-		MiniMapMailFrame:SetScale(1.2)
-		MiniMapMailFrame:SetHitRectInsets(8, 8, 12, 11)
-	end
-
-	if MiniMapTrackingFrame then
-		MiniMapTrackingFrame:ClearAllPoints()
-		MiniMapTrackingFrame:SetPoint("BOTTOMRIGHT", Minimap, 2, -2)
-
-		if (MiniMapTrackingBorder) then
-			MiniMapTrackingBorder:Hide()
-		end
-
-		if (MiniMapTrackingIcon) then
-			MiniMapTrackingIcon:SetDrawLayer("ARTWORK")
-			MiniMapTrackingIcon:SetTexCoord(unpack(K.TexCoords))
-			MiniMapTrackingIcon:SetSize(20, 20)
-		end
-
-		MiniMapTrackingFrame:CreateBackdrop()
-		MiniMapTrackingFrame.Backdrop:CreateInnerShadow()
-		MiniMapTrackingFrame.Backdrop:SetFrameLevel(MiniMapTrackingFrame:GetFrameLevel())
-		MiniMapTrackingFrame.Backdrop:SetAllPoints(MiniMapTrackingIcon)
-		MiniMapTrackingFrame.Backdrop:CreateBorder()
-		MiniMapTrackingFrame.Backdrop:CreateInnerShadow()
-		MiniMapTrackingFrame.Backdrop:SetBackdropBorderColor(1, 1, 0)
-	end
-
-	if MiniMapBattlefieldFrame then
-		MiniMapBattlefieldFrame:ClearAllPoints()
-		MiniMapBattlefieldFrame:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", -2, -2)
-		MiniMapBattlefieldBorder:Hide()
-		MiniMapBattlefieldIcon:SetAlpha(0)
-		BattlegroundShine:SetTexture(nil)
-
-		local queueIcon = Minimap:CreateTexture(nil, "ARTWORK")
-		queueIcon:SetPoint("CENTER", MiniMapBattlefieldFrame)
-		queueIcon:SetSize(50, 50)
-		queueIcon:SetTexture("Interface\\Minimap\\Raid_Icon")
-		queueIcon:Hide()
-
-		local anim = queueIcon:CreateAnimationGroup()
-		anim:SetLooping("REPEAT")
-		anim.rota = anim:CreateAnimation("Rotation")
-		anim.rota:SetDuration(2)
-		anim.rota:SetDegrees(360)
-
-		hooksecurefunc("BattlefieldFrame_UpdateStatus", function()
-			queueIcon:SetShown(MiniMapBattlefieldFrame:IsShown())
-
-			anim:Play()
-			for i = 1, MAX_BATTLEFIELD_QUEUES do
-				local status = GetBattlefieldStatus(i)
-				if status == "confirm" then
+	local function updateMinimapBorderAnimation()
+		if not InCombatLockdown() then
+			if MiniMapMailFrame:IsShown() and not IsInInstance() then
+				if not anim:IsPlaying() then
+					minimapMailPulse:Show()
+					anim:Play()
+				end
+			else
+				if anim and anim:IsPlaying() then
 					anim:Stop()
-					break
+					minimapMailPulse:Hide()
 				end
 			end
+		end
+	end
+	K:RegisterEvent("PLAYER_REGEN_DISABLED", updateMinimapBorderAnimation)
+	K:RegisterEvent("PLAYER_REGEN_ENABLED", updateMinimapBorderAnimation)
+	K:RegisterEvent("UPDATE_PENDING_MAIL", updateMinimapBorderAnimation)
+
+	MiniMapMailFrame:HookScript("OnHide", function()
+		if InCombatLockdown() then
+			return
+		end
+
+		if anim and anim:IsPlaying() then
+			anim:Stop()
+			minimapMailPulse:Hide()
+		end
+	end)
+end
+
+function Module:ReskinRegions()
+	-- QueueStatus Button
+	if QueueStatusMinimapButton then
+		QueueStatusMinimapButton:ClearAllPoints()
+		QueueStatusMinimapButton:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 2, -2)
+		QueueStatusMinimapButtonBorder:Hide()
+		QueueStatusMinimapButtonIconTexture:SetTexture(nil)
+
+		local queueIcon = Minimap:CreateTexture(nil, "ARTWORK")
+		queueIcon:SetPoint("CENTER", QueueStatusMinimapButton)
+		queueIcon:SetSize(50, 50)
+		queueIcon:SetTexture("Interface\\Minimap\\Raid_Icon")
+
+		local queueIconAnimation = queueIcon:CreateAnimationGroup()
+		queueIconAnimation:SetLooping("REPEAT")
+		queueIconAnimation.rotation = queueIconAnimation:CreateAnimation("Rotation")
+		queueIconAnimation.rotation:SetDuration(2)
+		queueIconAnimation.rotation:SetDegrees(360)
+
+		hooksecurefunc("QueueStatusFrame_Update", function()
+			queueIcon:SetShown(QueueStatusMinimapButton:IsShown())
+		end)
+
+		hooksecurefunc("EyeTemplate_StartAnimating", function()
+			queueIconAnimation:Play()
+		end)
+
+		hooksecurefunc("EyeTemplate_StopAnimating", function()
+			queueIconAnimation:Stop()
 		end)
 	end
 
-	if StreamingIcon then
-		StreamingIcon:ClearAllPoints()
-		StreamingIcon:SetPoint("TOP", UIParent, "TOP", 0, -6)
+	-- Tracking icon
+	if MiniMapTracking then
+		MiniMapTracking:SetScale(0.8)
+		MiniMapTracking:ClearAllPoints()
+		MiniMapTracking:SetPoint("BOTTOMRIGHT", Minimap, -4, 4)
+		MiniMapTracking:SetFrameLevel(Minimap:GetFrameLevel() + 4)
+		MiniMapTrackingBorder:Hide()
+		MiniMapTrackingBackground:Hide()
 	end
-end
 
-function Module.ADDON_LOADED(_, addon)
-	if addon == "Blizzard_TimeManager" then
-		TimeManagerClockButton:Kill()
-	elseif addon == "Blizzard_FeedbackUI" then
-		FeedbackUIButton:Kill()
+	-- Mail icon
+	if MiniMapMailFrame then
+		MiniMapMailFrame:ClearAllPoints()
+		if C["DataText"].Time then
+			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, -4)
+		else
+			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, -12)
+		end
+		MiniMapMailIcon:SetTexture("Interface\\HELPFRAME\\ReportLagIcon-Mail")
+		MiniMapMailFrame:SetScale(1.8)
+		MiniMapMailIcon:SetRotation(rad(-27.5))
+		MiniMapMailFrame:SetHitRectInsets(11, 11, 11, 15)
 	end
+
+	-- Invites Icon
+	if GameTimeCalendarInvitesTexture then
+		GameTimeCalendarInvitesTexture:ClearAllPoints()
+		GameTimeCalendarInvitesTexture:SetParent("Minimap")
+		GameTimeCalendarInvitesTexture:SetPoint("TOPRIGHT")
+	end
+
+	local inviteNotification = CreateFrame("Button", nil, UIParent, "BackdropTemplate")
+	inviteNotification:SetBackdrop({edgeFile = "Interface\\AddOns\\KkthnxUI\\Media\\Border\\Border_Glow_Overlay", edgeSize = 12})
+	inviteNotification:SetPoint("TOPLEFT", Minimap, -5, 5)
+	inviteNotification:SetPoint("BOTTOMRIGHT", Minimap, 5, -5)
+	inviteNotification:SetBackdropBorderColor(1, 1, 0, 0.8)
+	inviteNotification:Hide()
+
+	K.CreateFontString(inviteNotification, 12, K.InfoColor.."Pending Calendar Invite(s)!", "")
+
+	local function updateInviteVisibility()
+		--inviteNotification:SetShown(C_Calendar_GetNumPendingInvites() > 0)
+	end
+	-- K:RegisterEvent("CALENDAR_UPDATE_PENDING_INVITES", updateInviteVisibility)
+	K:RegisterEvent("PLAYER_ENTERING_WORLD", updateInviteVisibility)
+
+	inviteNotification:SetScript("OnClick", function(_, btn)
+		inviteNotification:Hide()
+
+		if btn == "LeftButton" and not InCombatLockdown() then
+			ToggleCalendar()
+		end
+
+		-- K:UnregisterEvent("CALENDAR_UPDATE_PENDING_INVITES", updateInviteVisibility)
+		K:UnregisterEvent("PLAYER_ENTERING_WORLD", updateInviteVisibility)
+	end)
 end
 
-function Module.PLAYER_REGEN_ENABLED()
-	K:UnregisterEvent("PLAYER_REGEN_ENABLED")
-	Module:UpdateSettings()
-end
+function Module:CreatePing()
+	local pingFrame = CreateFrame("Frame", nil, Minimap)
+	pingFrame:SetAllPoints()
+	pingFrame.text = K.CreateFontString(pingFrame, 12, "", "OUTLINE", false, "TOP", 0, -4)
 
-function Module:WhoPingedMyMap()
-	local MinimapPing = CreateFrame("Frame", nil, Minimap)
-	MinimapPing:SetAllPoints()
+	local pingAnimation = pingFrame:CreateAnimationGroup()
 
-	MinimapPing.Text = MinimapPing:CreateFontString(nil, "OVERLAY")
-	MinimapPing.Text:FontTemplate(nil, 14)
-	MinimapPing.Text:SetPoint("TOP", MinimapPing, "TOP", 0, -20)
-
-	local AnimationPing = MinimapPing:CreateAnimationGroup()
-	AnimationPing:SetScript("OnPlay", function()
-		MinimapPing:SetAlpha(1)
+	pingAnimation:SetScript("OnPlay", function()
+		pingFrame:SetAlpha(1)
 	end)
 
-	AnimationPing:SetScript("OnFinished", function()
-		MinimapPing:SetAlpha(0)
+	pingAnimation:SetScript("OnFinished", function()
+		pingFrame:SetAlpha(0)
 	end)
 
-	AnimationPing.Fader = AnimationPing:CreateAnimation("Alpha")
-	AnimationPing.Fader:SetFromAlpha(1)
-	AnimationPing.Fader:SetToAlpha(0)
-	AnimationPing.Fader:SetDuration(3)
-	AnimationPing.Fader:SetSmoothing("OUT")
-	AnimationPing.Fader:SetStartDelay(3)
+	pingAnimation.fader = pingAnimation:CreateAnimation("Alpha")
+	pingAnimation.fader:SetFromAlpha(1)
+	pingAnimation.fader:SetToAlpha(0)
+	pingAnimation.fader:SetDuration(3)
+	pingAnimation.fader:SetSmoothing("OUT")
+	pingAnimation.fader:SetStartDelay(3)
 
-	function Module.MINIMAP_PING(_, unit)
-		local class = select(2, UnitClass(unit))
-		if not class then
+	K:RegisterEvent("MINIMAP_PING", function(_, unit)
+		if unit == "player" then -- Do show ourself. -.-
 			return
 		end
 
+		local class = select(2, UnitClass(unit))
 		local r, g, b = K.ColorClass(class)
 		local name = GetUnitName(unit)
-		if not name then
+
+		pingAnimation:Stop()
+		pingFrame.text:SetText(name)
+		pingFrame.text:SetTextColor(r, g, b)
+		pingAnimation:Play()
+	end)
+end
+
+function Module:UpdateMinimapScale()
+	local size = C["Minimap"].Size
+	Minimap:SetSize(size, size)
+	Minimap.mover:SetSize(size, size)
+end
+
+function Module:HideMinimapClock()
+	if TimeManagerClockButton then
+		TimeManagerClockButton:Hide()
+	end
+end
+
+function Module:ShowCalendar()
+	if C["Minimap"].Calendar then
+		if not GameTimeFrame.styled then
+			GameTimeFrame:SetParent(Minimap)
+			GameTimeFrame:SetScale(0.54)
+			GameTimeFrame:ClearAllPoints()
+			GameTimeFrame:SetPoint("TOPRIGHT", Minimap, -4, -4)
+			GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
+			--GameTimeFrame:GetNormalTexture():SetTexCoord(0, 1, 0, 1)
+			--GameTimeFrame:SetNormalTexture("Interface\\AddOns\\KkthnxUI\\Media\\Minimap\\Calendar.blp")
+			GameTimeFrame:SetPushedTexture(nil)
+			GameTimeFrame:SetHighlightTexture(nil)
+
+			local fs = GameTimeFrame:GetFontString()
+			fs:ClearAllPoints()
+			fs:SetPoint("CENTER", 0, -5)
+			fs:FontTemplate(nil, 20)
+			fs:SetAlpha(0.9)
+			fs:SetShadowOffset(0, 0)
+
+			GameTimeFrame.styled = true
+		end
+		GameTimeFrame:Show()
+	else
+		GameTimeFrame:Hide()
+	end
+end
+
+function Module:Minimap_OnMouseWheel(zoom)
+	if zoom > 0 then
+		Minimap_ZoomIn()
+	else
+		Minimap_ZoomOut()
+	end
+end
+
+function Module:Minimap_OnMouseUp(btn)
+	_G.HideDropDownMenu(1, nil, KKUI_MiniMapTrackingDropDown)
+	menuFrame:Hide()
+
+	local position = Minimap.mover:GetPoint()
+	if btn == "MiddleButton" or (btn == "RightButton" and IsShiftKeyDown()) then
+		if InCombatLockdown() then
+			_G.UIErrorsFrame:AddMessage(K.InfoColor.._G.ERR_NOT_IN_COMBAT)
 			return
 		end
 
-		AnimationPing:Stop()
-		MinimapPing.Text:SetText(name)
-		MinimapPing.Text:SetTextColor(r, g, b)
-		AnimationPing:Play()
+		if position:match("LEFT") then
+			EasyMenu(micromenu, menuFrame, "cursor", 0, 0, "MENU")
+		else
+			EasyMenu(micromenu, menuFrame, "cursor", -160, 0, "MENU")
+		end
+	elseif btn == "RightButton" then
+		if position:match("LEFT") then
+			ToggleDropDownMenu(1, nil, KKUI_MiniMapTrackingDropDown, "cursor", 0, 0, "MENU", 2)
+		else
+			ToggleDropDownMenu(1, nil, KKUI_MiniMapTrackingDropDown, "cursor", -160, 0, "MENU", 2)
+		end
+	else
+		_G.Minimap_OnClick(self)
 	end
-
-	K:RegisterEvent("MINIMAP_PING", self.MINIMAP_PING)
 end
 
-local function GetMinimapShape()
-	return "SQUARE"
+function Module:SetupHybridMinimap()
+	HybridMinimap.CircleMask:SetTexture("Interface\\BUTTONS\\WHITE8X8")
 end
 
-function Module:SetGetMinimapShape()
-	-- This is just to support for other mods
-	_G.GetMinimapShape = GetMinimapShape
-	Minimap:SetSize(C["Minimap"].Size, C["Minimap"].Size)
+function Module:HybridMinimapOnLoad(addon)
+	if addon == "Blizzard_HybridMinimap" then
+		Module:SetupHybridMinimap()
+		K:UnregisterEvent(self, Module.HybridMinimapOnLoad)
+	end
+end
+
+function Module:UpdateBlipTexture()
+	Minimap:SetBlipTexture(C["Minimap"].BlipTexture.Value)
 end
 
 function Module:OnEnable()
 	if not C["Minimap"].Enable then
-		Minimap:SetMaskTexture([[Interface\CharacterFrame\TempPortraitAlphaMask]])
-		Minimap:SetBlipTexture("Interface\\MiniMap\\ObjectIconsAtlas")
 		return
 	end
 
-	local pos
-	local MinimapFrameHolder = CreateFrame("Frame", "MinimapFrameHolder", Minimap)
-	if K.CheckAddOnState("TitanClassic") then
-		-- MinimapFrameHolder:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -4, -50)
-		pos = {"TOPRIGHT", UIParent, "TOPRIGHT", -4, -30}
-	else
-		MinimapFrameHolder:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -4, -4)
-		pos = {"TOPRIGHT", UIParent, "TOPRIGHT", -4, -4}
-	end
-	MinimapFrameHolder:SetSize(C["Minimap"].Size, C["Minimap"].Size)
+	-- Shape and Position
+	Minimap:SetFrameLevel(10)
+	Minimap:SetMaskTexture(C["Media"].Textures.BlankTexture)
+	DropDownList1:SetClampedToScreen(true)
 
+	local minimapMover = K.Mover(Minimap, "Minimap", "Minimap", {"TOPRIGHT", UIParent, "TOPRIGHT", -4, -4})
 	Minimap:ClearAllPoints()
-	Minimap:SetPoint("CENTER", MinimapFrameHolder, "CENTER", 0, 0)
-	Minimap:SetMaskTexture(C["Media"].Blank)
-	Minimap:CreateBorder()
-	Minimap:CreateInnerShadow(nil, 0.4)
-	Minimap:SetScale(1.0)
-	Minimap:SetBlipTexture(C["Minimap"].BlipTexture.Value)
+	Minimap:SetPoint("TOPRIGHT", minimapMover)
+	Minimap.mover = minimapMover
 
-	Minimap:HookScript("OnEnter", function(mm)
-		if not C["Minimap"].Enable then
-			return
-		end
-
-		mm.Location:Show()
-	end)
-
-	Minimap:HookScript("OnLeave", function(mm)
-		if not C["Minimap"].Enable then
-			return
-		end
-
-		mm.Location:Hide()
-	end)
-
-	Minimap.Location = Minimap:CreateFontString(nil, "OVERLAY")
-	Minimap.Location:SetFontObject(K.GetFont(C["UIFonts"].DataTextFonts))
-	Minimap.Location:SetFont(select(1, Minimap.Location:GetFont()), 13, select(3, Minimap.Location:GetFont()))
-	Minimap.Location:SetPoint("TOP", Minimap, "TOP", 0, -4)
-	Minimap.Location:SetJustifyH("CENTER")
-	Minimap.Location:SetJustifyV("MIDDLE")
-	if not C["Minimap"].Enable then
-		Minimap.Location:Hide()
-	end
-
-	_G.GameTimeFrame:Hide()
-	_G.MiniMapMailBorder:Hide()
-	_G.MiniMapMailIcon:SetTexture("Interface\\Addons\\KkthnxUI\\Media\\Textures\\Mail")
-	_G.MinimapBorder:Hide()
-	_G.MinimapNorthTag:Kill()
-	_G.MinimapBorderTop:Hide()
-	_G.MinimapToggleButton:Hide()
-	_G.MinimapZoneTextButton:Hide()
-	_G.MinimapZoomIn:Hide()
-	_G.MinimapZoomOut:Hide()
-
-	_G.MiniMapWorldMapButton:Hide()
-
-	if _G.TimeManagerClockButton then
-		_G.TimeManagerClockButton:Kill()
-	end
-
-	if _G.FeedbackUIButton then
-		_G.FeedbackUIButton:Kill()
-	end
-
-	_G.MinimapCluster:EnableMouse(false)
-
-	K.Mover(MinimapFrameHolder, "Minimap", "Minimap", pos)
+	self:HideMinimapClock()
+	-- self:ShowCalendar()
+	self:UpdateBlipTexture()
+	self:UpdateMinimapScale()
 
 	Minimap:EnableMouseWheel(true)
-	Minimap:SetScript("OnMouseWheel", Module.OnMouseWheelScroll)
+	Minimap:SetScript("OnMouseWheel", Module.Minimap_OnMouseWheel)
+	Minimap:SetScript("OnMouseUp", Module.Minimap_OnMouseUp)
 
-	K:RegisterEvent("PLAYER_ENTERING_WORLD", self.UpdateZoneText)
-	K:RegisterEvent("ZONE_CHANGED_NEW_AREA", self.UpdateZoneText)
-	K:RegisterEvent("ZONE_CHANGED", self.UpdateZoneText)
-	K:RegisterEvent("ZONE_CHANGED_INDOORS", self.UpdateZoneText)
-	K:RegisterEvent("ADDON_LOADED", self.ADDON_LOADED)
+	-- Hide Blizz
+	local frames = {
+		"MinimapBorderTop",
+		"MinimapNorthTag",
+		"MinimapBorder",
+		"MinimapZoneTextButton",
+		"MinimapZoomOut",
+		"MinimapZoomIn",
+		"MiniMapWorldMapButton",
+		"MiniMapMailBorder",
+	}
 
-	self:UpdateSettings()
-	self:SetGetMinimapShape()
-	self:WhoPingedMyMap()
+	for _, v in pairs(frames) do
+		K.HideInterfaceOption(_G[v])
+	end
+
+	MinimapCluster:EnableMouse(false)
+	-- Minimap:SetArchBlobRingScalar(0)
+	-- Minimap:SetQuestBlobRingScalar(0)
+
+	-- Add Elements
+	self:CreatePing()
+	self:CreateStyle()
 	self:CreateRecycleBin()
+	self:ReskinRegions()
+
+	-- HybridMinimap
+	K:RegisterEvent("ADDON_LOADED", Module.HybridMinimapOnLoad)
 end

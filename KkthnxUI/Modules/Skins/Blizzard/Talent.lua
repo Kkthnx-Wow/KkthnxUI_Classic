@@ -1,23 +1,10 @@
-local K = unpack(select(2, ...))
-local Module = K:GetModule("Skins")
+local _, C = unpack(select(2, ...))
 
-local function ReskinTalentUI()
-	for i = 1, _G.MAX_NUM_TALENTS do
-		local talent = _G["TalentFrameTalent"..i]
-		local icon = _G["TalentFrameTalent"..i.."IconTexture"]
-		local rank = _G["TalentFrameTalent"..i.."Rank"]
+local _G = _G
 
-		if talent then
-			talent:CreateBorder(nil, nil, nil, true)
-			talent:StyleButton()
-
-			icon:SetAllPoints()
-			icon:SetTexCoord(unpack(K.TexCoords))
-			icon:SetDrawLayer("ARTWORK")
-
-			rank:FontTemplate(nil, nil, "OUTLINE")
-		end
+C.themes["Blizzard_TalentUI"] = function()
+	if C["General"].NoTutorialButtons then
+		_G.PlayerTalentFrameTalentsTutorialButton:Kill()
+		_G.PlayerTalentFrameSpecializationTutorialButton:Kill()
 	end
 end
-
-Module.NewSkin["Blizzard_TalentUI"] = ReskinTalentUI

@@ -2,46 +2,86 @@ local K, C = unpack(select(2, ...))
 local Module = K:NewModule("WorldMap")
 
 local _G = _G
-local table_insert = _G.table.insert
-local select = _G.select
 
 local C_Map_GetBestMapForUnit = _G.C_Map.GetBestMapForUnit
-local C_Map_GetWorldPosFromMapPos = _G.C_Map.GetWorldPosFromMapPos
 local CreateFrame = _G.CreateFrame
-local CreateVector2D = _G.CreateVector2D
-local IsAddOnLoaded = _G.IsAddOnLoaded
+local IsPlayerMoving = _G.IsPlayerMoving
 local PLAYER = _G.PLAYER
-local UnitPosition = _G.UnitPosition
-local WorldMapFrame = _G.WorldMapFrame
+local SetUIPanelAttribute = _G.SetUIPanelAttribute
+local UIParent = _G.UIParent
 local hooksecurefunc = _G.hooksecurefunc
 
-local mapRects = {}
-local tempVec2D = CreateVector2D(0, 0)
 local currentMapID, playerCoords, cursorCoords
+local smallerMapScale = 0.8
+local updateThrottle = 1 / 20
 
-function Module:GetPlayerMapPos(mapID)
-	tempVec2D.x, tempVec2D.y = UnitPosition("player")
-	if not tempVec2D.x then return end
+function Module:SetLargeWorldMap()
+	local WorldMapFrame = _G.WorldMapFrame
+	WorldMapFrame:SetParent(UIParent)
+	WorldMapFrame:SetScale(1)
+	WorldMapFrame:OnFrameSizeChanged()
+	WorldMapFrame.ScrollContainer.Child:SetScale(smallerMapScale)
+end
 
-	local mapRect = mapRects[mapID]
-	if not mapRect then
-		mapRect = {}
-		mapRect[1] = select(2, C_Map_GetWorldPosFromMapPos(mapID, CreateVector2D(0, 0)))
-		mapRect[2] = select(2, C_Map_GetWorldPosFromMapPos(mapID, CreateVector2D(1, 1)))
-		mapRect[2]:Subtract(mapRect[1])
+function Module:SetSmallWorldMap(smallerScale)
+	local WorldMapFrame = _G.WorldMapFrame
+	WorldMapFrame:SetParent(UIParent)
+	WorldMapFrame:SetScale(smallerScale)
+	WorldMapFrame:EnableKeyboard(false)
+	WorldMapFrame:EnableMouse(false)
+	WorldMapFrame:SetFrameStrata('HIGH')
 
-		mapRects[mapID] = mapRect
+	_G.WorldMapTooltip:SetFrameLevel(WorldMapFrame.ScrollContainer:GetFrameLevel() + 110)
+end
+
+function Module:UpdateMaximizedSize()
+	local width, height = WorldMapFrame:GetSize()
+	local magicNumber = (1 - smallerMapScale) * 100
+	WorldMapFrame:SetSize((width * smallerMapScale) - (magicNumber + 2), (height * smallerMapScale) - 2)
+end
+
+function Module:ToggleMapFix(event)
+	local WorldMapFrame = _G.WorldMapFrame
+	ShowUIPanel(WorldMapFrame)
+	WorldMapFrame:SetAttribute('UIPanelLayout-area', 'center')
+	WorldMapFrame:SetAttribute('UIPanelLayout-allowOtherPanels', true)
+	HideUIPanel(WorldMapFrame)
+
+	if event then
+		self:UnregisterEvent(event)
 	end
-	tempVec2D:Subtract(mapRect[1])
+end
 
-	return tempVec2D.y/mapRect[2].y, tempVec2D.x/mapRect[2].x
+function Module:WorldMapOnShow(event)
+	if (Module.mapSized) then
+		return
+	end
+
+	-- Don't do this in combat, there are secure elements here.
+	if (InCombatLockdown()) then
+		K:RegisterEvent("PLAYER_REGEN_ENABLED", Module.WorldMapOnShow)
+		return
+		-- Only ever need this event once.
+	elseif (event == "PLAYER_REGEN_ENABLED") then
+		K:UnregisterEvent(event, Module.WorldMapOnShow)
+	end
+
+	self:SetSmallWorldMap(smallerMapScale)
+
+	-- Never again!
+	Module.mapSized = true
 end
 
 function Module:GetCursorCoords()
-	if not WorldMapFrame.ScrollContainer:IsMouseOver() then return end
+	if not WorldMapFrame.ScrollContainer:IsMouseOver() then
+		return
+	end
 
 	local cursorX, cursorY = WorldMapFrame.ScrollContainer:GetNormalizedCursorPosition()
-	if cursorX < 0 or cursorX > 1 or cursorY < 0 or cursorY > 1 then return end
+	if cursorX < 0 or cursorX > 1 or cursorY < 0 or cursorY > 1 then
+		return
+	end
+
 	return cursorX, cursorY
 end
 
@@ -51,28 +91,32 @@ local function CoordsFormat(owner, none)
 end
 
 function Module:UpdateCoords(elapsed)
+	-- Throttle the updates, to increase the performance.
 	self.elapsed = (self.elapsed or 0) + elapsed
-	if self.elapsed > .1 then
-		local cursorX, cursorY = Module:GetCursorCoords()
-		if cursorX and cursorY then
-			cursorCoords:SetFormattedText(CoordsFormat("Mouse"), 100 * cursorX, 100 * cursorY)
-		else
-			cursorCoords:SetText(CoordsFormat("Mouse", true))
-		end
 
-		if not currentMapID then
+	if self.elapsed < updateThrottle then
+		return
+	end
+
+	local cursorX, cursorY = Module:GetCursorCoords()
+	if cursorX and cursorY then
+		cursorCoords:SetFormattedText(CoordsFormat("Mouse"), 100 * cursorX, 100 * cursorY)
+	else
+		cursorCoords:SetText(CoordsFormat("Mouse", true))
+	end
+
+	if not currentMapID then
+		playerCoords:SetText(CoordsFormat(PLAYER, true))
+	else
+		local x, y = K.GetPlayerMapPos(currentMapID)
+		if not x or (x == 0 and y == 0) then
 			playerCoords:SetText(CoordsFormat(PLAYER, true))
 		else
-			local x, y = Module:GetPlayerMapPos(currentMapID)
-			if not x or (x == 0 and y == 0) then
-				playerCoords:SetText(CoordsFormat(PLAYER, true))
-			else
-				playerCoords:SetFormattedText(CoordsFormat(PLAYER), 100 * x, 100 * y)
-			end
+			playerCoords:SetFormattedText(CoordsFormat(PLAYER), 100 * x, 100 * y)
 		end
-
-		self.elapsed = 0
 	end
+
+	self.elapsed = 0
 end
 
 function Module:UpdateMapID()
@@ -83,95 +127,154 @@ function Module:UpdateMapID()
 	end
 end
 
-function Module:SetupCoords()
-	if not C["WorldMap"].Coordinates then
+function Module:MapShouldFade()
+	-- normally we would check GetCVarBool('mapFade') here instead of the setting
+	return C["WorldMap"].FadeWhenMoving and not _G.WorldMapFrame:IsMouseOver()
+end
+
+function Module:MapFadeOnUpdate(elapsed)
+	self.elapsed = (self.elapsed or 0) + elapsed
+	if self.elapsed < updateThrottle then
 		return
 	end
 
-	playerCoords = K.CreateFontString(WorldMapFrame, 12, nil, "", "system", "TOPLEFT", 20, -7)
-	cursorCoords = K.CreateFontString(WorldMapFrame, 12, nil, "", "system", "TOPLEFT", 170, -7)
+	local object = self.FadeObject
+	local settings = object and object.FadeSettings
+	if not settings then
+		return
+	end
 
-	hooksecurefunc(WorldMapFrame, "OnFrameSizeChanged", Module.UpdateMapID)
-	hooksecurefunc(WorldMapFrame, "OnMapChanged", Module.UpdateMapID)
+	local fadeOut = IsPlayerMoving() and (not settings.fadePredicate or settings.fadePredicate())
+	local endAlpha = (fadeOut and (settings.minAlpha or 0.5)) or settings.maxAlpha or 1
+	local startAlpha = _G.WorldMapFrame:GetAlpha()
 
-	local CoordsUpdater = CreateFrame("Frame", nil, WorldMapFrame)
-	CoordsUpdater:SetScript("OnUpdate", Module.UpdateCoords)
+	object.timeToFade = settings.durationSec or 0.5
+	object.startAlpha = startAlpha
+	object.endAlpha = endAlpha
+	object.diffAlpha = endAlpha - startAlpha
+
+	if object.fadeTimer then
+		object.fadeTimer = nil
+	end
+
+	UIFrameFade(_G.WorldMapFrame, object)
+
+	self.elapsed = 0
 end
 
-function Module:UpdateMapScale()
-	if self.isMaximized and self:GetScale() ~= 1 then
-		self:SetScale(1)
-	elseif not self.isMaximized and self:GetScale() ~= C["WorldMap"].MapScale then
-		self:SetScale(C["WorldMap"].MapScale)
+local fadeFrame
+function Module:StopMapFromFading()
+	if fadeFrame then
+		fadeFrame:Hide()
 	end
 end
 
-function Module:UpdateMapAnchor()
-	Module.UpdateMapScale(self)
-	if not self.isMaximized then K.RestoreMoverFrame(self) end
-end
-
-function Module:SetupWorldMap()
-	if IsAddOnLoaded("Leatrix_Maps") then return end
-
-	-- Fix worldmap cursor when scaling
-	WorldMapFrame.ScrollContainer.GetCursorPosition = function(f)
-		local x, y = MapCanvasScrollControllerMixin.GetCursorPosition(f)
-		local scale = WorldMapFrame:GetScale()
-		return x / scale, y / scale
+function Module:EnableMapFading(frame)
+	if not fadeFrame then
+		fadeFrame = CreateFrame("Frame")
+		fadeFrame:SetScript("OnUpdate", Module.MapFadeOnUpdate)
+		frame:HookScript("OnHide", Module.StopMapFromFading)
 	end
 
-	-- Fix scroll zooming in classic
-	WorldMapFrame.ScrollContainer:HookScript("OnMouseWheel", function(self, delta)
-		local x, y = self:GetNormalizedCursorPosition()
-		local nextZoomOutScale, nextZoomInScale = self:GetCurrentZoomRange()
-		if delta == 1 then
-			if nextZoomInScale > self:GetCanvasScale() then
-				self:InstantPanAndZoom(nextZoomInScale, x, y)
-			end
-		else
-			if nextZoomOutScale < self:GetCanvasScale() then
-				self:InstantPanAndZoom(nextZoomOutScale, x, y)
-			end
+	if not fadeFrame.FadeObject then
+		fadeFrame.FadeObject = {}
+	end
+
+	if not fadeFrame.FadeObject.FadeSettings then
+		fadeFrame.FadeObject.FadeSettings = {}
+	end
+
+	local settings = fadeFrame.FadeObject.FadeSettings
+	settings.fadePredicate = Module.MapShouldFade
+	settings.durationSec = 0.2
+	settings.minAlpha = C["WorldMap"].AlphaWhenMoving
+	settings.maxAlpha = 1
+
+	fadeFrame:Show()
+end
+
+function Module:UpdateMapFade(_, _, _, fadePredicate) -- self is frame
+	if self:IsShown() and (self == _G.WorldMapFrame and fadePredicate ~= Module.MapShouldFade) then
+		-- blizzard spams code in OnUpdate and doesnt finish their functions, so we shut their fader down :L
+		PlayerMovementFrameFader.RemoveFrame(self)
+
+		-- replacement function which is complete :3
+		if C["WorldMap"].FadeWhenMoving then
+			Module:EnableMapFading(self)
 		end
-	end)
-
-	K.CreateMoverFrame(WorldMapFrame, nil, true)
-	self.UpdateMapScale(WorldMapFrame)
-	hooksecurefunc(WorldMapFrame, "HandleUserActionToggleSelf", self.UpdateMapAnchor)
-
-	-- Default elements
-	WorldMapFrame.BlackoutFrame:Hide()
-	WorldMapFrame:SetFrameStrata("MEDIUM")
-	WorldMapFrame.BorderFrame:SetFrameStrata("MEDIUM")
-	WorldMapFrame.BorderFrame:SetFrameLevel(1)
-	WorldMapFrame:SetAttribute("UIPanelLayout-area", "center")
-	WorldMapFrame:SetAttribute("UIPanelLayout-enabled", false)
-	WorldMapFrame:SetAttribute("UIPanelLayout-allowOtherPanels", true)
-	WorldMapFrame.HandleUserActionToggleSelf = function()
-		if WorldMapFrame:IsShown() then WorldMapFrame:Hide() else WorldMapFrame:Show() end
-	end
-
-	table_insert(UISpecialFrames, "WorldMapFrame")
-end
-
-local function isMouseOverMap()
-	return not WorldMapFrame:IsMouseOver()
-end
-
-function Module:MapFader()
-	if C["WorldMap"].MapFader then
-		PlayerMovementFrameFader.AddDeferredFrame(WorldMapFrame, .5, 1, .5, isMouseOverMap)
-	else
-		PlayerMovementFrameFader.RemoveFrame(WorldMapFrame)
 	end
 end
 
 function Module:OnEnable()
-	self:SetupWorldMap()
-	self:SetupCoords()
-	self:MapFader()
+	if C["WorldMap"].Coordinates then
+		local coordsFrame = CreateFrame("FRAME", nil, WorldMapFrame.ScrollContainer)
+		coordsFrame:SetSize(WorldMapFrame:GetWidth(), 17)
+		coordsFrame:SetPoint("BOTTOMLEFT", 17)
+		coordsFrame:SetPoint("BOTTOMRIGHT", 0)
 
-	self:CreateWorldMapReveal()
-	self:CreateWorldMapIcons()
+		coordsFrame.Texture = coordsFrame:CreateTexture(nil, "BACKGROUND")
+		coordsFrame.Texture:SetAllPoints()
+		coordsFrame.Texture:SetTexture(C["Media"].Textures.BlankTexture)
+		coordsFrame.Texture:SetVertexColor(0.04, 0.04, 0.04, 0.5)
+
+		-- Create cursor coordinates frame
+		cursorCoords = WorldMapFrame.ScrollContainer:CreateFontString(nil, "OVERLAY")
+		cursorCoords:FontTemplate(nil, 13, "OUTLINE")
+		cursorCoords:SetSize(200, 16)
+		cursorCoords:SetParent(coordsFrame)
+		cursorCoords:ClearAllPoints()
+		cursorCoords:SetPoint("BOTTOMLEFT", 152, 1)
+		cursorCoords:SetTextColor(255/255, 204/255, 102/255)
+
+		-- Create player coordinates frame
+		playerCoords = WorldMapFrame.ScrollContainer:CreateFontString(nil, "OVERLAY")
+		playerCoords:FontTemplate(nil, 13, "OUTLINE")
+		playerCoords:SetSize(200, 16)
+		playerCoords:SetParent(coordsFrame)
+		playerCoords:ClearAllPoints()
+		playerCoords:SetPoint("BOTTOMRIGHT", -132, 1)
+		playerCoords:SetTextColor(255/255, 204/255, 102/255)
+
+		hooksecurefunc(WorldMapFrame, "OnFrameSizeChanged", self.UpdateMapID)
+		hooksecurefunc(WorldMapFrame, "OnMapChanged", self.UpdateMapID)
+
+		local CoordsUpdater = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
+		CoordsUpdater:SetScript("OnUpdate", self.UpdateCoords)
+	end
+
+	if C["WorldMap"].SmallWorldMap then
+		smallerMapScale = C["WorldMap"].SmallWorldMapScale or 0.9
+
+		WorldMapFrame.BlackoutFrame.Blackout:SetTexture(nil)
+		WorldMapFrame.BlackoutFrame:EnableMouse(false)
+
+		-- hooksecurefunc(WorldMapFrame, "Maximize", self.SetLargeWorldMap)
+		-- hooksecurefunc(WorldMapFrame, "Minimize", self.SetSmallWorldMap)
+		-- hooksecurefunc(WorldMapFrame, "SynchronizeDisplayState", self.SynchronizeDisplayState)
+		-- hooksecurefunc(WorldMapFrame, "UpdateMaximizedSize", self.UpdateMaximizedSize)
+
+		WorldMapFrame:HookScript("OnShow", function()
+			Module:WorldMapOnShow()
+		end)
+
+		local WorldMapFrame_OnShow
+		function WorldMapFrame_OnShow()
+			Module:WorldMapOnShow()
+			-- Noop it after the first run
+			WorldMapFrame_OnShow = function() end
+		end
+		hooksecurefunc(WorldMapFrame, "Show", WorldMapFrame_OnShow)
+	else
+		self:SetLargeWorldMap()
+	end
+
+	-- This lets us control the maps fading function
+	hooksecurefunc(PlayerMovementFrameFader, "AddDeferredFrame", self.UpdateMapFade)
+
+	-- Enable/Disable map fading when moving
+	-- currently we dont need to touch this cvar because we have our own control for this currently
+	-- see the comment in `M:UpdateMapFade` about `durationSec` for more information
+	-- SetCVar("mapFade", E.global.general.fadeMapWhenMoving and 1 or 0)
+	-- self:CreateWorldMapReveal()
+	-- self:CreateWowHeadLinks()
 end

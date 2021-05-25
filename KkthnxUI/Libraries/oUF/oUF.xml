@@ -14,8 +14,6 @@
 	<Script file="elements\castbar.lua"/>
 	<Script file="elements\classpower.lua"/>
 	<Script file="elements\combatindicator.lua"/>
-	<Script file="elements\combopoints.lua"/>
-	<Script file="elements\happinessindicator.lua"/>
 	<Script file="elements\health.lua"/>
 	<Script file="elements\healthprediction.lua"/>
 	<Script file="elements\leaderindicator.lua"/>
@@ -23,14 +21,14 @@
 	<Script file="elements\phaseindicator.lua"/>
 	<Script file="elements\portrait.lua"/>
 	<Script file="elements\power.lua"/>
-	<Script file="elements\pvpindicator.lua"/>
+	<Script file="elements\raidroleindicator.lua"/>
 	<Script file="elements\raidtargetindicator.lua"/>
 	<Script file="elements\range.lua"/>
 	<Script file="elements\readycheckindicator.lua"/>
 	<Script file="elements\restingindicator.lua"/>
 	<Script file="elements\resurrectindicator.lua"/>
 	<Script file="elements\tags.lua"/>
-	<Script file="elements\totems.lua"/>
+	<Script file="elements\threatindicator.lua"/>
 
 	<Script file="finalize.lua"/>
 </Ui>

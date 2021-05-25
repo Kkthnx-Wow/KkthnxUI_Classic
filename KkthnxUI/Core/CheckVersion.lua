@@ -1,75 +1,110 @@
-local K, _, L = unpack(select(2, ...))
+local K, C = unpack(select(2, ...))
 local Module = K:NewModule("VersionCheck")
 
-local _G = _G
-local gsub = _G.gsub
-local tonumber = _G.tonumber
+-- Sourced: NDui (siweia)
+-- Edited: KkthnxUI (Kkthnx)
 
+local _G = _G
+local string_format = _G.string.format
+local string_gsub = _G.string.gsub
+local string_split = _G.string.split
+
+local Ambiguate = _G.Ambiguate
 local C_ChatInfo_RegisterAddonMessagePrefix = _G.C_ChatInfo.RegisterAddonMessagePrefix
 local C_ChatInfo_SendAddonMessage = _G.C_ChatInfo.SendAddonMessage
-local CreateFrame = _G.CreateFrame
-local GetAddOnMetadata = _G.GetAddOnMetadata
-local GetRealmName = _G.GetRealmName
+local GetTime = _G.GetTime
 local IsInGroup = _G.IsInGroup
 local IsInGuild = _G.IsInGuild
-local IsInRaid = _G.IsInRaid
-local LE_PARTY_CATEGORY_HOME = _G.LE_PARTY_CATEGORY_HOME
-local LE_PARTY_CATEGORY_INSTANCE = _G.LE_PARTY_CATEGORY_INSTANCE
-local SendChatMessage = _G.SendChatMessage
-local StaticPopup_Show = _G.StaticPopup_Show
-local UnitName = _G.UnitName
 
-local Version = tonumber(GetAddOnMetadata("KkthnxUI", "Version"))
-local MyName = UnitName("player") .. "-" .. GetRealmName()
-MyName = gsub(MyName, "%s+", "")
+local isVCInit
+local lastVCTime = 0
 
-local function UIVersionCheck(event, prefix, message, _, sender)
-	if (event == "CHAT_MSG_ADDON") then
-		if (prefix ~= "KkthnxUIVersion") or (sender == MyName) then
-			return
-		end
+function Module:VersionCheck_Compare(new, old)
+	local new1, new2 = string_split(".", new)
+	new1, new2 = tonumber(new1), tonumber(new2)
 
-		if (tonumber(message) > Version) then -- We Recieved A Higher Version, We"re Outdated. :(
-			StaticPopup_Show("KKTHNXUI_OUTDATED")
-			K.Print(L["Miscellaneous"].UIOutdated)
-			K:UnregisterEvent("CHAT_MSG_ADDON", UIVersionCheck)
-		end
-	else
-		-- Tell Everyone What Version We Use.
-		local Channel
+	local old1, old2 = string_split(".", old)
+	old1, old2 = tonumber(old1), tonumber(old2)
 
-		if IsInRaid() then
-			Channel = (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID"
-		elseif IsInGroup() then
-			Channel = (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY"
-		elseif IsInGuild() then
-			Channel = "GUILD"
-		end
-
-		if Channel then -- Putting a small delay on the call just to be certain it goes out.
-			K.Delay(4, C_ChatInfo_SendAddonMessage, "KkthnxUIVersion", Version, Channel)
-		end
+	if new1 > old1 or (new1 == old1 and new2 > old2) then
+		return "IsNew"
+	elseif new1 < old1 or (new1 == old1 and new2 < old2) then
+		return "IsOld"
 	end
+end
+
+function Module:VersionCheck_Create(text)
+	if not C["General"].VersionCheck then
+		return
+	end
+
+	HelpTip:Show(ChatFrame1, {
+		text = text,
+		buttonStyle = HelpTip.ButtonStyle.Okay,
+		targetPoint = HelpTip.Point.TopEdgeCenter,
+		offsetY = 10,
+	})
+end
+
+function Module:VersionCheck_Init()
+	if not isVCInit then
+		local status = Module:VersionCheck_Compare(KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion, K.Version)
+		if status == "IsNew" then
+			local release = string_gsub(KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion, "(%d+)$", "0")
+			Module:VersionCheck_Create(string_format("|cff669dffKkthnxUI|r is out of date, the latest release is |cff70C0F5%s|r", release))
+		elseif status == "IsOld" then
+			KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion = K.Version
+		end
+
+		isVCInit = true
+	end
+end
+
+function Module:VersionCheck_Send(channel)
+	if GetTime() - lastVCTime >= 10 then
+		C_ChatInfo_SendAddonMessage("KKUIVersionCheck", KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion, channel)
+		lastVCTime = GetTime()
+	end
+end
+
+function Module:VersionCheck_Update(...)
+	local prefix, msg, distType, author = ...
+	if prefix ~= "KKUIVersionCheck" then
+		return
+	end
+
+	if Ambiguate(author, "none") == K.Name then
+		return
+	end
+
+	local status = Module:VersionCheck_Compare(msg, KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion)
+	if status == "IsNew" then
+		KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion = msg
+	elseif status == "IsOld" then
+		Module:VersionCheck_Send(distType)
+	end
+
+	Module:VersionCheck_Init()
+end
+
+function Module:VersionCheck_UpdateGroup()
+	if not IsInGroup() then
+		return
+	end
+
+	Module:VersionCheck_Send(K.CheckChat())
 end
 
 function Module:OnEnable()
-	K:RegisterEvent("PLAYER_ENTERING_WORLD", UIVersionCheck)
-	K:RegisterEvent("GROUP_ROSTER_UPDATE", UIVersionCheck)
-	K:RegisterEvent("CHAT_MSG_ADDON", UIVersionCheck)
+	Module:VersionCheck_Init()
+	C_ChatInfo_RegisterAddonMessagePrefix("KKUIVersionCheck")
+	K:RegisterEvent("CHAT_MSG_ADDON", Module.VersionCheck_Update)
 
-	C_ChatInfo_RegisterAddonMessagePrefix("KkthnxUIVersion")
-end
-
--- Whisper UI Version
-local whisperKkthnxUIVersion = CreateFrame("Frame")
-whisperKkthnxUIVersion:RegisterEvent("CHAT_MSG_WHISPER")
-whisperKkthnxUIVersion:RegisterEvent("CHAT_MSG_BN_WHISPER")
-whisperKkthnxUIVersion:SetScript("OnEvent", function(_, event, text, name, ...)
-	if text:lower():match("ui_version") then
-		if event == "CHAT_MSG_WHISPER" then
-			SendChatMessage("KkthnxUI" .. K.Version, "WHISPER", nil, name)
-		elseif event == "CHAT_MSG_BN_WHISPER" then
-			BNSendWhisper(select(11, ...), "KkthnxUI" .. K.Version)
-		end
+	if IsInGuild() then
+		C_ChatInfo_SendAddonMessage("KKUIVersionCheck", K.Version, "GUILD")
+		lastVCTime = GetTime()
 	end
-end)
+
+	Module:VersionCheck_UpdateGroup()
+	K:RegisterEvent("GROUP_ROSTER_UPDATE", Module.VersionCheck_UpdateGroup)
+end

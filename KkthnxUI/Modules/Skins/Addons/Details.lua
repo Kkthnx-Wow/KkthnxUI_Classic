@@ -3,13 +3,19 @@ local Module = K:GetModule("Skins")
 
 local _G = _G
 
-local IsAddOnLoaded = _G.IsAddOnLoaded
-local Details = _G.Details
-
 local function ReskinDetails()
-	if not IsAddOnLoaded("Details") or not C["Skins"].Details then
+	if not C["Skins"].Details then
 		return
 	end
+
+	local Details = _G.Details
+
+	-- instance table can be nil sometimes
+	Details.tabela_instancias = Details.tabela_instancias or {}
+	Details.instances_amount = Details.instances_amount or 5
+
+	-- toggle windows on init
+	Details:ReabrirTodasInstancias()
 
 	local function setupInstance(instance)
 		if instance.styled then
@@ -24,12 +30,12 @@ local function ReskinDetails()
 		instance:InstanceWallpaper(false)
 		instance:DesaturateMenu(true)
 		instance:HideMainIcon(false)
-		instance:SetBackdropTexture("None")
+		instance:SetBackdropTexture("Details Ground")
 		instance:MenuAnchor(16, 3)
 		instance:ToolbarMenuButtonsSize(1)
-		instance:AttributeMenu(true, 0, 3, "KkthnxUI_Normal", 12, {1, 1, 1}, 1, false)
-		instance:SetBarSettings(20, KkthnxUIData["ResetDetails"] and "KkthnxUI_Statusbar" or nil)
-		instance:SetBarTextSettings(12, "KkthnxUI_Normal", nil, nil, nil, true, true, nil, nil, nil, nil, nil, nil, false, nil, false, nil)
+		instance:AttributeMenu(true, 0, 3, "KkthnxUIFont", 12, {1, 1, 1}, 1, false)
+		instance:SetBarSettings(KkthnxUIDB.Variables["ResetDetails"] and 20 or nil, KkthnxUIDB.Variables["ResetDetails"] and "KkthnxUIStatusbar" or nil)
+		instance:SetBarTextSettings(KkthnxUIDB.Variables["ResetDetails"] and 12 or nil, "KkthnxUIFont", nil, nil, nil, true, true, nil, nil, nil, nil, nil, nil, false, nil, false, nil)
 
 		instance.baseframe:CreateBackdrop()
 		instance.baseframe.Backdrop:SetPoint("TOPLEFT", -1, 18)
@@ -63,14 +69,14 @@ local function ReskinDetails()
 		instance:LockInstance(true)
 	end
 
-	if KkthnxUIData["ResetDetails"] then
+	if KkthnxUIDB.Variables["ResetDetails"] then
 		local height = 126
 		if instance1 then
 			if instance2 then
 				height = 112
 				EmbedWindow(instance2, -3, 140, 260, height)
 			end
-			EmbedWindow(instance1, -320, 4, 260, height)
+			EmbedWindow(instance1, -370, 4, 260, height)
 		end
 	end
 
@@ -78,24 +84,31 @@ local function ReskinDetails()
 	listener:RegisterEvent("DETAILS_INSTANCE_OPEN")
 	function listener:OnDetailsEvent(event, instance)
 		if event == "DETAILS_INSTANCE_OPEN" then
-			setupInstance(instance)
-
-			if instance:GetId() == 2 then
+			if not instance.styled and instance:GetId() == 2 then
 				instance1:SetSize(260, 112)
 				EmbedWindow(instance, -3, 140, 250, 112)
+
 			end
+			setupInstance(instance)
 		end
 	end
 
-	-- Numberize
-	local _detalhes = _G._detalhes
-	local current = C["General"].NumberPrefixStyle.Value
-	if current < 3 then
-		_detalhes.numerical_system = current
-		_detalhes:SelectNumericalSystem()
+	-- Numberize -- Throws an error currently.
+	-- local current = C["General"].NumberPrefixStyle.Value
+	-- if current and current < 3 then
+	-- 	Details.numerical_system = current
+	-- 	Details:SelectNumericalSystem()
+	-- end
+
+	Details.OpenWelcomeWindow = function()
+		if instance1 then
+			EmbedWindow(instance1, -370, 4, 260, 126)
+			instance1:SetBarSettings(20, "KkthnxUIStatusbar")
+			instance1:SetBarTextSettings(12, "KkthnxUIFont", nil, nil, nil, true, true, nil, nil, nil, nil, nil, nil, false, nil, false, nil)
+		end
 	end
 
-	KkthnxUIData["ResetDetails"] = false
+	KkthnxUIDB.Variables["ResetDetails"] = false
 end
 
-table.insert(Module.NewSkin["KkthnxUI"], ReskinDetails)
+Module:LoadWithAddOn("Details", "Details", ReskinDetails)

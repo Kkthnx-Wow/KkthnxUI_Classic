@@ -1,449 +1,941 @@
 local K, C, L = unpack(select(2, ...))
+local Module = K:NewModule("Installer")
+
+-- Sourced: NDui (siweia)
+-- Edited: KkthnxUI (Kkthnx)
 
 local _G = _G
+local table_wipe = _G.table.wipe
 
 local APPLY = _G.APPLY
-local CLOSE = _G.CLOSE
-local COMPLETE = _G.COMPLETE
-local CreateAnimationGroup = _G.CreateAnimationGroup
+local CHAT = _G.CHAT
+local ChangeChatColor = _G.ChangeChatColor
+local ChatFrame_AddChannel = _G.ChatFrame_AddChannel
+local ChatFrame_AddMessageGroup = _G.ChatFrame_AddMessageGroup
+local ChatFrame_RemoveAllMessageGroups = _G.ChatFrame_RemoveAllMessageGroups
+local ChatFrame_RemoveChannel = _G.ChatFrame_RemoveChannel
 local CreateFrame = _G.CreateFrame
-local GetRealmName = _G.GetRealmName
-local NEXT = _G.NEXT
-local PREVIOUS = _G.PREVIOUS
-local ReloadUI = _G.ReloadUI
-local RESET_TO_DEFAULT = _G.RESET_TO_DEFAULT
+local DEFAULT = _G.DEFAULT
+local FCF_DockFrame = _G.FCF_DockFrame
+local FCF_OpenNewWindow = _G.FCF_OpenNewWindow
+local FCF_ResetChatWindows = _G.FCF_ResetChatWindows
+local FCF_SavePositionAndDimensions = _G.FCF_SavePositionAndDimensions
+local FCF_SetChatWindowFontSize = _G.FCF_SetChatWindowFontSize
+local FCF_SetLocked = _G.FCF_SetLocked
+local FCF_SetWindowName = _G.FCF_SetWindowName
+local GENERAL = _G.GENERAL
+local GUILD_EVENT_LOG = _G.GUILD_EVENT_LOG
+local InCombatLockdown = _G.InCombatLockdown
+local IsAddOnLoaded = _G.IsAddOnLoaded
+local PlaySound = _G.PlaySound
+local SETTINGS = _G.SETTINGS
+local SOUNDKIT = _G.SOUNDKIT
 local SetCVar = _G.SetCVar
-local UIParent = _G.UIParent
-local UnitName = _G.UnitName
-local SlashCmdList = _G.SlashCmdList
+local TRADE = _G.TRADE
+local ToggleChatColorNamesByClassGroup = _G.ToggleChatColorNamesByClassGroup
 local UIErrorsFrame = _G.UIErrorsFrame
+local UIParent = _G.UIParent
+local UI_SCALE = _G.UI_SCALE
 
-local Install = CreateFrame("Frame", "KkthnxUIInstaller", UIParent)
-local InstallFont = K.GetFont(C["UIFonts"].GeneralFonts)
-local InstallTexture = K.GetTexture(C["UITextures"].GeneralTextures)
+function Module:ResetSettings()
+	KkthnxUIDB.Settings[K.Realm][K.Name] = {}
+end
 
-Install.MaxStepNumber = 4
-Install.CurrentStep = 0
-Install.Width = 500
-Install.Height = 200
+function Module:ResetData()
+	KkthnxUIDB.Variables[K.Realm][K.Name] = {}
 
-local charRealm = gsub(K.Realm, "[%s%-]", "")
-local charName = K.Name.."-"..charRealm
+	FCF_ResetChatWindows()
 
-function Install:ResetData()
-	_G.KkthnxUIData[GetRealmName()][UnitName("player")] = {}
-	_G.KkthnxUIData[GetRealmName()][UnitName("player")].RevealWorldMap = false
-	_G.KkthnxUIData[GetRealmName()][UnitName("player")].AutoQuest = false
-	_G.KkthnxUIData[GetRealmName()][UnitName("player")].BindType = 1
-	_G.KkthnxUIData[GetRealmName()][UnitName("player")].FavouriteItems = {}
-	_G.KkthnxUIData[GetRealmName()][UnitName("player")]["Mover"] = {}
-
-	if (_G.KkthnxUIConfigPerAccount) then
-		_G.KkthnxUIConfigShared.Account = {}
-	else
-		_G.KkthnxUIConfigShared[GetRealmName()][UnitName("player")] = {}
+	if ChatConfigFrame:IsShown() then
+		ChatConfig_UpdateChatSettings()
 	end
+
+	Module:ForceDefaultCVars()
 
 	ReloadUI()
 end
 
-function Install:Step1()
-	_G.SetActionBarToggles(1, 1, 1, 1)
-
+-- Tuitorial
+function Module:ForceDefaultCVars()
 	SetCVar("ActionButtonUseKeyDown", 1)
-	SetCVar("ShowClassColorInNameplate", 1)
 	SetCVar("UberTooltips", 1)
-	SetCVar("WhisperMode", "inline")
-	SetCVar("WholeChatWindowClickable", 0)
-	SetCVar("alwaysShowActionBars", 1)
-	SetCVar("autoOpenLootHistory", 0)
-	SetCVar("autoQuestProgress", 1)
+	SetCVar("WorldTextScale", 1.2)
+	SetCVar("alwaysCompareItems", 1)
+	SetCVar("autoLootDefault", 1)
 	SetCVar("autoQuestWatch", 1)
-	SetCVar("buffDurations", 1)
-	SetCVar("cameraDistanceMaxZoomFactor", 4.0)
-	SetCVar("cameraSmoothStyle", 0)
-	SetCVar("chatClassColorOverride", 0)
-	SetCVar("chatMouseScroll", 1)
-	SetCVar("chatStyle", "im")
-	SetCVar("colorChatNamesByClass", 1)
-	SetCVar("countdownForCooldowns", 0)
-	SetCVar("instantQuestText", 1)
+	SetCVar("autoSelfCast", 1)
+	SetCVar("cameraDistanceMaxZoomFactor", 2.6)
+	SetCVar("chatStyle", "classic")
+	SetCVar("floatingCombatTextCombatDamage", 1)
+	SetCVar("floatingCombatTextCombatDamageDirectionalOffset", 10)
+	SetCVar("floatingCombatTextCombatDamageDirectionalScale", 0)
+	SetCVar("floatingCombatTextCombatHealing", 1)
+	SetCVar("floatingCombatTextFloatMode", 1)
 	SetCVar("lockActionBars", 1)
 	SetCVar("lootUnderMouse", 1)
-	SetCVar("nameplateMotion", 1)
-	SetCVar("nameplateShowFriendlyNPCs", 1)
+	SetCVar("lossOfControl", 1)
 	SetCVar("overrideArchive", 0)
 	SetCVar("profanityFilter", 0)
-	SetCVar("removeChatDelay", 1)
 	SetCVar("screenshotQuality", 10)
-	SetCVar("showArenaEnemyFrames", 0)
 	SetCVar("showLootSpam", 1)
 	SetCVar("showTutorials", 0)
-	SetCVar("showVKeyCastbar", 1)
 	SetCVar("spamFilter", 0)
-	SetCVar("violenceLevel", 5)
+	SetCVar("whisperMode", "inline")
+	SetActionBarToggles(1, 1, 1, 1)
 
-	if charName == "Kkthnx-Herod" then
-		print(charName)
-		SetCVar("RAIDweatherDensity", 0)
-		SetCVar("WeatherDensity", 0)
-		SetCVar("ffxDeath", 0)
+	if not InCombatLockdown() then
+		SetCVar("nameplateMotion", 1)
+		SetCVar("nameplateShowAll", 1)
+		SetCVar("nameplateShowEnemies", 1)
+		SetCVar("alwaysShowActionBars", 1)
+	end
+
+	if K.isDeveloper then
 		SetCVar("ffxGlow", 0)
-		SetCVar("ffxNether", 0)
+		SetCVar("SpellQueueWindow", 119)
+		SetCVar("nameplateShowOnlyNames", 1)
 	end
-
-	_G.InterfaceOptionsActionBarsPanelPickupActionKeyDropDown:SetValue("SHIFT")
-	_G.InterfaceOptionsActionBarsPanelPickupActionKeyDropDown:RefreshValue()
-
-	UIErrorsFrame:AddMessage(L["CVars Installed"], K.r, K.g, K.b, 53, 2)
-
-	self:Hide()
 end
 
-function Install:Step2()
-	local Chat = K:GetModule("Chat")
-
-	if (not Chat) then
+local function ForceRaidFrame()
+	if InCombatLockdown() then
 		return
 	end
 
-	Chat:Install()
-	Chat:SetDefaultChatFramesPositions()
-
-	UIErrorsFrame:AddMessage(L["Chat Installed"], K.r, K.g, K.b, 53, 2)
-
-	self:Hide()
-end
-
-function Install:Step3()
-	_G.KkthnxUIData[GetRealmName()][UnitName("player")].InstallComplete = true
-
-	K.SetupUIScale()
-
-	UIErrorsFrame:AddMessage("UI Scale Applied", K.r, K.g, K.b, 53, 2)
-
-	self:Hide()
-end
-
-function Install:PrintStep(PageNum)
-	self.CurrentStep = PageNum
-
-	local ExecuteScript = self["Step"..PageNum]
-	local Text = L["Step "..PageNum]
-	local r, g, b = K.ColorGradient(PageNum / self.MaxStepNumber, 1, 0, 0, 1, 1, 0, 0, 1, 0)
-
-	if (not Text) then
-		self:Hide()
-		if (PageNum > self.MaxStepNumber) then
-			PlaySound(2847)
-			ReloadUI()
-		end
+	if not _G.CompactUnitFrameProfiles then
 		return
 	end
 
-	if (PageNum == 0) then
-		self.LeftButton.Text:SetText("|cffff2020"..CLOSE.."|r")
-		self.LeftButton:SetScript("OnClick", function() self:Hide() end)
-		self.RightButton.Text:SetText("|cffffd200"..NEXT.."|r")
-		self.RightButton:SetScript("OnClick", function()
-			self.PrintStep(self, self.CurrentStep + 1)
-		end)
-		self.MiddleButton.Text:SetText("|cffFF0000"..RESET_TO_DEFAULT.."|r")
-		self.MiddleButton:SetScript("OnClick", self.ResetData)
-		self.CloseButton:Show()
-		self.SkipButton:Show()
+	SetCVar("useCompactPartyFrames", 1)
 
-		if (_G.KkthnxUIData[GetRealmName()][UnitName("player")].InstallComplete) then
-			self.MiddleButton:Show()
-		else
-			self.MiddleButton:Hide()
-		end
-	else
-		self.LeftButton:SetScript("OnClick", function()
-			self.PrintStep(self, self.CurrentStep - 1)
-		end)
-
-		self.LeftButton.Text:SetText("|cffffd200"..PREVIOUS.."|r")
-		self.MiddleButton.Text:SetText("|cff20ff20"..APPLY.."|r")
-		self.RightButton:SetScript("OnClick", function()
-			self.PrintStep(self, self.CurrentStep + 1)
-		end)
-
-		if (PageNum == Install.MaxStepNumber) then
-			self.RightButton.Text:SetText("|cff20ff20"..COMPLETE.."|r")
-			self.CloseButton:Hide()
-			self.MiddleButton:Hide()
-			self.DiscordButton:Show()
-			self.SkipButton:Hide()
-		else
-			self.RightButton.Text:SetText("|cffffd200"..NEXT.."|r")
-			self.CloseButton:Show()
-			self.MiddleButton:Show()
-			self.DiscordButton:Hide()
-			self.SkipButton:Hide()
-		end
-
-		if (self.MiddleButton:IsVisible()) then
-			self.MiddleButton:Show()
-		end
-
-		if (ExecuteScript) then
-			self.MiddleButton:SetScript("OnClick", ExecuteScript)
-		end
-	end
-
-	self.Text:SetText(Text)
-
-	self.StatusBar.Anim:SetChange(PageNum)
-	self.StatusBar.Anim:Play()
-
-	self.StatusBar.Anim2:SetChange(r, g, b)
-	self.StatusBar.Anim2:Play()
-
-	self.StatusBar.text:SetText(self.CurrentStep.." / "..self.MaxStepNumber)
+	_G.SetRaidProfileOption(_G.CompactUnitFrameProfiles.selectedProfile, "useClassColors", true)
+	_G.SetRaidProfileOption(_G.CompactUnitFrameProfiles.selectedProfile, "displayPowerBar", true)
+	_G.SetRaidProfileOption(_G.CompactUnitFrameProfiles.selectedProfile, "displayBorder", false)
+	_G.CompactUnitFrameProfiles_ApplyCurrentSettings()
+	_G.CompactUnitFrameProfiles_UpdateCurrentPanel()
 end
 
-function Install:Launch()
-	if (self.Description) then
-		self:Show()
+function Module:ForceChatSettings()
+	if KkthnxUIDB.Settings[K.Realm][K.Name].Chat then
+		KkthnxUIDB.Settings[K.Realm][K.Name].Chat.Width = 392
+		KkthnxUIDB.Settings[K.Realm][K.Name].Chat.Height = 150
+	end
+
+	K:GetModule("Chat"):UpdateChatSize()
+
+	-- Create our custom chatframes
+	FCF_ResetChatWindows()
+
+	FCF_SetLocked(ChatFrame1, 1)
+	FCF_DockFrame(ChatFrame2)
+	FCF_SetLocked(ChatFrame2, 1)
+
+	FCF_OpenNewWindow(TRADE)
+	FCF_SetLocked(ChatFrame3, 1)
+	FCF_DockFrame(ChatFrame3)
+
+	FCF_OpenNewWindow(LOOT)
+	FCF_SetLocked(ChatFrame4, 1)
+	FCF_DockFrame(ChatFrame4)
+
+	FCF_OpenNewWindow(WHISPER)
+	FCF_SetLocked(ChatFrame5, 1)
+	FCF_DockFrame(ChatFrame5)
+
+	FCF_SetChatWindowFontSize(nil, ChatFrame1, 12)
+	FCF_SetChatWindowFontSize(nil, ChatFrame2, 12)
+	FCF_SetChatWindowFontSize(nil, ChatFrame3, 12)
+	FCF_SetChatWindowFontSize(nil, ChatFrame4, 12)
+	FCF_SetChatWindowFontSize(nil, ChatFrame5, 12)
+
+	FCF_SetWindowName(ChatFrame1, GENERAL)
+	FCF_SetWindowName(ChatFrame2, GUILD_EVENT_LOG)
+
+	local ChatGroups = {"SYSTEM", "CHANNEL", "SAY", "EMOTE", "YELL", "PARTY", "PARTY_LEADER", "RAID", "RAID_LEADER", "RAID_WARNING", "INSTANCE_CHAT", "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "MONSTER_SAY", "MONSTER_YELL", "MONSTER_EMOTE", "MONSTER_WHISPER", "MONSTER_BOSS_EMOTE", "MONSTER_BOSS_WHISPER", "ERRORS", "AFK", "DND", "IGNORED", "BG_HORDE", "BG_ALLIANCE", "BG_NEUTRAL", "ACHIEVEMENT", "GUILD_ACHIEVEMENT", "BN_INLINE_TOAST_ALERT"}
+	ChatFrame_RemoveAllMessageGroups(_G.ChatFrame1)
+	for _, v in ipairs(ChatGroups) do
+		ChatFrame_AddMessageGroup(_G.ChatFrame1, v)
+	end
+
+	ChatGroups = {"COMBAT_XP_GAIN", "COMBAT_HONOR_GAIN", "COMBAT_FACTION_CHANGE", "SKILL", "LOOT", "CURRENCY", "MONEY"}
+	ChatFrame_RemoveAllMessageGroups(_G.ChatFrame4)
+	for _, v in ipairs(ChatGroups) do
+		ChatFrame_AddMessageGroup(_G.ChatFrame4, v)
+	end
+
+	ChatFrame_RemoveAllMessageGroups(_G.ChatFrame3)
+
+	ChatGroups = {"WHISPER", "BN_WHISPER"}
+	ChatFrame_RemoveAllMessageGroups(_G.ChatFrame5)
+	for _, v in ipairs(ChatGroups) do
+		ChatFrame_AddMessageGroup(_G.ChatFrame5, v)
+	end
+
+	ChatFrame_AddChannel(_G.ChatFrame1, GENERAL)
+	ChatFrame_RemoveChannel(_G.ChatFrame1, TRADE)
+	ChatFrame_AddChannel(_G.ChatFrame3, TRADE)
+
+	ChatGroups = {"SAY", "EMOTE", "YELL", "WHISPER", "PARTY", "PARTY_LEADER", "RAID", "RAID_LEADER", "RAID_WARNING", "INSTANCE_CHAT", "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "ACHIEVEMENT", "GUILD_ACHIEVEMENT", "COMMUNITIES_CHANNEL"}
+	for i = 1, _G.MAX_WOW_CHAT_CHANNELS do
+		table.insert(ChatGroups, "CHANNEL"..i)
+	end
+
+	for _, v in ipairs(ChatGroups) do
+		ToggleChatColorNamesByClassGroup(true, v)
+	end
+
+	-- Adjust Chat Colors
+	ChangeChatColor("CHANNEL1", 195/255, 230/255, 232/255) -- General
+	ChangeChatColor("CHANNEL2", 232/255, 158/255, 121/255) -- Trade
+	ChangeChatColor("CHANNEL3", 232/255, 228/255, 121/255) -- Local Defense
+
+	FCF_SavePositionAndDimensions(ChatFrame1)
+
+	C["Chat"].Lock = true
+end
+
+local function ForceHekiliOptions()
+	if not IsAddOnLoaded("Hekili") then
 		return
 	end
 
-	local r, g, b = K.ColorGradient(0, self.MaxStepNumber, 1, 0, 0, 1, 1, 0, 0, 1, 0)
-	self.Description = CreateFrame("Frame", nil, self)
-	self.Description:SetSize(self.Width, self.Height)
-	self.Description:SetPoint("CENTER", self, "CENTER")
-	self.Description:CreateBorder()
-
-	self.Description:SetClampedToScreen(true)
-	self.Description:SetMovable(true)
-	self.Description:EnableMouse(true)
-	self.Description:RegisterForDrag("LeftButton")
-	self.Description:SetScript("OnDragStart", self.Description.StartMoving)
-	self.Description:SetScript("OnDragStop", self.Description.StopMovingOrSizing)
-
-	self.Description:RegisterEvent("PLAYER_REGEN_DISABLED")
-	self.Description:RegisterEvent("PLAYER_REGEN_ENABLED")
-	self.Description:SetScript("OnEvent", function(_, event)
-		if (event == "PLAYER_REGEN_DISABLED") then
-			Install:Hide()
-		else
-			if (not _G.KkthnxUIData[GetRealmName()][UnitName("player")].InstallComplete) then
-				Install:Show()
-			end
-		end
-	end)
-
-	self.StatusBar = CreateFrame("StatusBar", nil, self)
-	self.StatusBar:SetStatusBarTexture(InstallTexture)
-	self.StatusBar:SetPoint("BOTTOM", self.Description, "TOP", 0, 6)
-	self.StatusBar:SetHeight(20)
-	self.StatusBar:SetWidth(self.Description:GetWidth())
-	self.StatusBar:SetStatusBarColor(r, g, b)
-	self.StatusBar:SetMinMaxValues(0, self.MaxStepNumber)
-	self.StatusBar:SetValue(0)
-	self.StatusBar:CreateBorder()
-
-	self.StatusBar.Anim = CreateAnimationGroup(self.StatusBar):CreateAnimation("Progress")
-	self.StatusBar.Anim:SetDuration(0.3)
-	self.StatusBar.Anim:SetSmoothing("InOut")
-
-	self.StatusBar.Anim2 = CreateAnimationGroup(self.StatusBar):CreateAnimation("Color")
-	self.StatusBar.Anim2:SetDuration(0.3)
-	self.StatusBar.Anim2:SetSmoothing("InOut")
-	self.StatusBar.Anim2:SetColorType("StatusBar")
-
-	self.StatusBar.text = self.StatusBar:CreateFontString(nil, "OVERLAY")
-	self.StatusBar.text:SetFontObject(InstallFont)
-	self.StatusBar.text:SetPoint("CENTER")
-	self.StatusBar.text:SetText(self.CurrentStep.." / "..self.MaxStepNumber)
-
-	self.Logo = self.StatusBar:CreateTexture(nil, "OVERLAY")
-	self.Logo:SetSize(512, 256)
-	self.Logo:SetBlendMode("ADD")
-	self.Logo:SetAlpha(0.07)
-	self.Logo:SetTexture(C["Media"].Logo)
-	self.Logo:SetPoint("CENTER", self.Description, "CENTER", 0, 0)
-
-	self.LeftButton = CreateFrame("Button", nil, self)
-	self.LeftButton:SetPoint("TOPLEFT", self.Description, "BOTTOMLEFT", 0, -6)
-	self.LeftButton:SetSize(128, 25)
-	self.LeftButton:SkinButton()
-	self.LeftButton.Text = self.LeftButton:CreateFontString(nil, "OVERLAY")
-	self.LeftButton.Text:SetFontObject(InstallFont)
-	self.LeftButton.Text:SetPoint("CENTER")
-	self.LeftButton.Text:SetText("|cffff2020"..CLOSE.."|r")
-	self.LeftButton:SetScript("OnClick", function() self:Hide() end)
-
-	self.RightButton = CreateFrame("Button", nil, self)
-	self.RightButton:SetPoint("TOPRIGHT", self.Description, "BOTTOMRIGHT", 0, -6)
-	self.RightButton:SetSize(128, 25)
-	self.RightButton:SkinButton()
-	self.RightButton.Text = self.RightButton:CreateFontString(nil, "OVERLAY")
-	self.RightButton.Text:SetFontObject(InstallFont)
-	self.RightButton.Text:SetPoint("CENTER")
-	self.RightButton.Text:SetText("|cffffd200"..NEXT.."|r")
-	self.RightButton:SetScript("OnClick", function()
-		self.PrintStep(self, self.CurrentStep + 1)
-	end)
-
-	self.DiscordButton = CreateFrame("Button", nil, self)
-	self.DiscordButton:SetPoint("TOPLEFT", self.LeftButton, "TOPRIGHT", 6, 0)
-	self.DiscordButton:SetPoint("BOTTOMRIGHT", self.RightButton, "BOTTOMLEFT", -6, 0)
-	self.DiscordButton:SkinButton()
-	self.DiscordButton.Text = self.DiscordButton:CreateFontString(nil, "OVERLAY")
-	self.DiscordButton.Text:SetFontObject(InstallFont)
-	self.DiscordButton.Text:SetPoint("CENTER")
-	self.DiscordButton.Text:SetText(L["Discord"])
-	self.DiscordButton:SetScript("OnClick", function()
-		K.StaticPopup_Show("DISCORD_EDITBOX", nil, nil, L["Discord URL"])
-	end)
-	self.DiscordButton:Hide()
-
-	self.MiddleButton = CreateFrame("Button", nil, self)
-	self.MiddleButton:SetPoint("TOPLEFT", self.LeftButton, "TOPRIGHT", 6, 0)
-	self.MiddleButton:SetPoint("BOTTOMRIGHT", self.RightButton, "BOTTOMLEFT", -6, 0)
-	self.MiddleButton:SkinButton()
-	self.MiddleButton.Text = self.MiddleButton:CreateFontString(nil, "OVERLAY")
-	self.MiddleButton.Text:SetFontObject(InstallFont)
-	self.MiddleButton.Text:SetPoint("CENTER")
-	self.MiddleButton.Text:SetText("|cffFF0000"..RESET_TO_DEFAULT.."|r")
-	self.MiddleButton:SetScript("OnClick", self.ResetData)
-	if (_G.KkthnxUIData[GetRealmName()][UnitName("player")].InstallComplete) then
-		self.MiddleButton:Show()
-	else
-		self.MiddleButton:Hide()
+	local isWiped = false
+	if HekiliDB and not isWiped then
+		table.wipe(HekiliDB)
+		isWiped = true
 	end
 
-	self.SkipButton = CreateFrame("Button", nil, self)
-	self.SkipButton:SetPoint("TOPLEFT", self.LeftButton, "TOPRIGHT", 6, 0)
-	self.SkipButton:SetPoint("BOTTOMRIGHT", self.RightButton, "BOTTOMLEFT", -6, 0)
-	self.SkipButton:SkinButton()
-	self.SkipButton.Text = self.SkipButton:CreateFontString(nil, "OVERLAY")
-	self.SkipButton.Text:SetFontObject(InstallFont)
-	self.SkipButton.Text:SetPoint("CENTER")
-	self.SkipButton.Text:SetText(K.MyClassColor..L["Skip Install"])
-	self.SkipButton:SetScript("OnClick", function()
-		K.SetupUIScale() -- Be sure we apply scale on a skipped install because whatever!
-		_G.KkthnxUIData[GetRealmName()][UnitName("player")].InstallComplete = true
-		PlaySound(6916) -- VO_PCGoblinMale_Cry
-		ReloadUI()
-	end)
-
-	if (not _G.KkthnxUIData[GetRealmName()][UnitName("player")].InstallComplete) then
-		self.SkipButton:Show()
-	else
-		self.SkipButton:Hide()
+	if isWiped then
+		HekiliDB = {
+			["profiles"] = {
+				["KkthnxUI"] = {
+					["toggles"] = {
+						["potions"] = {
+							["value"] = true,
+						},
+						["interrupts"] = {
+							["value"] = true,
+							["separate"] = true,
+						},
+						["cooldowns"] = {
+							["value"] = true,
+							["override"] = true,
+						},
+						["mode"] = {
+							["aoe"] = true,
+						},
+						["defensives"] = {
+							["value"] = true,
+							["separate"] = true,
+						},
+					},
+					["displays"] = {
+						["AOE"] = {
+							["rel"] = "CENTER",
+							["delays"] = {
+								["font"] = "KkthnxUIFont",
+								["fontSize"] = 16,
+							},
+							["captions"] = {
+								["fontSize"] = 16,
+								["font"] = "KkthnxUIFont",
+							},
+							["y"] = -231,
+							["targets"] = {
+								["font"] = "KkthnxUIFont",
+								["fontSize"] = 16,
+							},
+							["keybindings"] = {
+								["fontSize"] = 16,
+								["font"] = "KkthnxUIFont",
+							},
+						},
+						["Primary"] = {
+							["rel"] = "CENTER",
+							["delays"] = {
+								["font"] = "KkthnxUIFont",
+								["fontSize"] = 16,
+							},
+							["captions"] = {
+								["fontSize"] = 16,
+								["font"] = "KkthnxUIFont",
+							},
+							["y"] = -286,
+							["targets"] = {
+								["font"] = "KkthnxUIFont",
+								["fontSize"] = 16,
+							},
+							["keybindings"] = {
+								["fontSize"] = 16,
+								["font"] = "KkthnxUIFont",
+							},
+						},
+						["Defensives"] = {
+							["rel"] = "CENTER",
+							["delays"] = {
+								["font"] = "KkthnxUIFont",
+								["fontSize"] = 16,
+							},
+							["captions"] = {
+								["fontSize"] = 16,
+								["font"] = "KkthnxUIFont",
+							},
+							["y"] = -48,
+							["x"] = -244,
+							["targets"] = {
+								["font"] = "KkthnxUIFont",
+								["fontSize"] = 16,
+							},
+							["keybindings"] = {
+								["fontSize"] = 16,
+								["font"] = "KkthnxUIFont",
+							},
+						},
+						["Interrupts"] = {
+							["rel"] = "CENTER",
+							["delays"] = {
+								["font"] = "KkthnxUIFont",
+								["fontSize"] = 16,
+							},
+							["captions"] = {
+								["fontSize"] = 16,
+								["font"] = "KkthnxUIFont",
+							},
+							["y"] = -48,
+							["x"] = 244,
+							["targets"] = {
+								["font"] = "KkthnxUIFont",
+								["fontSize"] = 16,
+							},
+							["keybindings"] = {
+								["fontSize"] = 16,
+								["font"] = "KkthnxUIFont",
+							},
+						},
+					},
+				},
+			},
+		}
 	end
 
-	self.CloseButton = CreateFrame("Button", nil, self, "UIPanelCloseButton")
-	self.CloseButton:SetPoint("TOPRIGHT", self.Description, "TOPRIGHT")
-	self.CloseButton:SetScript("OnClick", function() self:Hide() end)
-	self.CloseButton:SetFrameLevel(self:GetFrameLevel() + 2) -- Fix The Close Button Falling Behind Install Frame
-	self.CloseButton:SkinCloseButton()
-
-	self.Text = self.Description:CreateFontString(nil, "OVERLAY")
-	self.Text:SetSize(self.Description:GetWidth() - 40, self.Description:GetHeight() - 60)
-	self.Text:SetJustifyH("LEFT")
-	self.Text:SetJustifyV("TOP")
-	self.Text:SetFontObject(InstallFont)
-	self.Text:SetFont(select(1, self.Text:GetFont()), 14, select(3, self.Text:GetFont()))
-	self.Text:SetPoint("TOPLEFT", 20, -40)
-	self.Text:SetText(L["Step 0"])
-
-	self:SetAllPoints(UIParent)
+	KkthnxUIDB.Variables["HekiliRequest"] = false
 end
 
-function Install:WelcomeMessageDelay()
-	UIErrorsFrame:AddMessage(K.Welcome)
+local function ForceMaxDPSOptions()
+	if not IsAddOnLoaded("MaxDps") then
+		return
+	end
+
+	if MaxDpsOptions then
+		table_wipe(MaxDpsOptions)
+	end
+
+	MaxDpsOptions = {
+		["global"] = {
+			["texture"] = "Interface\\Cooldown\\star4",
+			["customRotations"] = {
+			},
+			["disabledInfo"] = true,
+		},
+	}
+
+	KkthnxUIDB.Variables["MaxDpsRequest"] = false
 end
 
--- On login function
-Install:RegisterEvent("VARIABLES_LOADED")
-Install:RegisterEvent("PLAYER_ENTERING_WORLD")
-Install:RegisterEvent("PLAYER_LOGIN")
-Install:SetScript("OnEvent", function(self, event)
-	local playerName = UnitName("player")
-	local playerRealm = GetRealmName()
+-- DBM bars
+local function ForceDBMOptions()
+	if not IsAddOnLoaded("DBM-Core") then
+		return
+	end
 
-	if (event == "VARIABLES_LOADED") then -- Define the saved variables first. This is important
-		if (not _G.KkthnxUIData) then
-			_G.KkthnxUIData = _G.KkthnxUIData or {}
+	if DBT_AllPersistentOptions then
+		table_wipe(DBT_AllPersistentOptions)
+	end
+
+	DBT_AllPersistentOptions = {
+		["Default"] = {
+			["DBM"] = {
+				["Scale"] = 1,
+				["HugeScale"] = 1,
+				["ExpandUpwards"] = true,
+				["ExpandUpwardsLarge"] = true,
+				["BarXOffset"] = 0,
+				["BarYOffset"] = 15,
+				["TimerPoint"] = "LEFT",
+				["TimerX"] = 122,
+				["TimerY"] = -300,
+				["Width"] = 174,
+				["Height"] = 20,
+				["HugeWidth"] = 210,
+				["HugeBarXOffset"] = 0,
+				["HugeBarYOffset"] = 15,
+				["HugeTimerPoint"] = "CENTER",
+				["HugeTimerX"] = 330,
+				["HugeTimerY"] = -42,
+				["FontSize"] = 10,
+				["StartColorR"] = 1,
+				["StartColorG"] = .7,
+				["StartColorB"] = 0,
+				["EndColorR"] = 1,
+				["EndColorG"] = 0,
+				["EndColorB"] = 0,
+				["Texture"] = C["Media"].Statusbars.KkthnxUIStatusbar,
+			},
+		},
+	}
+
+	if not _G.DBM_AllSavedOptions["Default"] then
+		_G.DBM_AllSavedOptions["Default"] = {}
+	end
+	_G.DBM_AllSavedOptions["Default"]["WarningY"] = -170
+	_G.DBM_AllSavedOptions["Default"]["WarningX"] = 0
+	_G.DBM_AllSavedOptions["Default"]["WarningFontStyle"] = "OUTLINE"
+	_G.DBM_AllSavedOptions["Default"]["SpecialWarningX"] = 0
+	_G.DBM_AllSavedOptions["Default"]["SpecialWarningY"] = -260
+	_G.DBM_AllSavedOptions["Default"]["SpecialWarningFontStyle"] = "OUTLINE"
+	_G.DBM_AllSavedOptions["Default"]["HideObjectivesFrame"] = false
+	_G.DBM_AllSavedOptions["Default"]["WarningFontSize"] = 18
+	_G.DBM_AllSavedOptions["Default"]["SpecialWarningFontSize2"] = 24
+
+	KkthnxUIDB.Variables["DBMRequest"] = false
+end
+
+-- Skada
+local function ForceSkadaOptions()
+	if not IsAddOnLoaded("Skada") then
+		return
+	end
+
+	if SkadaDB then
+		table_wipe(SkadaDB)
+	end
+
+	SkadaDB = {
+		["hasUpgraded"] = true,
+		["profiles"] = {
+			["Default"] = {
+				["windows"] = {
+					{	["barheight"] = 18,
+						["classicons"] = false,
+						["barslocked"] = true,
+						["y"] = 28,
+						["x"] = -3,
+						["title"] = {
+							["color"] = {
+								["a"] = 0.3,
+								["b"] = 0,
+								["g"] = 0,
+								["r"] = 0,
+							},
+							["font"] = "",
+							["borderthickness"] = 0,
+							["fontflags"] = "OUTLINE",
+							["fontsize"] = 14,
+							["texture"] = "normTex",
+						},
+						["barfontflags"] = "OUTLINE",
+						["point"] = "BOTTOMRIGHT",
+						["mode"] = "",
+						["barwidth"] = 300,
+						["barbgcolor"] = {
+							["a"] = 0,
+							["b"] = 0,
+							["g"] = 0,
+							["r"] = 0,
+						},
+						["barfontsize"] = 14,
+						["background"] = {
+							["height"] = 180,
+							["texture"] = "None",
+							["bordercolor"] = {
+								["a"] = 0,
+							},
+						},
+						["bartexture"] = "KKUI_Statusbar",
+					}, -- [1]
+				},
+				["tooltiprows"] = 10,
+				["setstokeep"] = 30,
+				["tooltippos"] = "topleft",
+				["reset"] = {
+					["instance"] = 3,
+					["join"] = 1,
+				},
+			},
+		},
+	}
+
+	KkthnxUIDB.Variables["SkadaRequest"] = false
+end
+
+local function ForceCursorTrail()
+	if not IsAddOnLoaded("CursorTrail") then
+		return
+	end
+
+	if CursorTrail_PlayerConfig then
+		table_wipe(CursorTrail_PlayerConfig)
+	end
+
+	CursorTrail_PlayerConfig = {
+		["FadeOut"] = false,
+		["UserOfsY"] = 0,
+		["UserShowMouseLook"] = false,
+		["ModelID"] = 166492,
+		["UserAlpha"] = 0.9,
+		["UserOfsX"] = 0.1,
+		["UserScale"] = 0.4,
+		["UserShadowAlpha"] = 0,
+		["UserShowOnlyInCombat"] = false,
+		["Strata"] = "HIGH",
+	}
+
+	KkthnxUIDB.Variables["CursorTrailRequest"] = false
+end
+
+-- BigWigs
+local function ForceBigwigs()
+	if not IsAddOnLoaded("BigWigs") then
+		return
+	end
+
+	if BigWigs3DB then
+		table_wipe(BigWigs3DB)
+	end
+
+	BigWigs3DB = {
+		["namespaces"] = {
+			["BigWigs_Plugins_Bars"] = {
+				["profiles"] = {
+					["Default"] = {
+						["outline"] = "OUTLINE",
+						["fontSize"] = 12,
+						["BigWigsAnchor_y"] = 336,
+						["BigWigsAnchor_x"] = 16,
+						["BigWigsAnchor_width"] = 175,
+						["growup"] = true,
+						["interceptMouse"] = false,
+						["barStyle"] = "KKUI_Statusbar",
+						["LeftButton"] = {
+							["emphasize"] = false,
+						},
+						["font"] = "KKUI_Normal",
+						["onlyInterceptOnKeypress"] = true,
+						["emphasizeMultiplier"] = 1,
+						["BigWigsEmphasizeAnchor_x"] = 810,
+						["BigWigsEmphasizeAnchor_y"] = 350,
+						["BigWigsEmphasizeAnchor_width"] = 220,
+						["emphasizeGrowup"] = true,
+					},
+				},
+			},
+			["BigWigs_Plugins_Super Emphasize"] = {
+				["profiles"] = {
+					["Default"] = {
+						["fontSize"] = 28,
+						["font"] = "KKUI_Normal",
+					},
+				},
+			},
+			["BigWigs_Plugins_Messages"] = {
+				["profiles"] = {
+					["Default"] = {
+						["fontSize"] = 18,
+						["font"] = "KKUI_Normal",
+						["BWEmphasizeCountdownMessageAnchor_x"] = 665,
+						["BWMessageAnchor_x"] = 616,
+						["BWEmphasizeCountdownMessageAnchor_y"] = 530,
+						["BWMessageAnchor_y"] = 305,
+					},
+				},
+			},
+			["BigWigs_Plugins_Proximity"] = {
+				["profiles"] = {
+					["Default"] = {
+						["fontSize"] = 18,
+						["font"] = "KKUI_Normal",
+						["posy"] = 346,
+						["width"] = 140,
+						["posx"] = 1024,
+						["height"] = 120,
+					},
+				},
+			},
+			["BigWigs_Plugins_Alt Power"] = {
+				["profiles"] = {
+					["Default"] = {
+						["posx"] = 1002,
+						["fontSize"] = 14,
+						["font"] = "KKUI_Normal",
+						["fontOutline"] = "OUTLINE",
+						["posy"] = 490,
+					},
+				},
+			},
+		},
+		["profiles"] = {
+			["Default"] = {
+				["fakeDBMVersion"] = true,
+			},
+		},
+	}
+
+	KkthnxUIDB.Variables["BWRequest"] = false
+end
+
+local function ForceAddonSkins()
+	if KkthnxUIDB.Variables["DBMRequest"] then
+		ForceDBMOptions()
+	end
+
+	if KkthnxUIDB.Variables["SkadaRequest"] then
+		ForceSkadaOptions()
+	end
+
+	if KkthnxUIDB.Variables["BWRequest"] then
+		ForceBigwigs()
+	end
+
+	if KkthnxUIDB.Variables["MaxDpsRequest"] then
+		ForceMaxDPSOptions()
+	end
+
+	if KkthnxUIDB.Variables["CursorTrailRequest"] then
+		ForceCursorTrail()
+	end
+
+	if KkthnxUIDB.Variables["HekiliRequest"] then
+		ForceHekiliOptions()
+	end
+end
+
+-- Tutorial
+local tutor
+local function YesTutor()
+	if tutor then
+		tutor:Show()
+		return
+	end
+
+	tutor = CreateFrame("Frame", nil, UIParent)
+	tutor:SetPoint("CENTER")
+	tutor:SetSize(480, 240)
+	tutor:SetFrameStrata("HIGH")
+	K.CreateMoverFrame(tutor)
+	tutor:CreateBorder()
+
+	local tutorLogo = tutor:CreateTexture(nil, "OVERLAY")
+	tutorLogo:SetSize(512, 256)
+	tutorLogo:SetBlendMode("ADD")
+	tutorLogo:SetAlpha(0.07)
+	tutorLogo:SetTexture(C["Media"].Textures.LogoTexture)
+	tutorLogo:SetPoint("CENTER", tutor, "CENTER", 0, 0)
+
+	K.CreateFontString(tutor, 30, K.Title, "", true, "TOPLEFT", 10, 25)
+	local ll = CreateFrame("Frame", nil, tutor)
+	ll:SetPoint("TOP", -40, -32)
+	K.CreateGF(ll, 80, 1, "Horizontal", .7, .7, .7, 0, .7)
+	ll:SetFrameStrata("HIGH")
+	local lr = CreateFrame("Frame", nil, tutor)
+	lr:SetPoint("TOP", 40, -32)
+	K.CreateGF(lr, 80, 1, "Horizontal", .7, .7, .7, .7, 0)
+	lr:SetFrameStrata("HIGH")
+
+	local title = K.CreateFontString(tutor, 13, "", "", true, "TOP", 0, -10)
+	local body = K.CreateFontString(tutor, 13, "", "", false, "TOPLEFT", 20, -50)
+
+	body:SetPoint("BOTTOMRIGHT", -20, 50)
+	body:SetJustifyV("TOP")
+	body:SetJustifyH("LEFT")
+	body:SetWordWrap(true)
+
+	local progressBar = CreateFrame('StatusBar', nil, tutor)
+	progressBar:SetMinMaxValues(0, 500)
+	progressBar:SetValue(0)
+	progressBar:CreateBorder()
+	progressBar:SetPoint('TOP', tutor, 'BOTTOM', 0, -6)
+	progressBar:SetSize(480, 22)
+	progressBar:SetStatusBarTexture(C["Media"].Statusbars.KkthnxUIStatusbar)
+
+	progressBar.text = K.CreateFontString(progressBar, 13, "", "", false, "CENTER", 0, -1)
+
+	progressBar.spark = progressBar:CreateTexture(nil, "OVERLAY")
+	progressBar.spark:SetWidth(64)
+	progressBar.spark:SetHeight(progressBar:GetHeight())
+	progressBar.spark:SetTexture(C["Media"].Textures.Spark128Texture)
+	progressBar.spark:SetBlendMode("ADD")
+	progressBar.spark:SetPoint("CENTER", progressBar:GetStatusBarTexture(), "RIGHT", 0, 0)
+	progressBar.spark:SetAlpha(0.6)
+
+	local pass = CreateFrame("Button", nil, tutor)
+	pass:SetPoint("BOTTOMLEFT", 10, 10)
+	pass:SetSize(90, 24)
+	pass:SkinButton()
+
+	pass.text = pass:CreateFontString(nil, "OVERLAY")
+	pass.text:SetFontObject(K.GetFont(C["UIFonts"].GeneralFonts))
+	pass.text:SetPoint("CENTER")
+	pass.text:SetText(DECLINE)
+	pass.text:SetTextColor(1, 0, 0)
+
+	local apply = CreateFrame("Button", nil, tutor)
+	apply:SetPoint("BOTTOMRIGHT", -10, 10)
+	apply:SetSize(90, 24)
+	apply:SkinButton()
+
+	apply.text = apply:CreateFontString(nil, "OVERLAY")
+	apply.text:SetFontObject(K.GetFont(C["UIFonts"].GeneralFonts))
+	apply.text:SetPoint("CENTER")
+	apply.text:SetText(APPLY)
+	apply.text:SetTextColor(0, 1, 0)
+
+	local titles = {
+		DEFAULT.." "..SETTINGS,
+		CHAT,
+		UI_SCALE,
+		"Skins",
+		"Tips"
+	}
+
+	local function RefreshText(page)
+		title:SetText(titles[page])
+		body:SetText(L["Tutorial Page"..page])
+
+		if progressBar then
+			progressBar:SetValue(page.."00")
+			progressBar:SetStatusBarColor(K.r, K.g, K.b)
+			progressBar.text:SetText(page.."/5")
+		end
+	end
+	RefreshText(1)
+
+	local currentPage = 1
+	pass:SetScript("OnClick", function()
+		if currentPage > 3 then
+			pass:Hide()
 		end
 
-		-- Create missing entries in the saved vars if they don"t exist.
-		if (not _G.KkthnxUIData[playerRealm]) then
-			_G.KkthnxUIData[playerRealm] = _G.KkthnxUIData[playerRealm] or {}
-		end
+		currentPage = currentPage + 1
+		RefreshText(currentPage)
+		StopSound(21968)
+		StopSound(140268)
+		PlaySound(140268)
+	end)
 
-		if (not _G.KkthnxUIData[playerRealm][playerName]) then
-			_G.KkthnxUIData[playerRealm][playerName] = _G.KkthnxUIData[playerRealm][playerName] or {}
-		end
-
-		if (_G.KkthnxUIDataPerChar) then
-			_G.KkthnxUIData[playerRealm][playerName] = _G.KkthnxUIDataPerChar
-			_G.KkthnxUIDataPerChar = nil
-		end
-
-		if (not _G.KkthnxUIData[playerRealm][playerName].RevealWorldMap) then
-			_G.KkthnxUIData[playerRealm][playerName].RevealWorldMap = _G.KkthnxUIData[playerRealm][playerName].RevealWorldMap or false
-		end
-
-		if (not _G.KkthnxUIData[playerRealm][playerName].AutoQuest) then
-			_G.KkthnxUIData[playerRealm][playerName].AutoQuest = _G.KkthnxUIData[playerRealm][playerName].AutoQuest or false
-		end
-
-		if (not _G.KkthnxUIData[playerRealm][playerName].BindType) then
-			_G.KkthnxUIData[playerRealm][playerName].BindType = _G.KkthnxUIData[playerRealm][playerName].BindType or 1
-		end
-
-		if (not _G.KkthnxUIData[playerRealm][playerName].FavouriteItems) then
-			_G.KkthnxUIData[playerRealm][playerName].FavouriteItems = _G.KkthnxUIData[playerRealm][playerName].FavouriteItems or {}
-		end
-
-		if (not _G.KkthnxUIData[playerRealm][playerName]["Mover"]) then
-			_G.KkthnxUIData[playerRealm][playerName]["Mover"] = _G.KkthnxUIData[playerRealm][playerName]["Mover"] or {}
-		end
-
-		if (not _G.KkthnxUIData[playerRealm][playerName]["TempAnchor"]) then
-			_G.KkthnxUIData[playerRealm][playerName]["TempAnchor"] = _G.KkthnxUIData[playerRealm][playerName]["TempAnchor"] or {}
-		end
-	elseif (event == "PLAYER_ENTERING_WORLD") then
-		-- Install default if we never ran KkthnxUI on this character.
-		local IsInstalled = _G.KkthnxUIData[playerRealm][playerName].InstallComplete
-		if (not IsInstalled) then
-			self:Launch()
-		else
-			if C["General"].AutoScale then
-				K.HideInterfaceOption(Advanced_UseUIScale)
-				K.HideInterfaceOption(Advanced_UIScaleSlider)
-			end
-
+	apply:SetScript("OnClick", function()
+		pass:Show()
+		if currentPage == 1 then
+			Module:ForceDefaultCVars()
+			ForceRaidFrame()
+			UIErrorsFrame:AddMessage(K.InfoColor.."Default CVars Loaded.")
+			PlaySound(21968)
+		elseif currentPage == 2 then
+			StopSound(21968)
+			Module:ForceChatSettings()
+			UIErrorsFrame:AddMessage(K.InfoColor.."Chat Frame Settings Loaded")
+			PlaySound(21968)
+		elseif currentPage == 3 then
+			StopSound(21968)
+			C["General"].AutoScale = true
 			K.SetupUIScale()
+			UIErrorsFrame:AddMessage(K.InfoColor.."UI Scale Loaded")
+			PlaySound(21968)
+		elseif currentPage == 4 then
+			StopSound(21968)
+			KkthnxUIDB.Variables["DBMRequest"] = true
+			KkthnxUIDB.Variables["SkadaRequest"] = true
+			KkthnxUIDB.Variables["BWRequest"] = true
+			KkthnxUIDB.Variables["MaxDpsRequest"] = true
+			KkthnxUIDB.Variables["CursorTrailRequest"] = true
+			KkthnxUIDB.Variables["HekiliRequest"] = true
+			ForceAddonSkins()
+			KkthnxUIDB.Variables["ResetDetails"] = true
+			UIErrorsFrame:AddMessage(K.InfoColor.."Relevant AddOns Settings Loaded, You need to ReloadUI.")
+			pass:Hide()
+			PlaySound(21968)
+		elseif currentPage == 5 then
+			StopSound(21968)
+			StopSound(140268)
+			KkthnxUIDB.Variables[K.Realm][K.Name].InstallComplete = true
+			tutor:Hide()
+			progressBar:Hide()
+			StaticPopup_Show("KKUI_CHANGES_RELOAD")
+			currentPage = 0
+			PlaySound(11466)
 		end
 
-		-- Welcome message
-		if (not _G.KkthnxUIData[playerRealm][playerName].InstallComplete) then
-			K.Delay(8, Install.WelcomeMessageDelay)
-		end
-	elseif (event == "PLAYER_LOGIN") then
-		K:RegisterEvent("UI_SCALE_CHANGED", K.SetupUIScale)
+		currentPage = currentPage + 1
+		RefreshText(currentPage)
+	end)
+end
+
+local welcome
+local function HelloWorld()
+	if welcome then
+		welcome:Show()
+		return
 	end
-end)
 
-_G.SLASH_INSTALLUI1 = "/install"
-SlashCmdList["INSTALLUI"] = function()
-	Install:Launch()
+	welcome = CreateFrame("Frame", "KKUI_Tutorial", UIParent)
+	welcome:SetPoint("CENTER")
+	welcome:SetSize(400, 500)
+	welcome:SetFrameStrata("HIGH")
+	K.CreateMoverFrame(welcome)
+	welcome:CreateBorder()
+	K.CreateFontString(welcome, 30, K.Title, "", true, "TOPLEFT", 10, 28)
+	K.CreateFontString(welcome, 14, K.Version, "", true, "TOPLEFT", 140, 16)
+	K.CreateFontString(welcome, 16, "Help Info", "", true, "TOP", 0, -10)
+
+	local welcomeLogo = welcome:CreateTexture(nil, "OVERLAY")
+	welcomeLogo:SetSize(512, 256)
+	welcomeLogo:SetBlendMode("ADD")
+	welcomeLogo:SetAlpha(0.04)
+	welcomeLogo:SetTexture(C["Media"].Textures.LogoTexture)
+	welcomeLogo:SetPoint("CENTER", welcome, "CENTER", 0, 0)
+
+	local welcomeBoss = welcome:CreateTexture(nil, "OVERLAY")
+	welcomeBoss:SetSize(128, 64)
+	welcomeBoss:SetTexture("Interface\\ENCOUNTERJOURNAL\\UI-EJ-BOSS-Illidan Stormrage")
+	welcomeBoss:SetPoint("TOPRIGHT", welcome, "TOPRIGHT", 10, 64)
+
+	local ll = CreateFrame("Frame", nil, welcome)
+	ll:SetPoint("TOP", -50, -35)
+	K.CreateGF(ll, 100, 1, "Horizontal", .7, .7, .7, 0, .7)
+	ll:SetFrameStrata("HIGH")
+
+	local lr = CreateFrame("Frame", nil, welcome)
+	lr:SetPoint("TOP", 50, -35)
+	K.CreateGF(lr, 100, 1, "Horizontal", .7, .7, .7, .7, 0)
+	lr:SetFrameStrata("HIGH")
+	K.CreateFontString(welcome, 14, "Thank you for choosing |cff669dffKkthnxUI|r, v"..K.SystemColor..K.Version.."|r!", "", false, "TOP", 0, -50)
+	K.CreateFontString(welcome, 13, "|cff669dffKkthnxUI|r is a simplistic user interface that holds", "", false, "TOP", 0, -86)
+	K.CreateFontString(welcome, 13, "onto the information and functionality, while still keeping", "", false, "TOP", 0, -106)
+	K.CreateFontString(welcome, 13, "most of the good looks. It can be used for any class or role.", "", false, "TOP", 0, -126)
+
+	K.CreateFontString(welcome, 16, "|cff669dffJoin The Community!|r", "", false, "TOP", 0, -160)
+	K.CreateFontString(welcome, 13, "There are thousands of users, but most are content", "", false, "TOP", 0, -180)
+	K.CreateFontString(welcome, 13, "to simply download and use the interface without further", "", false, "TOP", 0, -200)
+	K.CreateFontString(welcome, 13, "ado. If you wish to get more involved though,", "", false, "TOP", 0, -220)
+	K.CreateFontString(welcome, 13, "have some questions you can't find answers to", "", false, "TOP", 0, -240)
+	K.CreateFontString(welcome, 13, "anywhere else or simply just wish to stop by,", "", false, "TOP", 0, -260)
+	K.CreateFontString(welcome, 13, "we have both a discord server and a facebook page.", "", false, "TOP", 0, -280)
+
+	local ll = CreateFrame("Frame", nil, welcome)
+	ll:SetPoint("TOP", welcome, -90, -326)
+	K.CreateGF(ll, 180, 1, "Horizontal", .7, .7, .7, 0, .7)
+	ll:SetFrameStrata("HIGH")
+	local lr = CreateFrame("Frame", nil, welcome)
+	lr:SetPoint("TOP", welcome, 90, -326)
+	K.CreateGF(lr, 180, 1, "Horizontal", .7, .7, .7, .7, 0)
+	lr:SetFrameStrata("HIGH")
+
+	K.CreateFontString(welcome, 13, "If this is your first time using |cff669dffKkthnxUI|r,", "", false, "BOTTOM", 0, 130)
+	K.CreateFontString(welcome, 13, "please take a minute to go through the turtoral!", "", false, "BOTTOM", 0, 110)
+	K.CreateFontString(welcome, 13, "if you need help for commands type /khelp", "", false, "BOTTOM", 0, 90)
+
+	if KkthnxUIDB.Variables[K.Realm][K.Name].InstallComplete then
+		local close = CreateFrame("Button", nil, welcome)
+		close:SetPoint("TOPRIGHT", 4, 4)
+		close:SetSize(32, 32)
+		close:SkinCloseButton()
+		close:SetScript("OnClick", function()
+			welcome:Hide()
+		end)
+	end
+
+	local goTutor = CreateFrame("Button", nil, welcome)
+	goTutor:SetPoint("BOTTOM", 0, 10)
+	goTutor:SetSize(110, 20)
+	goTutor:SkinButton()
+
+	goTutor.text = goTutor:CreateFontString(nil, "OVERLAY")
+	goTutor.text:SetFontObject(K.GetFont(C["UIFonts"].GeneralFonts))
+	goTutor.text:SetPoint("CENTER")
+	goTutor.text:SetText("Tutorial")
+
+	goTutor.glowFrame = CreateFrame("Frame", nil, goTutor, "BackdropTemplate")
+	goTutor.glowFrame:SetBackdrop({edgeFile = C["Media"].Borders.GlowBorder, edgeSize = 12})
+	goTutor.glowFrame:SetPoint("TOPLEFT", goTutor, -5, 5)
+	goTutor.glowFrame:SetPoint("BOTTOMRIGHT", goTutor, 5, -5)
+	goTutor.glowFrame:SetBackdropBorderColor(K.r, K.g, K.b)
+	goTutor.glowFrame:Hide()
+
+	goTutor.glowFrame.Animation = goTutor.glowFrame:CreateAnimationGroup()
+	goTutor.glowFrame.Animation:SetLooping("BOUNCE")
+	goTutor.glowFrame.Animation.Fader = goTutor.glowFrame.Animation:CreateAnimation("Alpha")
+	goTutor.glowFrame.Animation.Fader:SetFromAlpha(0.8)
+	goTutor.glowFrame.Animation.Fader:SetToAlpha(0.2)
+	goTutor.glowFrame.Animation.Fader:SetDuration(1)
+	goTutor.glowFrame.Animation.Fader:SetSmoothing("OUT")
+
+	if not goTutor.glowFrame.Animation:IsPlaying() then
+		goTutor.glowFrame.Animation:Play()
+		goTutor.glowFrame:Show()
+	end
+
+	goTutor:SetScript("OnClick", function()
+		if goTutor.glowFrame.Animation and goTutor.glowFrame.Animation:IsPlaying() then
+			goTutor.glowFrame.Animation:Stop()
+			goTutor.glowFrame:Hide()
+		end
+		welcome:Hide()
+		YesTutor()
+	end)
+
+	local goSteam = CreateFrame("Button", nil, welcome)
+	goSteam:SetPoint("BOTTOM", 0, 50)
+	goSteam:SetSize(110, 20)
+	goSteam:SkinButton()
+
+	goSteam.text = goSteam:CreateFontString(nil, "OVERLAY")
+	goSteam.text:SetFontObject(K.GetFont(C["UIFonts"].GeneralFonts))
+	goSteam.text:SetPoint("CENTER")
+	goSteam.text:SetText(K.SystemColor.."Steam Wishlist|r")
+
+	goSteam:SetScript("OnClick", function()
+		StaticPopup_Show("KKUI_POPUP_LINK", nil, nil, "https://store.steampowered.com/wishlist/id/Kkthnx")
+	end)
+
+	local goPaypal = CreateFrame("Button", nil, welcome)
+	goPaypal:SetPoint("BOTTOM", -120, 50)
+	goPaypal:SetSize(110, 20)
+	goPaypal:SkinButton()
+
+	goPaypal.text = goPaypal:CreateFontString(nil, "OVERLAY")
+	goPaypal.text:SetFontObject(K.GetFont(C["UIFonts"].GeneralFonts))
+	goPaypal.text:SetPoint("CENTER")
+	goPaypal.text:SetText("|CFF0079C1Paypal|r")
+
+	goPaypal:SetScript("OnClick", function()
+		StaticPopup_Show("KKUI_POPUP_LINK", nil, nil, "http://paypal.me/kkthnx")
+	end)
+
+	local goPatreon = CreateFrame("Button", nil, welcome)
+	goPatreon:SetPoint("BOTTOM", 120, 50)
+	goPatreon:SetSize(110, 20)
+	goPatreon:SkinButton()
+
+	goPatreon.text = goPatreon:CreateFontString(nil, "OVERLAY")
+	goPatreon.text:SetFontObject(K.GetFont(C["UIFonts"].GeneralFonts))
+	goPatreon.text:SetPoint("CENTER")
+	goPatreon.text:SetText("|CFFf96854Patreon|r")
+
+	goPatreon:SetScript("OnClick", function()
+		StaticPopup_Show("KKUI_POPUP_LINK", nil, nil, "https://www.patreon.com/kkthnx")
+	end)
 end
 
-_G.SLASH_RESETUI1 = "/reset"
-SlashCmdList["RESETUI"] = function()
-	K.StaticPopup_Show("RESET_UI")
-end
+_G.SlashCmdList["KKUI_INSTALLER"] = HelloWorld
+_G.SLASH_KKUI_INSTALLER1 = "/install"
 
-_G.SLASH_DISABLEUI1 = "/disable"
-SlashCmdList["DISABLEUI"] = function()
-	K.StaticPopup_Show("DISABLE_UI")
-end
+function Module:OnEnable()
+	-- Hide options
+	K.HideInterfaceOption(_G.Display_UseUIScale)
+	K.HideInterfaceOption(_G.Display_UIScaleSlider)
 
-K["Install"] = Install
+	-- Tutorial and settings
+	ForceAddonSkins()
+	if not KkthnxUIDB.Variables[K.Realm][K.Name].InstallComplete then
+		HelloWorld()
+	end
+end

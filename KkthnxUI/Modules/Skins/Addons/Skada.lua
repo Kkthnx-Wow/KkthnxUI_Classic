@@ -1,16 +1,16 @@
 local K, C = unpack(select(2, ...))
-local ModuleSkins = K:GetModule("Skins")
-if C["Skins"].Skada ~= true or not K.CheckAddOnState("Skada") then
-	return
-end
+local Module = K:GetModule("Skins")
 
 local _G = _G
-local table_insert = table.insert
 
 local CreateFrame = _G.CreateFrame
 local hooksecurefunc = _G.hooksecurefunc
 
-local function SkinSkada()
+function Module:ReskinSkada()
+	if C["Skins"].Skada ~= true or not K.CheckAddOnState("Skada") then
+		return
+	end
+
 	function Skada:ShowPopup()
 		ModuleSkins:AcceptFrame("Do you want to reset Skada?", function(self)
 			Skada:Reset()
@@ -40,7 +40,7 @@ local function SkinSkada()
 			if not skada.button.isSkinned then
 				skada.button.Background = skada.button:CreateTexture(nil, "BACKGROUND", -1)
 				skada.button.Background:SetAllPoints(skada.button)
-				skada.button.Background:SetColorTexture(C["Media"].BackdropColor[1], C["Media"].BackdropColor[2], C["Media"].BackdropColor[3], C["Media"].BackdropColor[4])
+				skada.button.Background:SetColorTexture(C["Media"].Backdrops.ColorBackdrop[1], C["Media"].Backdrops.ColorBackdrop[2], C["Media"].Backdrops.ColorBackdrop[3], C["Media"].Backdrops.ColorBackdrop[4])
 				skada.button.isSkinned = true
 			end
 
@@ -66,10 +66,4 @@ local function SkinSkada()
 			end
 		end
 	end)
-end
-
-if IsAddOnLoaded("Skada") then
-	table_insert(ModuleSkins.SkinFuncs["KkthnxUI"], SkinSkada)
-else
-	ModuleSkins.SkinFuncs["Skada"] = SkinSkada
 end

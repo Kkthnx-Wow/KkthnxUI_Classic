@@ -27,16 +27,16 @@ At least one of the above widgets must be present for the element to work.
 .['growth-y']       - Vertical growth direction. Defaults to 'UP' (string)
 .initialAnchor      - Anchor point for the icons. Defaults to 'BOTTOMLEFT' (string)
 .filter             - Custom filter list for auras to display. Defaults to 'HELPFUL' for buffs and 'HARMFUL' for
-					  debuffs (string)
+                      debuffs (string)
 .tooltipAnchor      - Anchor point for the tooltip. Defaults to 'ANCHOR_BOTTOMRIGHT', however, if a frame has anchoring
-					  restrictions it will be set to 'ANCHOR_CURSOR' (string)
+                      restrictions it will be set to 'ANCHOR_CURSOR' (string)
 
 ## Options Auras
 
 .numBuffs     - The maximum number of buffs to display. Defaults to 32 (number)
 .numDebuffs   - The maximum number of debuffs to display. Defaults to 40 (number)
 .numTotal     - The maximum number of auras to display. Prioritizes buffs over debuffs. Defaults to the sum of
-				.numBuffs and .numDebuffs (number)
+                .numBuffs and .numDebuffs (number)
 .gap          - Controls the creation of an invisible icon between buffs and debuffs. Defaults to false (boolean)
 .buffFilter   - Custom filter list for buffs to display. Takes priority over `filter` (string)
 .debuffFilter - Custom filter list for debuffs to display. Takes priority over `filter` (string)
@@ -58,36 +58,21 @@ button.isPlayer - indicates if the aura caster is the player or their vehicle (b
 
 ## Examples
 
-	-- Position and size
-	local Buffs = CreateFrame('Frame', nil, self)
-	Buffs:SetPoint('RIGHT', self, 'LEFT')
-	Buffs:SetSize(16 * 2, 16 * 16)
+    -- Position and size
+    local Buffs = CreateFrame('Frame', nil, self)
+    Buffs:SetPoint('RIGHT', self, 'LEFT')
+    Buffs:SetSize(16 * 2, 16 * 16)
 
-	-- Register with oUF
-	self.Buffs = Buffs
+    -- Register with oUF
+    self.Buffs = Buffs
 --]]
 
 local _, ns = ...
+local B, C, L, DB = unpack(ns)
 local oUF = ns.oUF
 
 local VISIBLE = 1
 local HIDDEN = 0
-
--- ElvUI changed block
-local CREATED = 2
-local pcall = pcall
-local tinsert = tinsert
-local CreateFrame = CreateFrame
-local GetSpellInfo = GetSpellInfo
-local UnitAura = UnitAura
-local UnitIsUnit = UnitIsUnit
-local UnitIsEnemy = UnitIsEnemy
-local floor, min = math.floor, math.min
-local LCD = LibStub('LibClassicDurations', true)
-local myClass = select(2, UnitClass('player'))
-
--- GLOBALS: GameTooltip
--- end block
 
 local function UpdateTooltip(self)
 	GameTooltip:SetUnitAura(self:GetParent().__owner.unit, self:GetID(), self.filter)
@@ -111,7 +96,7 @@ local function createAuraIcon(element, index)
 	local cd = CreateFrame('Cooldown', '$parentCooldown', button, 'CooldownFrameTemplate')
 	cd:SetAllPoints()
 
-	local icon = button:CreateTexture(nil, 'ARTWORK')
+	local icon = button:CreateTexture(nil, 'BORDER')
 	icon:SetAllPoints()
 
 	local countFrame = CreateFrame('Frame', nil, button)
@@ -160,32 +145,7 @@ local function customFilter(element, unit, button, name)
 end
 
 local function updateIcon(element, unit, index, offset, filter, isDebuff, visible)
-	local name, texture, count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID, canApply, isBossDebuff, casterIsPlayer, nameplateShowAll, timeMod, effect1, effect2, effect3
-
-	if LCD and not UnitIsUnit('player', unit) then
-		local durationNew, expirationTimeNew
-		name, texture, count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID, canApply, isBossDebuff, casterIsPlayer, nameplateShowAll, timeMod, effect1, effect2, effect3 = LCD:UnitAura(unit, index, filter)
-
-		if spellID then
-			durationNew, expirationTimeNew = LCD:GetAuraDurationByUnit(unit, spellID, caster, name)
-		end
-
-		if durationNew and durationNew > 0 then
-			duration, expiration = durationNew, expirationTimeNew
-		end
-	else
-		name, texture, count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID, canApply, isBossDebuff, casterIsPlayer, nameplateShowAll, timeMod, effect1, effect2, effect3 = UnitAura(unit, index, filter)
-	end
-
-	-- ElvUI block
-	if element.forceShow or element.forceCreate then
-		spellID = 9853
-		name, _, texture = GetSpellInfo(spellID)
-		if element.forceShow then
-			count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, isBossDebuff = 5, "Magic", 0, 60, "player", nil, nil, nil
-		end
-	end
-	-- end Block
+	local name, texture, count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID, canApply, isBossDebuff, casterIsPlayer, nameplateShowAll, timeMod, effect1, effect2, effect3 = UnitAura(unit, index, filter)
 
 	if(name) then
 		local position = visible + offset + 1
@@ -203,7 +163,7 @@ local function updateIcon(element, unit, index, offset, filter, isDebuff, visibl
 			--]]
 			button = (element.CreateIcon or createAuraIcon) (element, position)
 
-			tinsert(element, button)
+			table.insert(element, button)
 			element.createdIcons = element.createdIcons + 1
 		end
 
@@ -224,22 +184,16 @@ local function updateIcon(element, unit, index, offset, filter, isDebuff, visibl
 
 		* show - indicates whether the aura button should be shown (boolean)
 		--]]
-
-		-- ElvUI changed block
-		local show = not element.forceCreate
-		if not (element.forceShow or element.forceCreate) then
-			show = (element.CustomFilter or customFilter) (element, unit, button, name, texture,
-				count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID,
-				canApply, isBossDebuff, casterIsPlayer, nameplateShowAll,timeMod, effect1, effect2, effect3)
-		end
-		-- end block
+		local show = (element.CustomFilter or customFilter) (element, unit, button, name, texture,
+			count, debuffType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID,
+			canApply, isBossDebuff, casterIsPlayer, nameplateShowAll,timeMod, effect1, effect2, effect3)
 
 		if(show) then
 			-- We might want to consider delaying the creation of an actual cooldown
 			-- object to this point, but I think that will just make things needlessly
 			-- complicated.
 			if(button.cd and not element.disableCooldown) then
-				if (expiration and expiration > 0) and (duration and duration > 0) then
+				if(duration and duration > 0) then
 					button.cd:SetCooldown(expiration - duration, duration)
 					button.cd:Show()
 				else
@@ -294,18 +248,6 @@ local function updateIcon(element, unit, index, offset, filter, isDebuff, visibl
 			end
 
 			return VISIBLE
-		-- ElvUI changed block
-		elseif element.forceCreate then
-			local size = element.size or 16
-			button:SetSize(size, size)
-			button:Hide()
-
-			if element.PostUpdateIcon then
-				element:PostUpdateIcon(unit, button, index, position, duration, expiration, debuffType, isStealable)
-			end
-
-			return CREATED
-		-- end block
 		else
 			return HIDDEN
 		end
@@ -318,7 +260,7 @@ local function SetPosition(element, from, to)
 	local anchor = element.initialAnchor or 'BOTTOMLEFT'
 	local growthx = (element['growth-x'] == 'LEFT' and -1) or 1
 	local growthy = (element['growth-y'] == 'DOWN' and -1) or 1
-	local cols = floor(element:GetWidth() / sizex + 0.5)
+	local cols = math.floor(element:GetWidth() / sizex + 0.5)
 
 	for i = from, to do
 		local button = element[i]
@@ -326,7 +268,7 @@ local function SetPosition(element, from, to)
 		-- Bail out if the to range is out of scope.
 		if(not button) then break end
 		local col = (i - 1) % cols
-		local row = floor((i - 1) / cols)
+		local row = math.floor((i - 1) / cols)
 
 		button:ClearAllPoints()
 		button:SetPoint(anchor, element, anchor, col * sizex * growthx, row * sizey * growthy)
@@ -338,9 +280,6 @@ local function filterIcons(element, unit, filter, limit, isDebuff, offset, dontH
 	local index = 1
 	local visible = 0
 	local hidden = 0
-	-- ElvUI changed block
-	local created = 0
-	-- end block
 	while(visible < limit) do
 		local result = updateIcon(element, unit, index, offset, filter, isDebuff, visible)
 		if(not result) then
@@ -349,19 +288,10 @@ local function filterIcons(element, unit, filter, limit, isDebuff, offset, dontH
 			visible = visible + 1
 		elseif(result == HIDDEN) then
 			hidden = hidden + 1
-		-- ElvUI changed block
-		elseif result == CREATED then
-			visible = visible + 1
-			created = created + 1
-		-- end block
 		end
 
 		index = index + 1
 	end
-
-	-- ElvUI changed block
-	visible = visible - created
-	-- end block
 
 	if(not dontHide) then
 		for i = visible + offset + 1, #element do
@@ -389,7 +319,7 @@ local function UpdateAuras(self, event, unit)
 		local numDebuffs = auras.numDebuffs or 40
 		local max = auras.numTotal or numBuffs + numDebuffs
 
-		local visibleBuffs = filterIcons(auras, unit, auras.buffFilter or auras.filter or 'HELPFUL', min(numBuffs, max), nil, 0, true)
+		local visibleBuffs, hiddenBuffs = filterIcons(auras, unit, auras.buffFilter or auras.filter or 'HELPFUL', math.min(numBuffs, max), nil, 0, true)
 
 		local hasGap
 		if(visibleBuffs ~= 0 and auras.gap) then
@@ -399,7 +329,7 @@ local function UpdateAuras(self, event, unit)
 			local button = auras[visibleBuffs]
 			if(not button) then
 				button = (auras.CreateIcon or createAuraIcon) (auras, visibleBuffs)
-				tinsert(auras, button)
+				table.insert(auras, button)
 				auras.createdIcons = auras.createdIcons + 1
 			end
 
@@ -426,7 +356,7 @@ local function UpdateAuras(self, event, unit)
 			end
 		end
 
-		local visibleDebuffs = filterIcons(auras, unit, auras.debuffFilter or auras.filter or 'HARMFUL', min(numDebuffs, max - visibleBuffs), true, visibleBuffs)
+		local visibleDebuffs, hiddenDebuffs = filterIcons(auras, unit, auras.debuffFilter or auras.filter or 'HARMFUL', math.min(numDebuffs, max - visibleBuffs), true, visibleBuffs)
 		auras.visibleDebuffs = visibleDebuffs
 
 		if(hasGap and visibleDebuffs == 0) then
@@ -480,7 +410,7 @@ local function UpdateAuras(self, event, unit)
 		if(buffs.PreUpdate) then buffs:PreUpdate(unit) end
 
 		local numBuffs = buffs.num or 32
-		local visibleBuffs = filterIcons(buffs, unit, buffs.filter or 'HELPFUL', numBuffs)
+		local visibleBuffs, hiddenBuffs = filterIcons(buffs, unit, buffs.filter or 'HELPFUL', numBuffs)
 		buffs.visibleBuffs = visibleBuffs
 
 		local fromRange, toRange
@@ -501,7 +431,7 @@ local function UpdateAuras(self, event, unit)
 		if(debuffs.PreUpdate) then debuffs:PreUpdate(unit) end
 
 		local numDebuffs = debuffs.num or 40
-		local visibleDebuffs = filterIcons(debuffs, unit, debuffs.filter or 'HARMFUL', numDebuffs, true)
+		local visibleDebuffs, hiddenDebuffs = filterIcons(debuffs, unit, debuffs.filter or 'HARMFUL', numDebuffs, true)
 		debuffs.visibleDebuffs = visibleDebuffs
 
 		local fromRange, toRange
@@ -569,12 +499,6 @@ local function Enable(self)
 			end
 
 			buffs:Show()
-
-			if not UnitIsUnit("player", self.unit) then
-				LCD.RegisterCallback('ElvUI', "UNIT_BUFF", function(event, unit)
-					Update(buffs, "UNIT_AURA", unit)
-				end)
-			end
 		end
 
 		local debuffs = self.Debuffs
