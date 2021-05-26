@@ -11,15 +11,12 @@ local GetCreatureDifficultyColor = _G.GetCreatureDifficultyColor
 local GetNumArenaOpponentSpecs = _G.GetNumArenaOpponentSpecs
 local LEVEL = _G.LEVEL
 local PLAYER_OFFLINE = _G.PLAYER_OFFLINE
-local UnitBattlePetLevel = _G.UnitBattlePetLevel
 local UnitClass = _G.UnitClass
 local UnitClassification = _G.UnitClassification
-local UnitEffectiveLevel = _G.UnitEffectiveLevel
 local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
 local UnitHealth = _G.UnitHealth
 local UnitHealthMax = _G.UnitHealthMax
 local UnitIsAFK = _G.UnitIsAFK
-local UnitIsBattlePetCompanion = _G.UnitIsBattlePetCompanion
 local UnitIsConnected = _G.UnitIsConnected
 local UnitIsDND = _G.UnitIsDND
 local UnitIsDead = _G.UnitIsDead
@@ -30,15 +27,11 @@ local UnitIsGroupLeader = _G.UnitIsGroupLeader
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitIsRaidOfficer = _G.UnitIsRaidOfficer
 local UnitIsTapDenied = _G.UnitIsTapDenied
-local UnitIsWildBattlePet = _G.UnitIsWildBattlePet
 local UnitLevel = _G.UnitLevel
 local UnitPower = _G.UnitPower
 local UnitPowerType = _G.UnitPowerType
 local UnitReaction = _G.UnitReaction
 local UnitStagger = _G.UnitStagger
-
-local CHAT_FLAG_AFK = _G.CHAT_FLAG_AFK:gsub("<(.-)>", "|r<|cffFF3333%1|r>")
-local CHAT_FLAG_DND = _G.CHAT_FLAG_DND:gsub("<(.-)>", "|r<|cffFFFF33%1|r>")
 
 local function ColorPercent(value)
 	local r, g, b
@@ -316,3 +309,23 @@ oUF.Tags.Methods["lfdrole"] = function(unit)
 	return (Tank..Healer)
 end
 oUF.Tags.Events["lfdrole"] = "PLAYER_ROLES_ASSIGNED GROUP_ROSTER_UPDATE"
+
+
+oUF.Tags.Methods['pethappiness'] = function(unit)
+	local hasPetUI, isHunterPet = HasPetUI()
+	if (UnitIsUnit('pet', unit) and hasPetUI and isHunterPet) then
+		local left, right, top, bottom
+		local happiness = GetPetHappiness()
+
+		if(happiness == 1) then
+			left, right, top, bottom = 0.375, 0.5625, 0, 0.359375
+		elseif(happiness == 2) then
+			left, right, top, bottom = 0.1875, 0.375, 0, 0.359375
+		elseif(happiness == 3) then
+			left, right, top, bottom = 0, 0.1875, 0, 0.359375
+		end
+
+		return CreateTextureMarkup([[Interface\PetPaperDollFrame\UI-PetHappiness]], 128, 64, 14, 14, left, right, top, bottom, 0, 0)
+	end
+end
+oUF.Tags.Events['pethappiness'] = 'UNIT_HAPPINESS PET_UI_UPDATE'

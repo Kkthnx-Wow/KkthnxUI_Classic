@@ -19,12 +19,8 @@
    <!-- <Script file="Blizzard\Elements\AlertFrames.lua" />
    <Script file="Blizzard\Elements\AltPowerBar.lua" />
    <Script file="Blizzard\Elements\ColorPicker.lua" />
-   <Script file="Blizzard\Elements\MirrorBars.lua" />
-   <Script file="Blizzard\Elements\NoTalkingHead.lua" />
    <Script file="Blizzard\Elements\NoTutorials.lua" />
-   <Script file="Blizzard\Elements\ObjectiveFrame.lua" />
    <Script file="Blizzard\Elements\RaidUtility.lua" />
-   <Script file="Blizzard\Elements\TalkingHeadFrame.lua" />
    <Script file="Blizzard\Elements\TimerTracker.lua" /> -->
    <!-- Chat -->
    <Script file="Chat\Core.lua" />
@@ -74,8 +70,8 @@
    <Script file="Maps\MiniMap.lua" />
    <Script file="Maps\WorldMap.lua" />
    <Script file="Maps\Elements\CollectButtons.lua" />
-   <!-- <Script file="Maps\Elements\MapReveal.lua" />
-   <Script file="Maps\Elements\WowHeadLink.lua" /> -->
+   <Script file="Maps\Elements\MapReveal.lua" />
+   <Script file="Maps\Elements\WowHeadLink.lua" />
    <!-- Unitframes -->
    <Script file="UnitFrames\Plugins\oUF_AuraTrack.lua" />
    <Script file="UnitFrames\Plugins\oUF_CombatFader.lua" />
@@ -136,26 +132,21 @@
    <Script file="Announcements\Elements\ResetInstance.lua" />
    <Script file="Announcements\Elements\Sapped.lua" /> -->
    <!-- Automation -->
-   <!-- <Script file="Automation\Core.lua" />
+   <Script file="Automation\Core.lua" />
    <Script file="Automation\Elements\AutoDismount.lua" />
    <Script file="Automation\Elements\AutoOpen.lua" />
    <Script file="Automation\Elements\BadBuffs.lua" />
    <Script file="Automation\Elements\BestReward.lua" />
    <Script file="Automation\Elements\DeclineDuel.lua" />
    <Script file="Automation\Elements\Disenchant.lua" />
-   <Script file="Automation\Elements\Goodbye.lua" />
    <Script file="Automation\Elements\Invite.lua" />
-   <Script file="Automation\Elements\Keystone.lua" />
-   <Script file="Automation\Elements\PartySync.lua" />
    <Script file="Automation\Elements\Quest.lua" />
    <Script file="Automation\Elements\Release.lua" />
    <Script file="Automation\Elements\Resurrect.lua" />
-   <Script file="Automation\Elements\ScreenShot.lua" />
-   <Script file="Automation\Elements\SetRole.lua" />
    <Script file="Automation\Elements\SkipCinematic.lua" />
    <Script file="Automation\Elements\Summon.lua" />
    <Script file="Automation\Elements\TabBinder.lua" />
-   <Script file="Automation\Elements\WhisperInvite.lua" /> -->
+   <Script file="Automation\Elements\WhisperInvite.lua" />
    <!-- DataBars -->
    <Script file="DataBars\Core.lua" />
    <!-- Loot -->
@@ -185,6 +176,7 @@
    <Include file="Skins\Blizzard\Talent.lua" />
    <Include file="Skins\Blizzard\TradeSkill.lua" /> -->
    <!-- Skins AddOns -->
+   <Include file="Skins\Addons\Details.lua" />
    <!-- <Include file="Skins\Addons\Bartender4.lua" />
    <Include file="Skins\Addons\DeadlyBossMods.lua" />
    <Include file="Skins\Addons\Details.lua" />

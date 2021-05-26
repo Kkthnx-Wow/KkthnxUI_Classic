@@ -313,8 +313,6 @@ function Module:StyleActionButton(button, cfg)
 		end
 	end
 
-	Module:RegisterButtonRange(button)
-
 	button.__styled = true
 end
 
@@ -368,9 +366,7 @@ function Module:StyleExtraActionButton(cfg)
 	else
 		count:Hide()
 	end
-
-	Module:RegisterButtonRange(button)
-
+	
 	button.__styled = true
 end
 

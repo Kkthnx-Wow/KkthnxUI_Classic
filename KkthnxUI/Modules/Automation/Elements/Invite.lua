@@ -4,7 +4,7 @@ local Module = K:GetModule("Automation")
 local _G = _G
 
 local AcceptGroup = _G.AcceptGroup
-local C_BattleNet_GetGameAccountInfoByGUID = _G.C_BattleNet.GetGameAccountInfoByGUID
+local BNGetGameAccountInfoByGUID = _G.BNGetGameAccountInfoByGUID
 local C_FriendList_IsFriend = _G.C_FriendList.IsFriend
 local IsGuildMember = _G.IsGuildMember
 local IsInGroup = _G.IsInGroup
@@ -21,7 +21,7 @@ function Module.AutoInvite(event, _, _, _, _, _, _, inviterGUID)
 			return
 		end
 
-		if C_BattleNet_GetGameAccountInfoByGUID(inviterGUID) or C_FriendList_IsFriend(inviterGUID) or IsGuildMember(inviterGUID) then
+		if BNGetGameAccountInfoByGUID(inviterGUID) or C_FriendList_IsFriend(inviterGUID) or IsGuildMember(inviterGUID) then
 			hideStatic = true
 			AcceptGroup()
 		end

@@ -698,6 +698,10 @@ end
 
 local function calculateGeneralAmount(level, amount, spellPower, spModifier, healModifier)
 	local penalty = level > 20 and 1 or (1 - ((20 - level) * 0.0375))
+	if isTBC then
+		-- TBC added another downrank penalty
+		penalty = penalty * min(1, (level + 11) / playerLevel)
+	end
 
 	spellPower = spellPower * penalty
 
@@ -1132,12 +1136,12 @@ if( playerClass == "PRIEST" ) then
 		local CureDisease = GetSpellInfo(528)
 		local BindingHeal = GetSpellInfo(32546) or "Binding Heal"
 		local EmpoweredHealing = GetSpellInfo(33158) or "Empowered Healing"
-		local Renewal = GetSpellInfo(37563) or "Renewal" -- T4 bonus
+		--local Renewal = GetSpellInfo(37563) or "Renewal" -- T4 bonus
 
 		hotData[Renew] = {coeff = 1, interval = 3, ticks = 5, levels = {8, 14, 20, 26, 32, 38, 44, 50, 56, 60, 65, 70}, averages = {
 			45, 100, 175, 245, 315, 400, 510, 650, 810, 970, 1010, 1110 }}
 		hotData[GreaterHealHot] = hotData[Renew]
-		hotData[Renewal] = {coeff = 0, interval = 3, ticks = 3, levels = {70}, averages = {150}}
+		--hotData[Renewal] = {coeff = 0, interval = 3, ticks = 3, levels = {70}, averages = {150}}
 
 		spellData[FlashHeal] = {coeff = 1.5 / 3.5, levels = {20, 26, 32, 38, 44, 50, 56, 61, 67}, averages = {
 			{avg(193, 237), avg(194, 239), avg(196, 241), avg(198, 243),  avg(200, 245), avg(202, 247)},
@@ -1517,7 +1521,7 @@ end
 -- Keep track of where all the data should be going
 local instanceType
 local function updateDistributionChannel()
-	if( instanceType == "pvp" ) then
+	if( instanceType == "pvp" or instanceType == "arena" ) then
 		distribution = "INSTANCE_CHAT"
 	elseif( IsInRaid() ) then
 		distribution = "RAID"

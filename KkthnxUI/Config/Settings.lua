@@ -76,24 +76,17 @@ C["Automation"] = {
 	["AutoBlockStrangerInvites"] = false,
 	["AutoCollapse"] = false,
 	["AutoDeclineDuels"] = false,
-	["AutoDeclinePetDuels"] = false,
 	["AutoDisenchant"] = false,
-	["AutoGoodbye"] = false,
 	["AutoInvite"] = false,
-	["AutoKeystone"] = false,
 	["AutoOpenItems"] = false,
-	["AutoPartySync"] = false,
 	["AutoQuest"] = false,
 	["AutoRelease"] = false,
 	["AutoResurrect"] = false,
 	["AutoResurrectThank"] = false,
 	["AutoReward"] = false,
-	["AutoScreenshot"] = false,
-	["AutoSetRole"] = false,
 	["AutoSkipCinematic"] = false,
 	["AutoSummon"] = false,
 	["AutoTabBinder"] = false,
-	["AutoTrackPin"] = false,
 	["NoBadBuffs"] = false,
 	["WhisperInvite"] = "inv+",
 }
@@ -290,7 +283,6 @@ C["Loot"] = {
 
 -- Minimap
 C["Minimap"] = {
-	["Calendar"] = true,
 	["Enable"] = true,
 	["ShowRecycleBin"] = true,
 	["Size"] = 180,
@@ -349,20 +341,16 @@ C["Misc"] = {
 }
 
 C["Nameplate"] = {
-	["AKSProgress"] = false,
 	["AuraSize"] = 26,
-	["CastbarGlow"] = true,
 	["ClassAuras"] = true,
 	["ClassIcon"] = false,
 	["ColoredTarget"] = true,
 	["CustomColor"] = {0, 0.8, 0.3},
 	["CustomUnitColor"] = true,
 	["CustomUnitList"] = "",
-	["DPSRevertThreat"] = false,
 	["Distance"] = 42,
 	["Enable"] = true,
 	["ExecuteRatio"] = 0,
-	["ExplosivesScale"] = false,
 	["FriendlyCC"] = false,
 	["FullHealth"] = false,
 	["HealthTextSize"] = 13,
@@ -468,8 +456,6 @@ C["Skins"] = {
 C["Tooltip"] = {
 	["ClassColor"] = false,
 	["CombatHide"] = false,
-	["AzeriteArmor"] = false,
-	["CorruptionRank"] = false,
 	["Cursor"] = false,
 	["FactionIcon"] = false,
 	["HideJunkGuild"] = true,
@@ -477,9 +463,7 @@ C["Tooltip"] = {
 	["HideRealm"] = true,
 	["HideTitle"] = true,
 	["Icons"] = true,
-	["LFDRole"] = false,
 	["ShowIDs"] = false,
-	["SpecLevelByShift"] = true,
 	["TargetBy"] = true,
 }
 

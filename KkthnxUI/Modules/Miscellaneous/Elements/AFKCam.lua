@@ -431,18 +431,16 @@ function Module:CreateAFKCam()
 
 	-- WoW logo
 	AFKMode.top.wowlogo = CreateFrame("Frame", nil, AFKMode) -- need this to upper the logo layer
-	AFKMode.top.wowlogo:SetPoint("TOP", AFKMode.top, "TOP", 0, 4)
+	AFKMode.top.wowlogo:SetPoint("TOP", AFKMode.top, "TOP", 0, -5)
 	AFKMode.top.wowlogo:SetFrameStrata("MEDIUM")
-	AFKMode.top.wowlogo:SetSize(512 / 1.4, 256 / 1.4)
+	AFKMode.top.wowlogo:SetSize(300, 150)
 	AFKMode.top.wowlogo.tex = AFKMode.top.wowlogo:CreateTexture(nil, "OVERLAY")
-	AFKMode.top.wowlogo.tex:SetTexture([[Interface\AddOns\KkthnxUI\Media\Textures\FirestormWow]])
+	local currentExpansionLevel = GetClampedCurrentExpansionLevel()
+	local expansionDisplayInfo = GetExpansionDisplayInfo(currentExpansionLevel)
+	if expansionDisplayInfo then
+		AFKMode.top.wowlogo.tex:SetTexture(expansionDisplayInfo.logo)
+	end
 	AFKMode.top.wowlogo.tex:SetAllPoints()
-	-- local currentExpansionLevel = GetClampedCurrentExpansionLevel();
-	-- local expansionDisplayInfo = GetExpansionDisplayInfo(currentExpansionLevel);
-	-- if expansionDisplayInfo then
-	-- 	AFKMode.top.wowlogo.tex:SetTexture(expansionDisplayInfo.logo)
-	-- end
-	-- AFKMode.top.wowlogo.tex:SetAllPoints()
 
 	-- Date text
 	AFKMode.top.date = AFKMode.top:CreateFontString(nil, "OVERLAY")

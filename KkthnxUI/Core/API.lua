@@ -432,9 +432,8 @@ local arrowDegree = {
 	["right"] = -90,
 }
 
-local function SetupArrow(self, direction)
-	self:SetTexture(C["Media"].Textures.ArrowTexture
-	)
+function K.SetupArrow(self, direction)
+	self:SetTexture(C["Media"].Textures.ArrowTexture)
 	self:SetRotation(rad(arrowDegree[direction]))
 end
 
@@ -450,7 +449,7 @@ function K.ReskinArrow(self, direction)
 
 	local tex = self:CreateTexture(nil, "ARTWORK")
 	tex:SetAllPoints()
-	SetupArrow(tex, direction)
+	K.SetupArrow(tex, direction)
 	self.__texture = tex
 end
 

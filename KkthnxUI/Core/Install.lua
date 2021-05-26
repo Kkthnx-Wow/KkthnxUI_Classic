@@ -57,30 +57,17 @@ end
 
 -- Tuitorial
 function Module:ForceDefaultCVars()
-	SetCVar("ActionButtonUseKeyDown", 1)
-	SetCVar("UberTooltips", 1)
-	SetCVar("WorldTextScale", 1.2)
-	SetCVar("alwaysCompareItems", 1)
 	SetCVar("autoLootDefault", 1)
-	SetCVar("autoQuestWatch", 1)
+	SetCVar("alwaysCompareItems", 1)
 	SetCVar("autoSelfCast", 1)
-	SetCVar("cameraDistanceMaxZoomFactor", 2.6)
-	SetCVar("chatStyle", "classic")
-	SetCVar("floatingCombatTextCombatDamage", 1)
-	SetCVar("floatingCombatTextCombatDamageDirectionalOffset", 10)
-	SetCVar("floatingCombatTextCombatDamageDirectionalScale", 0)
-	SetCVar("floatingCombatTextCombatHealing", 1)
-	SetCVar("floatingCombatTextFloatMode", 1)
-	SetCVar("lockActionBars", 1)
 	SetCVar("lootUnderMouse", 1)
-	SetCVar("lossOfControl", 1)
-	SetCVar("overrideArchive", 0)
-	SetCVar("profanityFilter", 0)
 	SetCVar("screenshotQuality", 10)
-	SetCVar("showLootSpam", 1)
 	SetCVar("showTutorials", 0)
-	SetCVar("spamFilter", 0)
-	SetCVar("whisperMode", "inline")
+	SetCVar("ActionButtonUseKeyDown", 1)
+	SetCVar("lockActionBars", 1)
+	SetCVar("autoQuestWatch", 1)
+	SetCVar("overrideArchive", 0)
+	SetCVar("cameraDistanceMaxZoomFactor", 2.6)
 	SetActionBarToggles(1, 1, 1, 1)
 
 	if not InCombatLockdown() then
@@ -92,8 +79,7 @@ function Module:ForceDefaultCVars()
 
 	if K.isDeveloper then
 		SetCVar("ffxGlow", 0)
-		SetCVar("SpellQueueWindow", 119)
-		SetCVar("nameplateShowOnlyNames", 1)
+		SetCVar("SpellQueueWindow", 55)
 	end
 end
 

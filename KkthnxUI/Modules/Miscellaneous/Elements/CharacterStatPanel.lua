@@ -63,7 +63,7 @@ local framesToSort = {}
 local function UpdateCategoriesOrder()
 	wipe(framesToSort)
 
-	for order, index in ipairs(orderList) do
+	for _, index in ipairs(orderList) do
 		tinsert(framesToSort, categoryFrames[index])
 	end
 end
@@ -138,7 +138,7 @@ local function CreateStatRow(parent, index)
 	background:SetAtlas("UI-Character-Info-Line-Bounce", true)
 	background:SetAlpha(.3)
 	background:SetPoint("CENTER")
-	background:SetShown(index%2 == 0)
+	background:SetShown(index % 2 == 0)
 
 	return frame
 end
@@ -175,8 +175,8 @@ local function CreateStatHeader(parent, index, category)
 	CreateHeaderArrow(frame, "RIGHT", Arrow_GoDown)
 
 	local line = frame:CreateTexture(nil, "ARTWORK")
-	line:SetSize(180, K.Mult)
-	line:SetPoint("BOTTOM", header, 0, 5)
+	line:SetSize(180, 1)
+	line:SetPoint("BOTTOM", header, 0, 6)
 	line:SetColorTexture(1, 1, 1, .25)
 
 	local statsTable = {}
@@ -194,14 +194,14 @@ local ExpandStat = true
 local function ToggleMagicRes()
 	if ExpandStat then
 		CharacterResistanceFrame:ClearAllPoints()
-		CharacterResistanceFrame:SetPoint("TOPLEFT", M.StatPanel.child, 10, -5)
+		CharacterResistanceFrame:SetPoint("TOPLEFT", M.StatPanel.child, 26, -6)
 		CharacterResistanceFrame:SetParent(M.StatPanel.child)
 
 		for i = 1, 5 do
 			local bu = _G["MagicResFrame"..i]
 			if i > 1 then
 				bu:ClearAllPoints()
-				bu:SetPoint("LEFT", _G["MagicResFrame"..(i - 1)], "RIGHT", 5, 0)
+				bu:SetPoint("LEFT", _G["MagicResFrame"..(i - 1)], "RIGHT", 6, 0)
 			end
 		end
 	else
@@ -229,11 +229,11 @@ end
 
 local function ToggleStatPanel(texture)
 	if ExpandStat then
-		--B.SetupArrow(texture, "down")
+		K.SetupArrow(texture, "left")
 		CharacterAttributesFrame:Hide()
 		M.StatPanel:Show()
 	else
-		--B.SetupArrow(texture, "right")
+		K.SetupArrow(texture, "right")
 		CharacterAttributesFrame:Show()
 		M.StatPanel:Hide()
 	end
@@ -241,11 +241,9 @@ local function ToggleStatPanel(texture)
 end
 
 function M:CharacterStatePanel()
-	--if not C.db["Skins"]["BlizzardSkins"] then return end   -- disable if skins off, needs review
-
 	local statPanel = CreateFrame("Frame", "NDuiStatePanel", PaperDollFrame)
-	statPanel:SetSize(200, 422)
-	statPanel:SetPoint("TOPLEFT", PaperDollFrame, "TOPRIGHT", -28, -15 - 2)
+	statPanel:SetSize(200, 418)
+	statPanel:SetPoint("TOPLEFT", PaperDollFrame, "TOPRIGHT", -28, -16)
 	statPanel:CreateBorder()
 	M.StatPanel = statPanel
 

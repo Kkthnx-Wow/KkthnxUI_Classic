@@ -26,7 +26,7 @@ tinsert(C.defaultThemes, function()
 	for i = 1, 5 do
 		local bu = _G["MagicResFrame"..i]
 		bu:SetSize(24, 24)
-		bu:CreateBorder()
+		--bu:CreateBorder()
 		local icon = bu:GetRegions()
 		local a, b, _, _, _, _, c, d = icon:GetTexCoord()
 		icon:SetTexCoord(a+.2, c-.2, b+.018, d-.018)

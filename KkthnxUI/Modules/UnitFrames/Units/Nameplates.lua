@@ -11,13 +11,9 @@ local tonumber = _G.tonumber
 local unpack = _G.unpack
 
 local Ambiguate = _G.Ambiguate
--- local C_MythicPlus_GetCurrentAffixes = _G.C_MythicPlus.GetCurrentAffixes
 local C_NamePlate_GetNamePlateForUnit = _G.C_NamePlate.GetNamePlateForUnit
 local C_NamePlate_SetNamePlateEnemySize = _G.C_NamePlate.SetNamePlateEnemySize
 local C_NamePlate_SetNamePlateFriendlySize = _G.C_NamePlate.SetNamePlateFriendlySize
--- local C_Scenario_GetCriteriaInfo = _G.C_Scenario.GetCriteriaInfo
--- local C_Scenario_GetInfo = _G.C_Scenario.GetInfo
--- local C_Scenario_GetStepInfo = _G.C_Scenario.GetStepInfo
 local CreateFrame = _G.CreateFrame
 local GetInstanceInfo = _G.GetInstanceInfo
 local GetNumGroupMembers = _G.GetNumGroupMembers
@@ -37,7 +33,6 @@ local UnitIsPlayer = _G.UnitIsPlayer
 local UnitIsTapDenied = _G.UnitIsTapDenied
 local UnitIsUnit = _G.UnitIsUnit
 local UnitName = _G.UnitName
--- local UnitNameplateShowsWidgetsOnly = _G.UnitNameplateShowsWidgetsOnly
 local UnitPlayerControlled = _G.UnitPlayerControlled
 local UnitReaction = _G.UnitReaction
 local UnitThreatSituation = _G.UnitThreatSituation
@@ -91,15 +86,6 @@ function Module:UpdatePlateSpacing()
 	SetCVar("nameplateOverlapV", C["Nameplate"].VerticalSpacing)
 end
 
-function Module:UpdateClickableSize()
-	if InCombatLockdown() then
-		return
-	end
-
-	C_NamePlate_SetNamePlateEnemySize(C["Nameplate"].PlateWidth * C["General"].UIScale, C["Nameplate"].PlateHeight * C["General"].UIScale + 40)
-	C_NamePlate_SetNamePlateFriendlySize(C["Nameplate"].PlateWidth * C["General"].UIScale, C["Nameplate"].PlateHeight * C["General"].UIScale + 40)
-end
-
 function Module:SetupCVars()
 	Module:UpdatePlateRange()
 	Module:PlateInsideView()
@@ -107,20 +93,17 @@ function Module:SetupCVars()
 	Module:UpdatePlateSpacing()
 	Module:UpdatePlateAlpha()
 	SetCVar("nameplateSelectedAlpha", 1)
-	SetCVar("showQuestTrackingTooltips", 1)
 
 	Module:UpdatePlateScale()
 	SetCVar("nameplateSelectedScale", 1)
 	SetCVar("nameplateLargerScale", 1)
 	SetCVar("nameplateGlobalScale", 1)
 
-	SetCVar("nameplateShowSelf", 0)
-	SetCVar("nameplateResourceOnTarget", 0)
-	K.HideInterfaceOption(_G.InterfaceOptionsNamesPanelUnitNameplatesPersonalResource)
-	K.HideInterfaceOption(_G.InterfaceOptionsNamesPanelUnitNameplatesPersonalResourceOnEnemy)
-
-	Module:UpdateClickableSize()
-	hooksecurefunc(_G.NamePlateDriverFrame, "UpdateNamePlateOptions", Module.UpdateClickableSize)
+	if IsAddOnLoaded("Questie") then
+		_QuestieQuest = QuestieLoader:ImportModule("QuestieQuest")
+		_QuestiePlayer = QuestieLoader:ImportModule("QuestiePlayer")
+		_QuestieTooltips = QuestieLoader:ImportModule("QuestieTooltips")
+	end
 end
 
 function Module:BlockAddons()
@@ -172,50 +155,6 @@ function Module:UpdateUnitPower()
 	end
 end
 
--- Off-tank threat color
-local function refreshGroupRoles()
-	local isInRaid = IsInRaid()
-	isInGroup = isInRaid or IsInGroup()
-	table_wipe(groupRoles)
-
-	if isInGroup then
-		local numPlayers = (isInRaid and GetNumGroupMembers()) or GetNumSubgroupMembers()
-		local unit = (isInRaid and "raid") or "party"
-		for i = 1, numPlayers do
-			local index = unit..i
-			if UnitExists(index) then
-				groupRoles[UnitName(index)] = UnitGroupRolesAssigned(index)
-			end
-		end
-	end
-end
-
-local function resetGroupRoles()
-	isInGroup = IsInRaid() or IsInGroup()
-	table_wipe(groupRoles)
-end
-
-function Module:UpdateGroupRoles()
-	refreshGroupRoles()
-	K:RegisterEvent("GROUP_ROSTER_UPDATE", refreshGroupRoles)
-	K:RegisterEvent("GROUP_LEFT", resetGroupRoles)
-end
-
-function Module:CheckThreatStatus(unit)
-	if not UnitExists(unit) then
-		return
-	end
-
-	local unitTarget = unit.."target"
-	local unitRole = isInGroup and UnitExists(unitTarget) and not UnitIsUnit(unitTarget, "player") and groupRoles[UnitName(unitTarget)] or "NONE"
-
-	if K.Role == "Tank" and unitRole == "TANK" then
-		return true, UnitThreatSituation(unitTarget, unit)
-	else
-		return false, UnitThreatSituation("player", unit)
-	end
-end
-
 -- Update unit color
 function Module:UpdateColor(_, unit)
 	if not unit or self.unit ~= unit then
@@ -228,17 +167,12 @@ function Module:UpdateColor(_, unit)
 	local isCustomUnit = customUnits[name] or customUnits[npcID]
 	local isPlayer = self.isPlayer
 	local isFriendly = self.isFriendly
-	local isAttackable = UnitCanAttack("player", unit)
-	local isOffTank, status = Module:CheckThreatStatus(unit)
 
 	local customColor = C["Nameplate"].CustomColor
 	local targetColor = C["Nameplate"].TargetColor
 	local insecureColor = C["Nameplate"].InsecureColor
-	local offTankColor = C["Nameplate"].OffTankColor
-	local revertThreat = C["Nameplate"].DPSRevertThreat
 	local secureColor = C["Nameplate"].SecureColor
 	local transColor = C["Nameplate"].TransColor
-	local orangeColor = {230/255, 137/255, 68/255}
 
 	local executeRatio = C["Nameplate"].ExecuteRatio
 	local healthPerc = UnitHealth(unit) / (UnitHealthMax(unit) + .0001) * 100
@@ -263,25 +197,13 @@ function Module:UpdateColor(_, unit)
 			r, g, b = .6, .6, .6
 		else
 			r, g, b = K.oUF:UnitSelectionColor(unit, true)
-			if status and (C["Nameplate"].TankMode or K.Role == "Tank") then
+			if status and C["Nameplate"].TankMode then
 				if status == 3 then
-					if K.Role ~= "Tank" and revertThreat then
-						r, g, b = insecureColor[1], insecureColor[2], insecureColor[3]
-					else
-						if isOffTank then
-							r, g, b = offTankColor[1], offTankColor[2], offTankColor[3]
-						else
-							r, g, b = secureColor[1], secureColor[2], secureColor[3]
-						end
-					end
+					r, g, b = secureColor[1], secureColor[2], secureColor[3]
 				elseif status == 2 or status == 1 then
 					r, g, b = transColor[1], transColor[2], transColor[3]
 				elseif status == 0 then
-					if K.Role ~= "Tank" and revertThreat then
-						r, g, b = secureColor[1], secureColor[2], secureColor[3]
-					else
-						r, g, b = insecureColor[1], insecureColor[2], insecureColor[3]
-					end
+					r, g, b = insecureColor[1], insecureColor[2], insecureColor[3]
 				end
 			end
 		end
@@ -291,15 +213,18 @@ function Module:UpdateColor(_, unit)
 		element:SetStatusBarColor(r, g, b)
 	end
 
-	self.ThreatIndicator:Hide()
-	if status and (isCustomUnit or (not C["Nameplate"].TankMode and K.Role ~= "Tank")) then
-		if status == 3 then
+	if isCustomUnit or not C["Nameplate"].TankMode then
+		if status and status == 3 then
 			self.ThreatIndicator:SetBackdropBorderColor(1, 0, 0)
 			self.ThreatIndicator:Show()
-		elseif status == 2 or status == 1 then
+		elseif status and (status == 2 or status == 1) then
 			self.ThreatIndicator:SetBackdropBorderColor(1, 1, 0)
 			self.ThreatIndicator:Show()
+		else
+			self.ThreatIndicator:Hide()
 		end
+	else
+		self.ThreatIndicator:Hide()
 	end
 
 	if executeRatio > 0 and healthPerc <= executeRatio then
@@ -468,37 +393,32 @@ function Module:UpdateQuestUnit(_, unit)
 	K.ScanTooltip:SetUnit(unit)
 
 	for i = 2, K.ScanTooltip:NumLines() do
-		local textLine = _G[K.ScanTooltip:GetName().."TextLeft"..i]
+		local textLine = _G["KKUI_ScanTooltipTextLeft"..i]
 		local text = textLine:GetText()
 		if textLine and text then
 			local r, g, b = textLine:GetTextColor()
-			if r > 0.99 and g > 0.82 and b == 0 then
-				if isInGroup and text == K.Name or not isInGroup then
-					isLootQuest = true
-
-					local questLine = _G["KKUI_ScanTooltipTextLeft"..(i+1)]
-					local questText = questLine:GetText()
-					if questLine and questText then
-						local current, goal = string_match(questText, "(%d+)/(%d+)")
-						local progress = string_match(questText, "(%d+)%%")
-						if current and goal then
-							current = tonumber(current)
-							goal = tonumber(goal)
-							if current == goal then
-								isLootQuest = nil
-							elseif current < goal then
-								questProgress = goal - current
-								break
-							end
-						elseif progress then
-							progress = tonumber(progress)
-							if progress == 100 then
-								isLootQuest = nil
-							elseif progress < 100 then
-								questProgress = progress.."%"
-								--break -- lower priority on progress
-							end
+			local unitName, progressText = string_match(text, "^ ([^ ]-) ?%- (.+)$")
+			if r > .99 and g > .82 and b == 0 then
+				isLootQuest = true
+			elseif unitName and progressText then
+				isLootQuest = false
+				if unitName == "" or unitName == K.Name then
+					local current, goal = string_match(progressText, "(%d+)/(%d+)")
+					local progress = string_match(progressText, "([%d%.]+)%%")
+					if current and goal then
+						if tonumber(current) < tonumber(goal) then
+							questProgress = goal - current
+							break
 						end
+					elseif progress then
+						progress = tonumber(progress)
+						if progress and progress < 100 then
+							questProgress = progress.."%"
+							break
+						end
+					else
+						isLootQuest = true
+						break
 					end
 				end
 			end
@@ -520,6 +440,97 @@ function Module:UpdateQuestUnit(_, unit)
 	end
 end
 
+function Module:UpdateForQuestie(npcID)
+	local data = _QuestieTooltips.lookupByKey and _QuestieTooltips.lookupByKey["m_"..npcID]
+	if data then
+		local foundObjective, progressText
+		for _, tooltip in pairs(data) do
+			local questID = tooltip.questId
+			_QuestieQuest:UpdateQuest(questID)
+
+			if _QuestiePlayer.currentQuestlog[questID] then
+				foundObjective = true
+
+				if tooltip.objective and tooltip.objective.Needed then
+					progressText = tooltip.objective.Needed - tooltip.objective.Collected
+					if progressText == 0 then
+						foundObjective = nil
+					end
+					break
+				end
+			end
+		end
+
+		if foundObjective then
+			self.questIcon:Show()
+			self.questCount:SetText(progressText)
+		end
+	end
+end
+
+function Module:UpdateCodexQuestUnit(name)
+	if name and CodexMap.tooltips[name] then
+		for _, meta in pairs(CodexMap.tooltips[name]) do
+			local questData = meta["quest"]
+			local quests = CodexDB.quests.loc
+
+			if questData then
+				for questIndex = 1, GetNumQuestLogEntries() do
+					local _, _, _, header, _, _, _, questId = GetQuestLogTitle(questIndex)
+					if not header and quests[questId] and questData == quests[questId].T then
+						local objectives = GetNumQuestLeaderBoards(questIndex)
+						local foundObjective, progressText = nil
+						if objectives then
+							for i = 1, objectives do
+								local text, type = GetQuestLogLeaderBoard(i, questIndex)
+								if type == "monster" then
+									local _, _, monsterName, objNum, objNeeded = strfind(text, Codex:SanitizePattern(QUEST_MONSTERS_KILLED))
+									if meta["spawn"] == monsterName then
+										progressText = objNeeded - objNum
+										foundObjective = true
+										break
+									end
+								elseif table.getn(meta["item"]) > 0 and type == "item" and meta["dropRate"] then
+									local _, _, itemName, objNum, objNeeded = strfind(text, Codex:SanitizePattern(QUEST_OBJECTS_FOUND))
+									for _, item in pairs(meta["item"]) do
+										if item == itemName then
+											progressText = objNeeded - objNum
+											foundObjective = true
+											break
+										end
+									end
+								end
+							end
+						end
+
+						if foundObjective and progressText > 0 then
+							self.questIcon:Show()
+							self.questCount:SetText(progressText)
+						elseif not foundObjective then
+							self.questIcon:Show()
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Module:UpdateQuestIndicator()
+	if not C["Nameplate"].QuestIndicator then
+		return
+	end
+
+	self.questIcon:Hide()
+	self.questCount:SetText("")
+
+	if CodexMap then
+		Module.UpdateCodexQuestUnit(self, self.unitName)
+	elseif _QuestieTooltips then
+		Module.UpdateForQuestie(self, self.npcID)
+	end
+end
+
 function Module:AddQuestIcon(self)
 	if not C["Nameplate"].QuestIndicator then
 		return
@@ -534,10 +545,7 @@ function Module:AddQuestIcon(self)
 	self.questCount = K.CreateFontString(self, 13, "", "", nil, "LEFT", 0, 0)
 	self.questCount:SetPoint("LEFT", self.questIcon, "RIGHT", -2, 0)
 
-	SetCVar("showQuestTrackingTooltips", 1)
-
-	self:RegisterEvent("UNIT_QUEST_LOG_CHANGED", Module.UpdateQuestUnit, true) -- Fires less than QUEST_LOG_UPDATE
-	self:RegisterEvent("NAME_PLATE_UNIT_ADDED", Module.UpdateQuestUnit, true)
+	self:RegisterEvent("QUEST_LOG_UPDATE", Module.UpdateQuestIndicator, true)
 end
 
 function Module:AddClassIcon(self)
@@ -577,60 +585,6 @@ function Module:UpdateClassIcon(self, unit)
 	end
 end
 
--- Dungeon progress, AngryKeystones required
-function Module:AddDungeonProgress(self)
-	if not C["Nameplate"].AKSProgress then
-		return
-	end
-
-	self.progressText = K.CreateFontString(self, 13, "", "", false, "LEFT", 0, 0)
-	self.progressText:SetPoint("LEFT", self, "RIGHT", 5, 0)
-end
-
-function Module:UpdateDungeonProgress(unit)
-	if not self.progressText or not AngryKeystones_Data then
-		return
-	end
-
-	if unit ~= self.unit then
-		return
-	end
-
-	self.progressText:SetText("")
-
-	local name, _, _, _, _, _, _, _, _, scenarioType = C_Scenario_GetInfo()
-	if scenarioType == LE_SCENARIO_TYPE_CHALLENGE_MODE then
-		local npcID = self.npcID
-		local info = AngryKeystones_Data.progress[npcID]
-		if info then
-			local numCriteria = select(3, C_Scenario_GetStepInfo())
-			local total = aksCacheData[name]
-			if not total then
-				for criteriaIndex = 1, numCriteria do
-					local _, _, _, _, totalQuantity, _, _, _, _, _, _, _, isWeightedProgress = C_Scenario_GetCriteriaInfo(criteriaIndex)
-					if isWeightedProgress then
-						aksCacheData[name] = totalQuantity
-						total = aksCacheData[name]
-						break
-					end
-				end
-			end
-
-			local value, valueCount
-			for amount, count in pairs(info) do
-				if not valueCount or count > valueCount or (count == valueCount and amount < value) then
-					value = amount
-					valueCount = count
-				end
-			end
-
-			if value and total then
-				self.progressText:SetText(string_format("+%.2f", value / total * 100))
-			end
-		end
-	end
-end
-
 function Module:AddCreatureIcon(self)
 	local iconFrame = CreateFrame("Frame", nil, self)
 	iconFrame:SetAllPoints()
@@ -655,52 +609,6 @@ function Module:UpdateUnitClassify(unit)
 			self.ClassifyIndicator:Hide()
 		end
 	end
-end
-
--- Scale plates for explosives
-function Module:UpdateExplosives(event, unit)
-	if not hasExplosives or unit ~= self.unit then
-		return
-	end
-
-	local npcID = self.npcID
-	if event == "NAME_PLATE_UNIT_ADDED" and npcID == explosivesID then
-		self:SetScale(C["General"].UIScale * 1.25)
-	elseif event == "NAME_PLATE_UNIT_REMOVED" then
-		self:SetScale(C["General"].UIScale)
-	end
-end
-
-local function checkInstance()
-	local name, _, instID = GetInstanceInfo()
-	if name and instID == 8 then
-		hasExplosives = true
-	else
-		hasExplosives = false
-	end
-end
-
-local function checkAffixes(event)
-	local affixes = C_MythicPlus_GetCurrentAffixes()
-	if not affixes then
-		return
-	end
-
-	if affixes[3] and affixes[3].id == 13 then
-		checkInstance()
-		K:RegisterEvent(event, checkInstance)
-		K:RegisterEvent("CHALLENGE_MODE_START", checkInstance)
-	end
-
-	K:UnregisterEvent(event, checkAffixes)
-end
-
-function Module:CheckExplosives()
-	if not C["Nameplate"].ExplosivesScale then
-		return
-	end
-
-	K:RegisterEvent("PLAYER_ENTERING_WORLD", checkAffixes)
 end
 
 -- Mouseover indicator
@@ -831,12 +739,6 @@ function Module:CreatePlates()
 	self.guildName:SetPoint("TOP", self, "BOTTOM", 0, -10)
 	self.guildName:Hide()
 	self:Tag(self.guildName, "[guildname]")
-
-	self.tarName = K.CreateFontString(self, C["Nameplate"].NameTextSize + 2)
-	self.tarName:ClearAllPoints()
-	self.tarName:SetPoint("TOP", self, "BOTTOM", 0, -10)
-	self.tarName:Hide()
-	self:Tag(self.tarName, "[tarname]")
 
 	self.healthValue = K.CreateFontString(self.Overlay, C["Nameplate"].HealthTextSize, "", "", false, "CENTER", 0, 0)
 	self.healthValue:SetPoint("CENTER", self.Overlay, 0, 0)
@@ -973,7 +875,6 @@ function Module:CreatePlates()
 	Module:AddTargetIndicator(self)
 	Module:AddCreatureIcon(self)
 	Module:AddQuestIcon(self)
-	Module:AddDungeonProgress(self)
 	Module:AddClassIcon(self)
 
 	platesList[self] = self:GetName()
@@ -1146,15 +1047,12 @@ function Module:PostUpdatePlates(event, unit)
 	if event ~= "NAME_PLATE_UNIT_REMOVED" then
 		Module.UpdateUnitPower(self)
 		Module.UpdateTargetChange(self)
-		Module.UpdateQuestUnit(self, event, unit)
+		-- Module.UpdateQuestUnit(self, event, unit)
+		Module.UpdateQuestIndicator(self)
 		Module.UpdateUnitClassify(self, unit)
-		Module.UpdateDungeonProgress(self, unit)
 		Module:UpdateClassIcon(self, unit)
 		Module:UpdateClassPowerAnchor()
-
-		self.tarName:SetShown(self.npcID == 174773)
 	end
-	Module.UpdateExplosives(self, event, unit)
 end
 
 -- Player Nameplate

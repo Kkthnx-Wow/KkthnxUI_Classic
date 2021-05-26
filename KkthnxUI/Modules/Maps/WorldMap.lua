@@ -7,7 +7,6 @@ local C_Map_GetBestMapForUnit = _G.C_Map.GetBestMapForUnit
 local CreateFrame = _G.CreateFrame
 local IsPlayerMoving = _G.IsPlayerMoving
 local PLAYER = _G.PLAYER
-local SetUIPanelAttribute = _G.SetUIPanelAttribute
 local UIParent = _G.UIParent
 local hooksecurefunc = _G.hooksecurefunc
 
@@ -32,44 +31,6 @@ function Module:SetSmallWorldMap(smallerScale)
 	WorldMapFrame:SetFrameStrata('HIGH')
 
 	_G.WorldMapTooltip:SetFrameLevel(WorldMapFrame.ScrollContainer:GetFrameLevel() + 110)
-end
-
-function Module:UpdateMaximizedSize()
-	local width, height = WorldMapFrame:GetSize()
-	local magicNumber = (1 - smallerMapScale) * 100
-	WorldMapFrame:SetSize((width * smallerMapScale) - (magicNumber + 2), (height * smallerMapScale) - 2)
-end
-
-function Module:ToggleMapFix(event)
-	local WorldMapFrame = _G.WorldMapFrame
-	ShowUIPanel(WorldMapFrame)
-	WorldMapFrame:SetAttribute('UIPanelLayout-area', 'center')
-	WorldMapFrame:SetAttribute('UIPanelLayout-allowOtherPanels', true)
-	HideUIPanel(WorldMapFrame)
-
-	if event then
-		self:UnregisterEvent(event)
-	end
-end
-
-function Module:WorldMapOnShow(event)
-	if (Module.mapSized) then
-		return
-	end
-
-	-- Don't do this in combat, there are secure elements here.
-	if (InCombatLockdown()) then
-		K:RegisterEvent("PLAYER_REGEN_ENABLED", Module.WorldMapOnShow)
-		return
-		-- Only ever need this event once.
-	elseif (event == "PLAYER_REGEN_ENABLED") then
-		K:UnregisterEvent(event, Module.WorldMapOnShow)
-	end
-
-	self:SetSmallWorldMap(smallerMapScale)
-
-	-- Never again!
-	Module.mapSized = true
 end
 
 function Module:GetCursorCoords()
@@ -124,6 +85,19 @@ function Module:UpdateMapID()
 		currentMapID = self:GetMapID()
 	else
 		currentMapID = nil
+	end
+end
+
+function Module:ToggleMapFix(event)
+	local WorldMapFrame = _G.WorldMapFrame
+	ShowUIPanel(WorldMapFrame)
+	WorldMapFrame:SetAttribute('UIPanelLayout-area', 'center')
+	WorldMapFrame:SetAttribute('UIPanelLayout-allowOtherPanels', true)
+	HideUIPanel(WorldMapFrame)
+
+	if event then
+		print(event)
+		K:UnregisterEvent(event, Module.ToggleMapFix)
 	end
 end
 
@@ -193,18 +167,6 @@ function Module:EnableMapFading(frame)
 	fadeFrame:Show()
 end
 
-function Module:UpdateMapFade(_, _, _, fadePredicate) -- self is frame
-	if self:IsShown() and (self == _G.WorldMapFrame and fadePredicate ~= Module.MapShouldFade) then
-		-- blizzard spams code in OnUpdate and doesnt finish their functions, so we shut their fader down :L
-		PlayerMovementFrameFader.RemoveFrame(self)
-
-		-- replacement function which is complete :3
-		if C["WorldMap"].FadeWhenMoving then
-			Module:EnableMapFading(self)
-		end
-	end
-end
-
 function Module:OnEnable()
 	if C["WorldMap"].Coordinates then
 		local coordsFrame = CreateFrame("FRAME", nil, WorldMapFrame.ScrollContainer)
@@ -243,38 +205,34 @@ function Module:OnEnable()
 	end
 
 	if C["WorldMap"].SmallWorldMap then
-		smallerMapScale = C["WorldMap"].SmallWorldMapScale or 0.9
+		smallerMapScale = C["WorldMap"].SmallWorldMapScale or 0.8
 
 		WorldMapFrame.BlackoutFrame.Blackout:SetTexture(nil)
 		WorldMapFrame.BlackoutFrame:EnableMouse(false)
 
-		-- hooksecurefunc(WorldMapFrame, "Maximize", self.SetLargeWorldMap)
-		-- hooksecurefunc(WorldMapFrame, "Minimize", self.SetSmallWorldMap)
-		-- hooksecurefunc(WorldMapFrame, "SynchronizeDisplayState", self.SynchronizeDisplayState)
-		-- hooksecurefunc(WorldMapFrame, "UpdateMaximizedSize", self.UpdateMaximizedSize)
+		if InCombatLockdown() then
+			K:RegisterEvent("PLAYER_REGEN_ENABLED", Module.ToggleMapFix)
+		else
+			Module:ToggleMapFix()
+		end
 
 		WorldMapFrame:HookScript("OnShow", function()
-			Module:WorldMapOnShow()
+			Module:EnableMapFading(WorldMapFrame)
+			Module:SetSmallWorldMap(smallerMapScale)
 		end)
-
-		local WorldMapFrame_OnShow
-		function WorldMapFrame_OnShow()
-			Module:WorldMapOnShow()
-			-- Noop it after the first run
-			WorldMapFrame_OnShow = function() end
-		end
-		hooksecurefunc(WorldMapFrame, "Show", WorldMapFrame_OnShow)
 	else
-		self:SetLargeWorldMap()
+		Module:SetLargeWorldMap()
 	end
 
-	-- This lets us control the maps fading function
-	hooksecurefunc(PlayerMovementFrameFader, "AddDeferredFrame", self.UpdateMapFade)
+	_G.WorldMapMagnifyingGlassButton:SetPoint('TOPLEFT', 60, -120)
 
-	-- Enable/Disable map fading when moving
-	-- currently we dont need to touch this cvar because we have our own control for this currently
-	-- see the comment in `M:UpdateMapFade` about `durationSec` for more information
-	-- SetCVar("mapFade", E.global.general.fadeMapWhenMoving and 1 or 0)
-	-- self:CreateWorldMapReveal()
-	-- self:CreateWowHeadLinks()
+	WorldMapFrame.ScrollContainer.GetCursorPosition = function(self)
+		local X, Y = MapCanvasScrollControllerMixin.GetCursorPosition(self)
+		local Scale = WorldMapFrame:GetScale()
+
+		return X / Scale, Y / Scale
+	 end
+
+	self:CreateWorldMapReveal()
+	self:CreateWowHeadLinks()
 end

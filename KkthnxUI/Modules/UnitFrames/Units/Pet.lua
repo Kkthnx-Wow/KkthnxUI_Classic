@@ -66,6 +66,15 @@ function Module:CreatePet()
 	self.Power.colorPower = true
 	self.Power.frequentUpdates = false
 
+	-- self.HappinessIndicator = self:CreateTexture(nil, 'OVERLAY')
+	-- self.HappinessIndicator:SetSize(16, 16)
+	-- if C["Unitframe"].PortraitStyle.Value ~= "NoPortraits" then
+	-- 	self.HappinessIndicator:SetPoint("RIGHT", self.Portrait, "LEFT", -2, 0)
+	-- else
+	-- 	self.HappinessIndicator:SetPoint("RIGHT", self.Health, "LEFT", -2, 0)
+	-- end
+	-- self:Tag(self.HappinessIndicator, "[pethappiness]")
+
 	local portraitSize
 	if C["Unitframe"].PetPower and C["Unitframe"].PortraitStyle.Value ~= "NoPortraits" then
 		portraitSize = self.Health:GetHeight() + self.Power:GetHeight() + 6

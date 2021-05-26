@@ -229,6 +229,60 @@ function Module:CreateEnhanceDressup()
 	K.AddTooltip(button, "ANCHOR_TOP", string.format("%sUndress all|n%sUndress tabard", K.LeftButton, K.RightButton))
 end
 
+-- Add friend and guild invite on target menu
+function Module:MenuButton_OnClick(info)
+	local name, server = UnitName(info.unit)
+	if server and server ~= "" then name = name.."-"..server end
+
+	if info.value == "name" then
+		if MailFrame:IsShown() then
+			MailFrameTab_OnClick(nil, 2)
+			SendMailNameEditBox:SetText(name)
+			SendMailNameEditBox:HighlightText()
+		else
+			local editBox = ChatEdit_ChooseBoxForSend()
+			local hasText = (editBox:GetText() ~= "")
+			ChatEdit_ActivateChat(editBox)
+			editBox:Insert(name)
+			if not hasText then editBox:HighlightText() end
+		end
+	elseif info.value == "guild" then
+		GuildInvite(name)
+	end
+end
+
+function Module:MenuButton_Show(_, unit)
+	if UIDROPDOWNMENU_MENU_LEVEL > 1 then return end
+
+	if unit and (unit == "target" or string.find(unit, "party") or string.find(unit, "raid")) then
+		local info = UIDropDownMenu_CreateInfo()
+		info.text = Module.MenuButtonList["name"]
+		info.arg1 = {value = "name", unit = unit}
+		info.func = Module.MenuButton_OnClick
+		info.notCheckable = true
+		UIDropDownMenu_AddButton(info)
+
+		if IsInGuild() and UnitIsPlayer(unit) and not UnitCanAttack("player", unit) and not UnitIsUnit("player", unit) then
+			info = UIDropDownMenu_CreateInfo()
+			info.text = Module.MenuButtonList["guild"]
+			info.arg1 = {value = "guild", unit = unit}
+			info.func = Module.MenuButton_OnClick
+			info.notCheckable = true
+			UIDropDownMenu_AddButton(info)
+		end
+	end
+end
+
+function Module:CreateMenuButton_Add()
+	--if not C.db["Misc"]["EnhancedMenu"] then return end
+
+	Module.MenuButtonList = {
+		["name"] = COPY_NAME,
+		["guild"] = gsub(CHAT_GUILD_INVITE_SEND, HEADER_COLON, ""),
+	}
+	hooksecurefunc("UnitPopup_ShowMenu", Module.MenuButton_Show)
+end
+
 function Module:OnEnable()
 	self:CharacterStatePanel()
 	self:CreateAFKCam()
@@ -238,6 +292,7 @@ function Module:OnEnable()
 	self:CreateEnhanceDressup()
 	self:CreateErrorsFrame()
 	self:CreateImprovedMail()
+	self:CreateMenuButton_Add()
 	self:CreateMouseTrail()
 	self:CreateMuteSounds()
 	self:CreatePulseCooldown()
