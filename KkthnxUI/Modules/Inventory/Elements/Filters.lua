@@ -56,9 +56,9 @@ local function isItemAmmo(item)
 		return
 	end
 
-	-- if not C["Inventory"].FilterAmmo then
-	-- 	return
-	-- end
+	if not C["Inventory"].FilterAmmo then
+		return
+	end
 
 	if K.Class == "HUNTER" then
 		return item.equipLoc == "INVTYPE_AMMO" or Module.BagsType[item.bagID] == -1

@@ -4,7 +4,6 @@ local Module = K:GetModule("Miscellaneous")
 -- Sourced: ElvUI (Elv)
 
 local _G = _G
-local C_PetBattles_IsInBattle = _G.C_PetBattles.IsInBattle
 local C_Timer_After = _G.C_Timer.After
 local C_Timer_NewTicker = _G.C_Timer.NewTicker
 local C_Timer_NewTimer = _G.C_Timer.NewTimer
@@ -74,57 +73,7 @@ local daysAbr = {
 
 -- Source wowhead.com
 local stats = {
-	60,		-- Total deaths
-	94,		-- Quests abandoned
-	97,		-- Daily quests completed
-	98,		-- Quests completed
-	107,	-- Creatures killed
-	112,	-- Deaths from drowning
-	114,	-- Deaths from falling
-	115,	-- Deaths from fire and lava
-	319,	-- Duels won
-	320,	-- Duels lost
-	326,	-- Gold from quest rewards
-	328,	-- Total gold acquired
-	329,	-- Auctions posted
-	331,	-- Most expensive bid on auction
-	332,	-- Most expensive auction sold
-	333,	-- Gold looted
-	334,	-- Most gold ever owned
-	338,	-- Vanity pets owned
-	345,	-- Health potions consumed
-	349,	-- Flight paths taken
-	353,	-- Number of times hearthed
-	588,	-- Total Honorable Kills
-	812,	-- Healthstones used
-	837,	-- Arenas won
-	838,	-- Arenas played
-	839,	-- Battlegrounds played
-	840,	-- Battlegrounds won
-	919,	-- Gold earned from auctions
-	932,	-- Total 5-player dungeons entered
-	933,	-- Total 10-player raids entered
-	934,	-- Total 25-player raids entered
-	1042,	-- Number of hugs
-	1045,	-- Total cheers
-	1047,	-- Total facepalms
-	1065,	-- Total waves
-	1066,	-- Total times LOL"d
-	1197,	-- Total kills
-	1198,	-- Total kills that grant experience or honor
-	1336,	-- Creature type killed the most
-	1339,	-- Mage portal taken most
-	1487,	-- Total Killing Blows
-	1491,	-- Battleground Killing Blows
-	1518,	-- Fish caught
-	1776,	-- Food eaten most
-	2277,	-- Summons accepted
-	5692,	-- Rated battlegrounds played
-	5693,	-- Rated battleground played the most
-	5695,	-- Rated battleground won the most
-	5694,	-- Rated battlegrounds won
-	7399,	-- Challenge mode dungeons completed
-	8278,	-- Pet Battles won at max level
+	"Tell Kkthnx to put some random info here!",
 }
 
 local function IsIn(val, ...)
@@ -157,7 +106,7 @@ local function setupTime(color, hour, minute)
 end
 
 local function createTime(self)
-	local color = C_Calendar.GetNumPendingInvites() > 0 and "|cffFF0000" or ""
+	local color = ""
 	local hour, minute
 	if GetCVarBool("timeMgrUseLocalTime") then
 		hour, minute = tonumber(date("%H")), tonumber(date("%M"))
@@ -204,13 +153,8 @@ end
 -- Create random stats
 local function createStats()
 	local id = stats[math_random(#stats)]
-	local _, name = GetAchievementInfo(id)
-	local result = GetStatistic(id)
-	if result == "--" then
-		result = NONE
-	end
 
-	return string_format("%s: |cfff0ff00%s|r", name, result)
+	return string_format("|cfff0ff00%s|r", id)
 end
 
 local function UpdateStatMessage(self)
@@ -300,11 +244,6 @@ local function SetAFK(self, status)
 		self.chat:UnregisterAllEvents()
 		self.chat:Clear()
 
-		if PVEFrame:IsShown() then -- odd bug, frame is blank
-			PVEFrame_ToggleFrame()
-			PVEFrame_ToggleFrame()
-		end
-
 		self.isAFK = false
 	end
 end
@@ -342,7 +281,7 @@ local function AFKMode_OnEvent(self, event, ...)
 		return
 	end
 
-	if UnitIsAFK("player") and not C_PetBattles_IsInBattle() then
+	if UnitIsAFK("player") then
 		SetAFK(self, true)
 	else
 		SetAFK(self, false)

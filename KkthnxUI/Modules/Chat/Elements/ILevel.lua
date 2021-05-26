@@ -37,28 +37,6 @@ local function isItemHasLevel(link)
 	end
 end
 
-local function GetSocketTexture(socket, count)
-	return string_rep("|TInterface\\ItemSocketingFrame\\UI-EmptySocket-"..socket..":0|t", count)
-end
-
-local function isItemHasGem(link)
-	local text = ""
-	local stats = GetItemStats(link)
-	for stat, count in pairs(stats) do
-		local socket = string_match(stat, "EMPTY_SOCKET_(%S+)")
-		if socket and socketWatchList[socket] then
-			text = text..GetSocketTexture(socket, count)
-		end
-	end
-
-	return text
-end
-
-local corruptedString = "|T3004126:0:0:0:0:64:64:5:59:5:59|t"
-local function isItemCorrupted(link)
-	return IsCorruptedItem(link) and corruptedString or ""
-end
-
 local function convertItemLevel(link)
 	if itemCache[link] then
 		return itemCache[link]
@@ -68,7 +46,7 @@ local function convertItemLevel(link)
 	if itemLink then
 		local name, itemLevel = isItemHasLevel(itemLink)
 		if name and itemLevel then
-			link = string_gsub(link, "|h%[(.-)%]|h", "|h["..name.."("..itemLevel..")]|h"..isItemCorrupted(itemLink)..isItemHasGem(itemLink))
+			link = string_gsub(link, "|h%[(.-)%]|h", "|h["..name.."("..itemLevel..")]|h")
 			itemCache[link] = link
 		end
 	end

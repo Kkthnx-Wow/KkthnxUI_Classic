@@ -13,6 +13,61 @@ local MAX_QUESTLOG_QUESTS = MAX_QUESTLOG_QUESTS or 20
 local MAX_WATCHABLE_QUESTS = MAX_WATCHABLE_QUESTS or 5
 local headerString = QUESTS_LABEL.." %s/%s"
 
+-- Handle collapse
+local function updateCollapseTexture(texture, collapsed)
+	if collapsed then
+		texture:SetTexCoord(0, .4375, 0, .4375)
+	else
+		texture:SetTexCoord(.5625, 1, 0, .4375)
+	end
+end
+
+local function resetCollapseTexture(self, texture)
+	if self.settingTexture then return end
+	self.settingTexture = true
+	self:SetNormalTexture("")
+
+	if texture and texture ~= "" then
+		if strfind(texture, "Plus") or strfind(texture, "Closed") then
+			self.__texture:DoCollapse(true)
+		elseif strfind(texture, "Minus") or strfind(texture, "Open") then
+			self.__texture:DoCollapse(false)
+		end
+		self.bg:Show()
+	else
+		self.bg:Hide()
+	end
+	self.settingTexture = nil
+end
+
+function S:ReskinCollapse(isAtlas)
+	self:SetHighlightTexture("")
+	self:SetPushedTexture("")
+	self:SetDisabledTexture("")
+
+	local bg = CreateFrame("Frame", nil, self, "BackdropTemplate")
+	bg:SetAllPoints(self)
+	bg:SetFrameLevel(self:GetFrameLevel())
+	bg:CreateBorder()
+
+	bg:ClearAllPoints()
+	bg:SetSize(13, 13)
+	bg:SetPoint("TOPLEFT", self:GetNormalTexture())
+	self.bg = bg
+
+	self.__texture = bg:CreateTexture(nil, "OVERLAY")
+	self.__texture:SetPoint("CENTER")
+	self.__texture:SetSize(7, 7)
+	self.__texture:SetTexture("Interface\\Buttons\\UI-PlusMinus-Buttons")
+	self.__texture.DoCollapse = updateCollapseTexture
+
+	if isAtlas then
+		hooksecurefunc(self, "SetNormalAtlas", resetCollapseTexture)
+	else
+		hooksecurefunc(self, "SetNormalTexture", resetCollapseTexture)
+	end
+end
+
 local frame
 
 function S:EnhancedQuestLog()
@@ -82,7 +137,6 @@ function S:EnhancedQuestLog()
 	logMapButton:SetPoint("LEFT", QuestFramePushQuestButton, "RIGHT", 3, 0)
 	logMapButton:SetSize(100, 22)
 	logMapButton:SetScript("OnClick", ToggleWorldMap)
-	-- if C.db["Skins"]["BlizzardSkins"] then B.Reskin(logMapButton) end
 
 	-- Position and size close button
 	QuestFrameExitButton:SetSize(80, 22)
@@ -164,7 +218,7 @@ function S:EnhancedQuestTracker()
 	local header = CreateFrame("Frame", nil, frame)
 	header:SetAllPoints()
 	header:SetParent(QuestWatchFrame)
-	header.Text = K.CreateFontString(header, 16, "", "", true, "TOPLEFT", 0, 15)
+	header.Text = K.CreateFontString(header, 14, "", "", true, "TOPLEFT", 0, 15)
 
 	local bg = header:CreateTexture(nil, "ARTWORK")
 	bg:SetTexture("Interface\\LFGFrame\\UI-LFG-SEPARATOR")
@@ -180,11 +234,11 @@ function S:EnhancedQuestTracker()
 	bu:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
 	bu:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight")
 	bu:SetPoint("TOPRIGHT", 0, 14)
-	--B.ReskinCollapse(bu)
+	S.ReskinCollapse(bu)
 	bu:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
 	bu:SetShown(GetNumQuestWatches() > 0)
 
-	bu.Text = K.CreateFontString(bu, 16, TRACKER_HEADER_OBJECTIVE, "", "system", "RIGHT", -24, 3)
+	bu.Text = K.CreateFontString(bu, 14, TRACKER_HEADER_OBJECTIVE, "", "system", "RIGHT", -24, 3)
 	bu.Text:Hide()
 
 	bu:SetScript("OnClick", function(self)
@@ -321,7 +375,7 @@ function S:CreateQuestTracker()
 	-- Mover for quest tracker
 	frame = CreateFrame("Frame", "KKUI_QuestMover", UIParent)
 	frame:SetSize(240, 50)
-	K.Mover(frame, "QuestTracker", "QuestTracker", {"TOPRIGHT", Minimap, "BOTTOMRIGHT", -70, -55})
+	K.Mover(frame, "QuestTracker", "QuestTracker", {"TOPRIGHT", UIParent, "TOPRIGHT", -120, -318})
 
 	--QuestWatchFrame:SetHeight(GetScreenHeight()*.65)
 	QuestWatchFrame:SetClampedToScreen(false)
@@ -345,8 +399,6 @@ function S:CreateQuestTracker()
 			self:SetPoint("TOP", timerMover)
 		end
 	end)
-
-	--if not C.db["Skins"]["QuestTracker"] then return end
 
 	S:EnhancedQuestLog()
 	S:EnhancedQuestTracker()

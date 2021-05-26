@@ -2,52 +2,32 @@ local K, C, L = unpack(select(2, ...))
 local Module = K:NewModule("Miscellaneous")
 
 local _G = _G
--- local select = _G.select
--- local string_match = _G.string.match
--- local tonumber = _G.tonumber
+local select = _G.select
 
--- local C_BattleNet_GetGameAccountInfoByGUID = _G.C_BattleNet.GetGameAccountInfoByGUID
--- local C_FriendList_IsFriend = _G.C_FriendList.IsFriend
--- local C_QuestLog_ShouldShowQuestRewards = _G.C_QuestLog.ShouldShowQuestRewards
--- local C_Timer_After = _G.C_Timer.After
--- local CreateFrame = _G.CreateFrame
--- local FRIEND = _G.FRIEND
--- local GUILD = _G.GUILD
--- local GetItemInfo = _G.GetItemInfo
--- local GetItemQualityColor = _G.GetItemQualityColor
--- local GetMerchantItemLink = _G.GetMerchantItemLink
--- local GetMerchantItemMaxStack = _G.GetMerchantItemMaxStack
--- local GetQuestLogRewardXP = _G.GetQuestLogRewardXP
--- local GetRewardXP = _G.GetRewardXP
--- local GetSpellInfo = _G.GetSpellInfo
--- local InCombatLockdown = _G.InCombatLockdown
--- local IsAddOnLoaded = _G.IsAddOnLoaded
--- local IsAltKeyDown = _G.IsAltKeyDown
--- local IsGuildMember = _G.IsGuildMember
--- local NO = _G.NO
--- local PlaySound = _G.PlaySound
--- local StaticPopupDialogs = _G.StaticPopupDialogs
--- local StaticPopup_Show = _G.StaticPopup_Show
--- local UIParent = _G.UIParent
--- local UnitGUID = _G.UnitGUID
--- local UnitXP = _G.UnitXP
--- local UnitXPMax = _G.UnitXPMax
--- local YES = _G.YES
--- local hooksecurefunc = _G.hooksecurefunc
-
--- Reanchor Vehicle
-function Module:CreateVehicleSeatMover()
-	local frame = CreateFrame("Frame", "KKUI_VehicleSeatMover", UIParent)
-	frame:SetSize(125, 125)
-	K.Mover(frame, "VehicleSeat", "VehicleSeat", {"BOTTOM", UIParent, -364, 4})
-
-	hooksecurefunc(VehicleSeatIndicator, "SetPoint", function(self, _, parent)
-		if parent == "MinimapCluster" or parent == MinimapCluster then
-			self:ClearAllPoints()
-			self:SetPoint("TOPLEFT", frame)
-		end
-	end)
-end
+local BNGetGameAccountInfoByGUID = _G.BNGetGameAccountInfoByGUID
+local C_FriendList_IsFriend = _G.C_FriendList.IsFriend
+local C_QuestLog_ShouldShowQuestRewards = _G.C_QuestLog.ShouldShowQuestRewards
+local FRIEND = _G.FRIEND
+local GUILD = _G.GUILD
+local GetItemInfo = _G.GetItemInfo
+local GetItemQualityColor = _G.GetItemQualityColor
+local GetMerchantItemLink = _G.GetMerchantItemLink
+local GetMerchantItemMaxStack = _G.GetMerchantItemMaxStack
+local GetQuestLogRewardXP = _G.GetQuestLogRewardXP
+local GetRewardXP = _G.GetRewardXP
+local InCombatLockdown = _G.InCombatLockdown
+local IsAltKeyDown = _G.IsAltKeyDown
+local IsGuildMember = _G.IsGuildMember
+local NO = _G.NO
+local PlaySound = _G.PlaySound
+local StaticPopupDialogs = _G.StaticPopupDialogs
+local StaticPopup_Show = _G.StaticPopup_Show
+local UIParent = _G.UIParent
+local UnitGUID = _G.UnitGUID
+local UnitXP = _G.UnitXP
+local UnitXPMax = _G.UnitXPMax
+local YES = _G.YES
+local hooksecurefunc = _G.hooksecurefunc
 
 -- Reanchor DurabilityFrame
 function Module:CreateDurabilityFrameMove()
@@ -67,16 +47,6 @@ function Module:CreateTicketStatusFrameMove()
 			self:SetPoint("TOP", UIParent, "TOP", -400, -20)
 		end
 	end)
-end
-
--- Hide Bossbanner
-function Module:CreateBossBanner()
-	if C["Misc"].HideBanner and not C["Announcements"].KillingBlow then
-		BossBanner:UnregisterAllEvents()
-	else
-		BossBanner:RegisterEvent("BOSS_KILL")
-		BossBanner:RegisterEvent("ENCOUNTER_LOOT_RECEIVED")
-	end
 end
 
 -- Hide boss emote
@@ -134,7 +104,7 @@ function Module:CreateTradeTargetInfo()
 		local guid = UnitGUID("NPC")
 		if not guid then return end
 		local text = "|cffff0000"..L["Stranger"]
-		if C_BattleNet_GetGameAccountInfoByGUID(guid) or C_FriendList_IsFriend(guid) then
+		if BNGetGameAccountInfoByGUID(guid) or C_FriendList_IsFriend(guid) then
 			text = "|cffffff00"..FRIEND
 		elseif IsGuildMember(guid) then
 			text = "|cff00ff00"..GUILD
@@ -223,109 +193,6 @@ do
 	K:RegisterEvent("ADDON_LOADED", setupMisc)
 end
 
--- Fix blizz guild news hyperlink error
-do
-	local function fixGuildNews(event, addon)
-		if addon ~= "Blizzard_GuildUI" then
-			return
-		end
-
-		local _GuildNewsButton_OnEnter = GuildNewsButton_OnEnter
-		function GuildNewsButton_OnEnter(self)
-			if not (self.newsInfo and self.newsInfo.whatText) then
-				return
-			end
-			_GuildNewsButton_OnEnter(self)
-		end
-
-		K:UnregisterEvent(event, fixGuildNews)
-	end
-
-	local function fixCommunitiesNews(event, addon)
-		if addon ~= "Blizzard_Communities" then
-			return
-		end
-
-		local _CommunitiesGuildNewsButton_OnEnter = CommunitiesGuildNewsButton_OnEnter
-		function CommunitiesGuildNewsButton_OnEnter(self)
-			if not (self.newsInfo and self.newsInfo.whatText) then return end
-			_CommunitiesGuildNewsButton_OnEnter(self)
-		end
-
-		K:UnregisterEvent(event, fixCommunitiesNews)
-	end
-
-	K:RegisterEvent("ADDON_LOADED", fixGuildNews)
-	K:RegisterEvent("ADDON_LOADED", fixCommunitiesNews)
-end
-
--- Override default settings for AngryWorldQuests
-function Module:OverrideAWQ()
-	if not IsAddOnLoaded("AngryWorldQuests") then return end
-
-	AngryWorldQuests_Config = AngryWorldQuests_Config or {}
-	AngryWorldQuests_CharacterConfig = AngryWorldQuests_CharacterConfig or {}
-
-	local settings = {
-		hideFilteredPOI = true,
-		showContinentPOI = true,
-		sortMethod = 2,
-	}
-	local function overrideOptions(_, key)
-		local value = settings[key]
-		if value then
-			AngryWorldQuests_Config[key] = value
-			AngryWorldQuests_CharacterConfig[key] = value
-		end
-	end
-	hooksecurefunc(AngryWorldQuests.Modules.Config, "Set", overrideOptions)
-end
-
-hooksecurefunc("ChatEdit_InsertLink", function(text) -- shift-clicked
-	-- change from SearchBox:HasFocus to :IsShown again
-	if text and TradeSkillFrame and TradeSkillFrame:IsShown() then
-		local spellId = string_match(text, "enchant:(%d+)")
-		local spell = GetSpellInfo(spellId)
-		local item = GetItemInfo(string_match(text, "item:(%d+)") or 0)
-		local search = spell or item
-		if not search then
-			return
-		end
-
-		-- search needs to be lowercase for .SetRecipeItemNameFilter
-		TradeSkillFrame.SearchBox:SetText(search)
-
-		-- jump to the recipe
-		if spell then -- can only select recipes on the learned tab
-			if PanelTemplates_GetSelectedTab(TradeSkillFrame.RecipeList) == 1 then
-				TradeSkillFrame:SelectRecipe(tonumber(spellId))
-			end
-		elseif item then
-			C_Timer_After(.1, function() -- wait a bit or we cant select the recipe yet
-				for _, v in pairs(TradeSkillFrame.RecipeList.dataList) do
-					if v.name == item then
-						--TradeSkillFrame.RecipeList:RefreshDisplay() -- didnt seem to help
-						TradeSkillFrame:SelectRecipe(v.recipeID)
-						return
-					end
-				end
-			end)
-		end
-	end
-end)
-
--- make it only split stacks with shift-rightclick if the TradeSkillFrame is open
--- shift-leftclick should be reserved for the search box
-local function hideSplitFrame(_, button)
-	if TradeSkillFrame and TradeSkillFrame:IsShown() then
-		if button == "LeftButton" then
-			StackSplitFrame:Hide()
-		end
-	end
-end
-hooksecurefunc("ContainerFrameItemButton_OnModifiedClick", hideSplitFrame)
-hooksecurefunc("MerchantItemButton_OnModifiedClick", hideSplitFrame)
-
 do
 	local function soundOnResurrect()
 		if C["Unitframe"].ResurrectSound then
@@ -336,11 +203,10 @@ do
 end
 
 function Module:CreateBlockStrangerInvites()
-	K:RegisterEvent("PARTY_INVITE_REQUEST", function(a, b, c, d, e, f, g, guid)
-		if C["Automation"].AutoBlockStrangerInvites and not (C_BattleNet_GetGameAccountInfoByGUID(guid) or C_FriendList_IsFriend(guid) or IsGuildMember(guid)) then
+	K:RegisterEvent("PARTY_INVITE_REQUEST", function(_, _, _, _, _, _, _, guid)
+		if C["Automation"].AutoBlockStrangerInvites and not (IsGuildMember(guid) or BNGetGameAccountInfoByGUID(guid) or C_FriendList_IsFriend(guid)) then
 			_G.DeclineGroup()
 			_G.StaticPopup_Hide("PARTY_INVITE")
-			K.Print("Blocked invite request from a stranger!", a, b, c, d, e, f, g, guid)
 		end
 	end)
 end
@@ -365,111 +231,87 @@ end
 
 function Module:OnEnable()
 	self:CharacterStatePanel()
-	-- self:CreateAFKCam()
-	-- self:CreateBlockStrangerInvites()
-	-- self:CreateBossBanner()
-	-- self:CreateBossEmote()
-	-- self:CreateDurabilityFrameMove()
-	-- self:CreateEnhanceDressup()
-	-- self:CreateErrorsFrame()
-	-- self:CreateGuildBest()
-	-- self:CreateImprovedMail()
-	-- self:CreateImprovedStats()
-	-- self:CreateMouseTrail()
-	-- self:CreateMuteSounds()
-	-- self:CreateParagonReputation()
-	-- self:CreatePulseCooldown()
-	-- self:CreateQuestSizeUpdate()
-	-- self:CreateQuickJoin()
-	-- self:CreateRaidMarker()
-	-- self:CreateSlotDurability()
+	self:CreateAFKCam()
+	self:CreateBlockStrangerInvites()
+	self:CreateBossEmote()
+	self:CreateDurabilityFrameMove()
+	self:CreateEnhanceDressup()
+	self:CreateErrorsFrame()
+	self:CreateImprovedMail()
+	self:CreateMouseTrail()
+	self:CreateMuteSounds()
+	self:CreatePulseCooldown()
+	self:CreateQuestSizeUpdate()
+	self:CreateRaidMarker()
+	self:CreateSlotDurability()
 	self:CreateSlotItemLevel()
-	-- self:CreateTicketStatusFrameMove()
-	-- self:CreateTradeTabs()
-	-- self:CreateTradeTargetInfo()
-	-- self:CreateVehicleSeatMover()
-	-- self:OverrideAWQ()
-	-- self:ReplaceContaminantName()
+	self:CreateTicketStatusFrameMove()
+	self:CreateTradeTabs()
+	self:CreateTradeTargetInfo()
 
-	-- K:RegisterEvent("PLAYER_REGEN_DISABLED", CreateErrorFrameToggle)
+	K:RegisterEvent("PLAYER_REGEN_DISABLED", CreateErrorFrameToggle)
 
-	-- -- Unregister talent event
-	-- if PlayerTalentFrame then
-	-- 	PlayerTalentFrame:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-	-- else
-	-- 	hooksecurefunc("TalentFrame_LoadUI", function()
-	-- 		PlayerTalentFrame:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-	-- 	end)
-	-- end
+	-- Auto chatBubbles
+	if C["Misc"].AutoBubbles then
+		local function updateBubble()
+			local name, instType = GetInstanceInfo()
+			if name and instType == "raid" then
+				SetCVar("chatBubbles", 1)
+			else
+				SetCVar("chatBubbles", 0)
+			end
+		end
+		K:RegisterEvent("PLAYER_ENTERING_WORLD", updateBubble)
+	end
 
-	-- -- Quick Join Bug
-	-- CreateFrame("Frame"):SetScript("OnUpdate", function()
-	-- 	if _G.LFRBrowseFrame.timeToClear then
-	-- 		_G.LFRBrowseFrame.timeToClear = nil
-	-- 	end
-	-- end)
+	-- Instant delete
+	local deleteDialog = StaticPopupDialogs["DELETE_GOOD_ITEM"]
+	if deleteDialog.OnShow then
+		hooksecurefunc(deleteDialog, "OnShow", function(self)
+			self.editBox:SetText(DELETE_ITEM_CONFIRM_STRING)
+		end)
+	end
 
-	-- -- Auto chatBubbles
-	-- if C["Misc"].AutoBubbles then
-	-- 	local function updateBubble()
-	-- 		local name, instType = GetInstanceInfo()
-	-- 		if name and instType == "raid" then
-	-- 			SetCVar("chatBubbles", 1)
-	-- 		else
-	-- 			SetCVar("chatBubbles", 0)
-	-- 		end
-	-- 	end
-	-- 	K:RegisterEvent("PLAYER_ENTERING_WORLD", updateBubble)
-	-- end
+	-- Fix blizz bug in addon list
+	local _AddonTooltip_Update = AddonTooltip_Update
+	function AddonTooltip_Update(owner)
+		if not owner then
+			return
+		end
 
-	-- -- Instant delete
-	-- local deleteDialog = StaticPopupDialogs["DELETE_GOOD_ITEM"]
-	-- if deleteDialog.OnShow then
-	-- 	hooksecurefunc(deleteDialog, "OnShow", function(self)
-	-- 		self.editBox:SetText(DELETE_ITEM_CONFIRM_STRING)
-	-- 	end)
-	-- end
+		if owner:GetID() < 1 then
+			return
+		end
+		_AddonTooltip_Update(owner)
+	end
 
-	-- -- Fix blizz bug in addon list
-	-- local _AddonTooltip_Update = AddonTooltip_Update
-	-- function AddonTooltip_Update(owner)
-	-- 	if not owner then
-	-- 		return
-	-- 	end
+	-- Add (+X%) to quest rewards experience text
+	hooksecurefunc("QuestInfo_Display", function()
+		local unitXP, unitXPMax = UnitXP("player"), UnitXPMax("player")
+		local Font = K.GetFont(C["UIFonts"].GeneralFonts)
+		local Path, _, Flag = _G[Font]:GetFont()
 
-	-- 	if owner:GetID() < 1 then
-	-- 		return
-	-- 	end
-	-- 	_AddonTooltip_Update(owner)
-	-- end
-
-	-- -- Add (+X%) to quest rewards experience text
-	-- hooksecurefunc("QuestInfo_Display", function()
-	-- 	local unitXP, unitXPMax = UnitXP("player"), UnitXPMax("player")
-	-- 	local Font = K.GetFont(C["UIFonts"].GeneralFonts)
-	-- 	local Path, _, Flag = _G[Font]:GetFont()
-
-	-- 	if _G.QuestInfoFrame.questLog then
-	-- 		local selectedQuest = GetQuestLogSelection()
-	-- 		if C_QuestLog_ShouldShowQuestRewards(selectedQuest) then
-	-- 			local xp = GetQuestLogRewardXP()
-	-- 			if xp and xp > 0 then
-	-- 				local text = _G.MapQuestInfoRewardsFrame.XPFrame.Name:GetText()
-	-- 				if text then
-	-- 					_G.MapQuestInfoRewardsFrame.XPFrame.Name:SetFormattedText("%s (|cff4beb2c+%.2f%%|r)", text, (((unitXP + xp) / unitXPMax) - (unitXP / unitXPMax)) * 100)
-	-- 					_G.MapQuestInfoRewardsFrame.XPFrame.Name:SetFont(Path, select(3, MapQuestInfoRewardsFrame.XPFrame.Name:GetFont()), Flag)
-	-- 				end
-	-- 			end
-	-- 		end
-	-- 	else
-	-- 		local xp = GetRewardXP()
-	-- 		if xp and xp > 0 then
-	-- 			local text = _G.QuestInfoXPFrame.ValueText:GetText()
-	-- 			if text then
-	-- 				_G.QuestInfoXPFrame.ValueText:SetFormattedText("%s (|cff4beb2c+%.2f%%|r)", text, (((unitXP + xp) / unitXPMax) - (unitXP / unitXPMax)) * 100)
-	-- 				_G.QuestInfoXPFrame.ValueText:SetFont(Path, select(3, QuestInfoXPFrame.ValueText:GetFont()), Flag)
-	-- 			end
-	-- 		end
-	-- 	end
-	-- end)
+		if _G.QuestInfoFrame.questLog then
+			local selectedQuest = GetQuestLogSelection()
+			if C_QuestLog_ShouldShowQuestRewards(selectedQuest) then
+				local xp = GetQuestLogRewardXP()
+				if xp and xp > 0 then
+					local text = _G.MapQuestInfoRewardsFrame.XPFrame.Name:GetText()
+					if text then
+						_G.MapQuestInfoRewardsFrame.XPFrame.Name:SetFormattedText("%s (|cff4beb2c+%.2f%%|r)", text, (((unitXP + xp) / unitXPMax) - (unitXP / unitXPMax)) * 100)
+						_G.MapQuestInfoRewardsFrame.XPFrame.Name:SetFont(Path, select(3, MapQuestInfoRewardsFrame.XPFrame.Name:GetFont()), Flag)
+					end
+				end
+			end
+		else
+			local xp = GetRewardXP()
+			if xp and xp > 0 then
+				local text = _G.QuestInfoXPFrame.ValueText:GetText()
+				if text then
+					_G.QuestInfoXPFrame.ValueText:SetFormattedText("%s (|cff4beb2c+%.2f%%|r)", text, (((unitXP + xp) / unitXPMax) - (unitXP / unitXPMax)) * 100)
+					_G.QuestInfoXPFrame.ValueText:SetFont(Path, select(3, QuestInfoXPFrame.ValueText:GetFont()), Flag)
+				end
+			end
+		end
+	end)
 end

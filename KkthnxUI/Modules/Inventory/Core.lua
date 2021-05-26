@@ -882,11 +882,11 @@ function Module:OnEnable()
 	end
 
 	local bagTypeColor = {
-		[-1] = {.67, .83, .45, .25},
-		[0] = {.3, .3, .3, .3},
-		[1] = {.53, .53, .93, .25},
-		[2] = {0, .5, 0, .25},
-		[3] = {0, .5, .8, .25},
+		[-1] = {.67, .83, .45},
+		[0] = {1, 1, 1},
+		[1] = {.53, .53, .93},
+		[2] = {0, .5, 0},
+		[3] = {0, .5, .8},
 	}
 
 	local function isItemNeedsLevel(item)
@@ -982,9 +982,13 @@ function Module:OnEnable()
 		if C["Inventory"].SpecialBagsColor then
 			local bagType = Module.BagsType[item.bagID]
 			local color = bagTypeColor[bagType] or bagTypeColor[0]
-			self:SetBackdropColor(unpack(color))
-		else
-			-- self:SetBackdropColor(.04, .04, .04, 0.9)
+			self.KKUI_Border:SetVertexColor(unpack(color))
+		-- else
+		-- 	if C["General"].ColorTextures then
+		-- 		self.KKUI_Border:SetVertexColor(unpack(C["General"].TexturesColor))
+		-- 	else
+		-- 		self.KKUI_Border:SetVertexColor(1, 1, 1)
+		-- 	end
 		end
 
 		-- Hide empty tooltip
@@ -1174,6 +1178,8 @@ function Module:OnEnable()
 
 		if classID == LE_ITEM_CLASS_CONTAINER then
 			Module.BagsType[self.bagID] = subClassID or 0
+		elseif classID == LE_ITEM_CLASS_QUIVER then
+			Module.BagsType[self.bagID] = -1
 		else
 			Module.BagsType[self.bagID] = 0
 		end

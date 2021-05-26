@@ -242,8 +242,6 @@ function Module:SkinChat()
 	-- Security for font, in case if revert back to WoW default we restore instantly the tukui font default.
 	hooksecurefunc(self, "SetFont", Module.SetChatFont)
 
-	-- QuickJoinToastButton:Hide()
-
 	self.styled = true
 end
 
@@ -484,7 +482,6 @@ function Module:OnEnable()
 	Module:CreateChatHistory()
 	Module:CreateChatItemLevels()
 	Module:CreateChatRename()
-	Module:CreateChatRoleIcon()
 	Module:CreateCopyChat()
 	Module:CreateCopyURL()
 	Module:CreateEmojis()

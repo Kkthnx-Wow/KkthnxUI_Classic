@@ -15,22 +15,7 @@ local CLOSE = _G.CLOSE
 -- Updated, Fixed, Added, Removed, Various.
 
 local changelogData = {
-	"Added health value decimal to tags",
-	"Added option for main tank frames",
-	"Added option to turn off the new maw threat bar",
-	"Fixed arena frames showing blizz frames",
-	"Fixed overlapping abilities when both zone/extra abilities are shown @AmiraVera",
-	"Fixed quest tracker bar texture setting not working @AmiraVera",
-	"Removed mover for class power",
-	"Updated LICENSE for 2021",
-	"Updated arena frames to show trinkets",
-	"Updated aurawatch auras",
-	"Updated french locale @Lionceaudor",
-	"Updated inventory upgrade/quest/favorite icon code",
-	"Updated nameplate auras",
-	"Updated ouf core",
-	"Updated raidframe auras",
-	"Updated the way we handle media files @AmiraVera",
+	"You are not Prepared!",
 }
 
 local changelogFrame

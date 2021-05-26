@@ -24,133 +24,64 @@ KKUI_MiniMapTrackingDropDown:Hide()
 _G.UIDropDownMenu_Initialize(KKUI_MiniMapTrackingDropDown, _G.MiniMapTrackingDropDown_Initialize, "MENU")
 KKUI_MiniMapTrackingDropDown.noResize = true
 
-local checkMinLevel = 10 -- Previous Constants were removed but all these are unlocked at 10.
-
 -- Create the minimap micro menu
 local menuFrame = CreateFrame("Frame", "KKUI_MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate")
-local guildText = IsInGuild() and ACHIEVEMENTS_GUILD_TAB or LOOKINGFORGUILD
 local micromenu = {
-	{text = K.SystemColor.."Micro Menu", notClickable = true, notCheckable = true},
-	{text = "", notClickable = true, notCheckable = true},
-
-	{text = CHARACTER_BUTTON, notCheckable = 1, func = function()
-			ToggleCharacter("PaperDollFrame")
+	{text = _G.CHARACTER_BUTTON,
+	func = function() ToggleCharacter('PaperDollFrame') end},
+	{text = _G.SPELLBOOK_ABILITIES_BUTTON,
+	func = function()
+		if not _G.SpellBookFrame:IsShown() then
+			ShowUIPanel(_G.SpellBookFrame)
+		else
+			HideUIPanel(_G.SpellBookFrame)
+		end
 	end},
+	{text = _G.TALENTS_BUTTON,
+	func = function()
+		if not _G.PlayerTalentFrame then
+			_G.TalentFrame_LoadUI()
+		end
 
-	{text = SPELLBOOK_ABILITIES_BUTTON, notCheckable = 1, func = function()
-			ToggleFrame(SpellBookFrame)
+		local PlayerTalentFrame = _G.PlayerTalentFrame
+		if not PlayerTalentFrame:IsShown() then
+			ShowUIPanel(PlayerTalentFrame)
+		else
+			HideUIPanel(PlayerTalentFrame)
+		end
 	end},
-
-	{text = TALENTS_BUTTON, notCheckable = 1, func = function()
-			if not PlayerTalentFrame then
-				TalentFrame_LoadUI()
+	{text = _G.QUEST_LOG,
+	func = function() ToggleFrame(_G.QuestLogFrame) end},
+	{text = _G.CHAT_CHANNELS,
+	func = _G.ToggleChannelFrame},
+	{text = _G.TIMEMANAGER_TITLE,
+	func = function() ToggleFrame(_G.TimeManagerFrame) end},
+	{text = _G.SOCIAL_BUTTON,
+	func = ToggleFriendsFrame},
+	{text = _G.MAINMENU_BUTTON,
+	func = function()
+		if not _G.GameMenuFrame:IsShown() then
+			if _G.VideoOptionsFrame:IsShown() then
+				_G.VideoOptionsFrameCancel:Click()
+			elseif _G.AudioOptionsFrame:IsShown() then
+				_G.AudioOptionsFrameCancel:Click()
+			elseif _G.InterfaceOptionsFrame:IsShown() then
+				_G.InterfaceOptionsFrameCancel:Click()
 			end
-			if K.Level >= 10 then
-				ShowUIPanel(PlayerTalentFrame)
-			else
-				K.Print(K.InfoColor..string_format(FEATURE_BECOMES_AVAILABLE_AT_LEVEL, checkMinLevel).."|r")
-			end
-	end},
 
-	{text = ACHIEVEMENT_BUTTON, notCheckable = 1, func = function()
-			ToggleAchievementFrame()
-	end},
-
-	{text = guildText, notCheckable = 1, func = function()
-			ToggleGuildFrame()
-	end},
-
-	{text = SOCIAL_BUTTON, notCheckable = 1, func = function()
-			ToggleFriendsFrame(1)
-	end},
-
-	{text = RAID, notCheckable = 1, func = function()
-			ToggleFriendsFrame(3)
-	end},
-
-	{text = CHAT_CHANNELS, notCheckable = 1, func = function()
-			ToggleChannelFrame()
-	end},
-
-	{text = PLAYER_V_PLAYER, notCheckable = 1, func = function()
-			if K.Level >= checkMinLevel then
-				TogglePVPUI()
-			else
-				K.Print(K.InfoColor..string_format(FEATURE_BECOMES_AVAILABLE_AT_LEVEL, checkMinLevel).."|r")
-			end
-	end},
-
-	{text = DUNGEONS_BUTTON, notCheckable = 1, func = function()
-			if K.Level >= checkMinLevel then
-				PVEFrame_ToggleFrame("GroupFinderFrame", nil)
-			else
-				K.Print(K.InfoColor..string_format(FEATURE_BECOMES_AVAILABLE_AT_LEVEL, checkMinLevel).."|r")
-			end
-	end},
-
-	{text = ADVENTURE_JOURNAL, notCheckable = 1, func = function()
-			if C_AdventureJournal.CanBeShown() then
-				ToggleEncounterJournal()
-			else
-				K.Print(K.InfoColor..FEATURE_NOT_YET_AVAILABLE.."|r")
-			end
-	end},
-
-	{text = MOUNTS, notCheckable = 1, func = function()
-			ToggleCollectionsJournal(1)
-	end},
-
-	{text = PETS, notCheckable = 1, func = function()
-			ToggleCollectionsJournal(2)
-	end},
-
-	{text = TOY_BOX, notCheckable = 1, func = function()
-			ToggleCollectionsJournal(3)
-	end},
-
-	{text = HEIRLOOMS, notCheckable = 1, func = function()
-			ToggleCollectionsJournal(4)
-	end},
-
-	{text = WARDROBE, notCheckable = 1, func = function()
-			if InCombatLockdown() then
-				K.Print(K.InfoColor..ERR_NOT_IN_COMBAT.."|r") return
-			end
-			ToggleCollectionsJournal(5)
-	end},
-
-	{text = HELP_BUTTON, notCheckable = 1, func = function()
-			ToggleHelpFrame()
-	end},
-
-	{text = EVENTS_LABEL, notCheckable = 1, func = function()
-			ToggleCalendar()
-	end},
-
-	{text = BATTLEFIELD_MINIMAP, notCheckable = 1, func = function()
-			ToggleBattlefieldMap()
-	end},
-
-	{text = LOOT_ROLLS, notCheckable = 1, func = function()
-			ToggleFrame(LootHistoryFrame)
-	end},
+			CloseMenus()
+			CloseAllWindows()
+			PlaySound(850) --IG_MAINMENU_OPEN
+			ShowUIPanel(_G.GameMenuFrame)
+		else
+			PlaySound(854) --IG_MAINMENU_QUIT
+			HideUIPanel(_G.GameMenuFrame)
+			MainMenuMicroButton_SetNormal()
+		end
+	end}
 }
 
-if not IsTrialAccount() and not C_StorePublic.IsDisabledByParentalControls() then
-	table_insert(micromenu, {text = BLIZZARD_STORE, notCheckable = 1, func = function()
-			StoreMicroButton:Click()
-	end})
-end
-
-if K.Level > 99 then
-	table_insert(micromenu, {text = ORDER_HALL_LANDING_PAGE_TITLE, notCheckable = 1, func = function()
-			GarrisonLandingPage_Toggle()
-	end})
-elseif K.Level > 89 then
-	table_insert(micromenu, {text = GARRISON_LANDING_PAGE_TITLE, notCheckable = 1, func = function()
-			GarrisonLandingPage_Toggle()
-	end})
-end
+tinsert(micromenu, {text = _G.HELP_BUTTON, func = ToggleHelpFrame})
 
 function Module:CreateStyle()
 	local minimapBorder = CreateFrame("Frame", "KKUI_MinimapBorder", Minimap)

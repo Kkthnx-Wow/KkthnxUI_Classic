@@ -34,7 +34,6 @@
    <Script file="Chat\Elements\History.lua" />
    <Script file="Chat\Elements\ILevel.lua" />
    <Script file="Chat\Elements\Rename.lua" />
-   <Script file="Chat\Elements\RoleIcon.lua" />
    <Script file="Chat\Elements\URL.lua" />
    <Script file="Chat\Elements\Voice.lua" />
    <!-- Inventory -->
@@ -111,25 +110,20 @@
    <Script file="Tooltip\Elements\Targeted.lua" />
    <!-- Miscellaneous -->
    <Script file="Miscellaneous\Core.lua" />
-   <Script file="Miscellaneous\Elements\CharacterStatPanel.lua" />
-   <Script file="Miscellaneous\Elements\SlotItemLevel.lua" />
-   <Script file="Miscellaneous\Elements\yClassColors.lua" />
-   <!-- <Script file="Miscellaneous\Elements\AFKCam.lua" />
+   <Script file="Miscellaneous\Elements\AFKCam.lua" />
    <Script file="Miscellaneous\Elements\AlreadyKnown.lua" />
+   <Script file="Miscellaneous\Elements\CharacterStatPanel.lua" />
    <Script file="Miscellaneous\Elements\ImprovedMail.lua" />
-   <Script file="Miscellaneous\Elements\MDGuildBest.lua" />
-   <Script file="Miscellaneous\Elements\MissingStats.lua" />
    <Script file="Miscellaneous\Elements\MouseTrail.lua" />
    <Script file="Miscellaneous\Elements\MovableFrames.lua" />
    <Script file="Miscellaneous\Elements\MuteSounds.lua" />
-   <Script file="Miscellaneous\Elements\ParagonReputation.lua" />
    <Script file="Miscellaneous\Elements\PulseCooldown.lua" />
-   <Script file="Miscellaneous\Elements\QuickJoin.lua" />
    <Script file="Miscellaneous\Elements\RaidMarker.lua" />
    <Script file="Miscellaneous\Elements\SlotDurability.lua" />
-   <Script file="Miscellaneous\Elements\StatPriority.lua" />
+   <Script file="Miscellaneous\Elements\SlotItemLevel.lua" />
    <Script file="Miscellaneous\Elements\StatusReport.lua" />
-   <Script file="Miscellaneous\Elements\TradeTabs.lua" /> -->
+   <Script file="Miscellaneous\Elements\TradeTabs.lua" />
+   <Script file="Miscellaneous\Elements\yClassColors.lua" />
    <!-- Announcements -->
    <!-- <Script file="Announcements\Core.lua" />
    <Script file="Announcements\Elements\Countdown.lua" />
@@ -172,26 +166,23 @@
    <Script file="Loot\Elements\FasterLoot.lua" />
    <!-- Skins Blizzard -->
    <Include file="Skins\Core.lua" />
-   <Include file="Skins\Blizzard\ChatFrame.lua" />
+   <Include file="Skins\Blizzard\Character.lua" />
    <Include file="Skins\Blizzard\ChatBubble.lua" />
+   <Include file="Skins\Blizzard\ChatFrame.lua" />
+   <Include file="Skins\Blizzard\Friends.lua" />
    <Include file="Skins\Blizzard\ObjectiveTracker.lua" />
    <Include file="Skins\Blizzard\SpellBook.lua" />
-   <Include file="Skins\Blizzard\Friends.lua" />
+   <Include file="Skins\Blizzard\Inspect.lua" />
+   <Include file="Skins\Blizzard\StackSplit.lua" />
+   <Include file="Skins\Blizzard\StaticPopup.lua" />
    <!-- <Include file="Skins\Blizzard\Achievement.lua" />
    <Include file="Skins\Blizzard\Archaeology.lua" />
-   <Include file="Skins\Blizzard\Character.lua" />
    <Include file="Skins\Blizzard\Collectables.lua" />
    <Include file="Skins\Blizzard\DeathRecap.lua" />
    <Include file="Skins\Blizzard\WidgetFrame.lua" />
-   <Include file="Skins\Blizzard\Inspect.lua" />
    <Include file="Skins\Blizzard\LossControl.lua" />
    <Include file="Skins\Blizzard\Miscellaneous.lua" />
-   <Include file="Skins\Blizzard\PetBattle.lua" />
-   <Include file="Skins\Blizzard\ScrappingMachine.lua" />
-   <Include file="Skins\Blizzard\StackSplit.lua" />
-   <Include file="Skins\Blizzard\StaticPopup.lua" />
    <Include file="Skins\Blizzard\Talent.lua" />
-   <Include file="Skins\Blizzard\TalkingHead.lua" />
    <Include file="Skins\Blizzard\TradeSkill.lua" /> -->
    <!-- Skins AddOns -->
    <!-- <Include file="Skins\Addons\Bartender4.lua" />

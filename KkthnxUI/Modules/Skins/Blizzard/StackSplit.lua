@@ -16,6 +16,6 @@ table_insert(C.defaultThemes, function()
 	StackSplitFrame.bg1:SetPoint('BOTTOMRIGHT', -26, 56)
 	StackSplitFrame.bg1:SetFrameLevel(StackSplitFrame.bg1:GetFrameLevel() - 1)
 
-	StackSplitFrame.OkayButton:SkinButton()
-    StackSplitFrame.CancelButton:SkinButton()
+	StackSplitOkayButton:SkinButton()
+    StackSplitCancelButton:SkinButton()
 end)

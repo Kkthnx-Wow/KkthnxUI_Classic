@@ -90,7 +90,7 @@ table_insert(C.defaultThemes, function()
 		silver:SetPoint("LEFT", gold, "RIGHT", 1, 0)
 		copper:SetPoint("LEFT", silver, "RIGHT", 1, 0)
 
-		frame.Border:Hide()
+		--frame.Border:Hide()
 		frame:CreateBorder()
 		for j = 1, 4 do
 			frame["button"..j]:SkinButton()
@@ -158,14 +158,6 @@ hooksecurefunc("StaticPopup_Show", function(which, _, _, data)
 		end
 	end
 end)
-
--- Pet battle queue popup
-
-PetBattleQueueReadyFrame:CreateBorder()
---B.CreateBDFrame(PetBattleQueueReadyFrame.Art)
-PetBattleQueueReadyFrame.Border:Hide()
-PetBattleQueueReadyFrame.AcceptButton:SkinButton()
-PetBattleQueueReadyFrame.DeclineButton:SkinButton()
 
 -- PlayerReportFrame
 PlayerReportFrame:HookScript("OnShow", function(self)
