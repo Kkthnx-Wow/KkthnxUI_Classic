@@ -12,7 +12,7 @@ local GetNumQuestLeaderBoards = _G.GetNumQuestLeaderBoards
 local GetQuestLogLeaderBoard = _G.GetQuestLogLeaderBoard
 local C_QuestLog_GetQuestTagInfo = _G.C_QuestLog.GetQuestTagInfo
 local C_QuestLog_GetInfo = C_QuestLog.GetInfo
-local C_QuestLog_GetNumQuestLogEntries = _G.C_QuestLog.GetNumQuestLogEntries
+local GetNumQuestLogEntries = _G.GetNumQuestLogEntries
 
 local lastList
 
@@ -32,28 +32,28 @@ end
 local function GetQuests()
 	local quests = {}
 
-	for questIndex = 1, C_QuestLog_GetNumQuestLogEntries() do
-		local questInfo = C_QuestLog_GetInfo(questIndex)
-		local skip = questInfo.isHeader or questInfo.isBounty or questInfo.isHidden
+	for questIndex = 1, GetNumQuestLogEntries() do
+		local title, level, suggestedGroup, isHeader, _, isComplete, frequency, questID, _, _, _, _, _, isBounty, _, isHidden = GetQuestLogTitle(questIndex)
+		local skip = isHeader or isBounty or isHidden
 
 		if not skip then
-			local tagInfo = C_QuestLog_GetQuestTagInfo(questInfo.questID)
-			quests[questInfo.questID] = {
-				title = questInfo.title,
-				questID = questInfo.questID,
-				level = questInfo.level,
-				suggestedGroup = questInfo.suggestedGroup,
-				isComplete = questInfo.isComplete,
-				frequency = questInfo.frequency,
-				tag = tagInfo and tagInfo.tagName,
-				worldQuestType = tagInfo and tagInfo.worldQuestType,
-				link = GetQuestLink(questInfo.questID)
+			local _, tagName, worldQuestType = GetQuestTagInfo(questID)
+			quests[questID] = {
+				title = title,
+				questID = questID,
+				level = level,
+				suggestedGroup = suggestedGroup,
+				isComplete = isComplete,
+				frequency = frequency,
+				tag = tagName,
+				worldQuestType = worldQuestType,
+				link = GetQuestLink(questID)
 			}
 
 			for queryIndex = 1, GetNumQuestLeaderBoards(questIndex) do
 				local queryText = GetQuestLogLeaderBoard(queryIndex, questIndex)
 				local _, _, numItems, numNeeded, itemName = strfind(queryText, "(%d+)/(%d+) ?(.*)")
-				quests[questInfo.questID][queryIndex] = {
+				quests[questID][queryIndex] = {
 					item = itemName,
 					numItems = numItems,
 					numNeeded = numNeeded

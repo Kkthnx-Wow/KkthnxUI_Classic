@@ -77,9 +77,9 @@ function Module:CreateParty()
 	self.Name:SetFontObject(UnitframeFont)
 	self.Name:SetWordWrap(false)
 	if C["Party"].HealthbarColor.Value == "Class" then
-		self:Tag(self.Name, "[afkdnd][leadassist][lfdrole][name]")
+		self:Tag(self.Name, "[afkdnd][leadassist][name]")
 	else
-		self:Tag(self.Name, "[afkdnd][leadassist][lfdrole][color][name]")
+		self:Tag(self.Name, "[afkdnd][leadassist][color][name]")
 	end
 
 	if C["Unitframe"].PortraitStyle.Value == "ThreeDPortraits" then
@@ -198,58 +198,27 @@ function Module:CreateParty()
 	end
 
 	if C["Party"].ShowHealPrediction then
-		local mhpb = self.Health:CreateTexture(nil, "BORDER", nil, 5)
-		mhpb:SetWidth(1)
-		mhpb:SetTexture(HealPredictionTexture)
-		mhpb:SetVertexColor(0, 1, 0.5, 0.25)
+		local myBar = CreateFrame("StatusBar", nil, self)
+		myBar:SetWidth(self:GetWidth())
+		myBar:SetPoint("TOP", self.Health, "TOP")
+		myBar:SetPoint("BOTTOM", self.Health, "BOTTOM")
+		myBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
+		myBar:SetStatusBarTexture(HealPredictionTexture)
+		myBar:SetStatusBarColor(0, 1, 0, .5)
+		myBar:Hide()
 
-		local ohpb = self.Health:CreateTexture(nil, "BORDER", nil, 5)
-		ohpb:SetWidth(1)
-		ohpb:SetTexture(HealPredictionTexture)
-		ohpb:SetVertexColor(0, 1, 0, 0.25)
+		local otherBar = CreateFrame("StatusBar", nil, self)
+		otherBar:SetWidth(self:GetWidth())
+		otherBar:SetPoint("TOP", self.Health, "TOP")
+		otherBar:SetPoint("BOTTOM", self.Health, "BOTTOM")
+		otherBar:SetPoint("LEFT", myBar:GetStatusBarTexture(), "RIGHT")
+		otherBar:SetStatusBarTexture(HealPredictionTexture)
+		otherBar:SetStatusBarColor(0, 1, 1, .5)
+		otherBar:Hide()
 
-		local abb = self.Health:CreateTexture(nil, "BORDER", nil, 5)
-		abb:SetWidth(1)
-		abb:SetTexture(HealPredictionTexture)
-		abb:SetVertexColor(1, 1, 0, 0.25)
-
-		local abbo = self.Health:CreateTexture(nil, "ARTWORK", nil, 1)
-		abbo:SetAllPoints(abb)
-		abbo:SetTexture("Interface\\RaidFrame\\Shield-Overlay", true, true)
-		abbo.tileSize = 32
-
-		local oag = self.Health:CreateTexture(nil, "ARTWORK", nil, 1)
-		oag:SetWidth(15)
-		oag:SetTexture("Interface\\RaidFrame\\Shield-Overshield")
-		oag:SetBlendMode("ADD")
-		oag:SetAlpha(0.25)
-		oag:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", -5, 2)
-		oag:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", -5, -2)
-
-		local hab = CreateFrame("StatusBar", nil, self.Health)
-		hab:SetPoint("TOP")
-		hab:SetPoint("BOTTOM")
-		hab:SetPoint("RIGHT", self.Health:GetStatusBarTexture())
-		hab:SetWidth(124)
-		hab:SetReverseFill(true)
-		hab:SetStatusBarTexture(HealPredictionTexture)
-		hab:SetStatusBarColor(1, 0, 0, 0.25)
-
-		local ohg = self.Health:CreateTexture(nil, "ARTWORK", nil, 1)
-		ohg:SetWidth(15)
-		ohg:SetTexture("Interface\\RaidFrame\\Absorb-Overabsorb")
-		ohg:SetBlendMode("ADD")
-		ohg:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", 5, 2)
-		ohg:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", 5, -2)
-
-		self.HealPredictionAndAbsorb = {
-			myBar = mhpb,
-			otherBar = ohpb,
-			absorbBar = abb,
-			absorbBarOverlay = abbo,
-			overAbsorbGlow = oag,
-			healAbsorbBar = hab,
-			overHealAbsorbGlow = ohg,
+		self.HealthPrediction = {
+			myBar = myBar,
+			otherBar = otherBar,
 			maxOverflow = 1,
 		}
 	end

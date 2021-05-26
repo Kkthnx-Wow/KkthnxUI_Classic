@@ -18,19 +18,16 @@ local ChatHistory_GetAccessID = _G.ChatHistory_GetAccessID
 local ChatTypeInfo = _G.ChatTypeInfo
 local Chat_GetChatCategory = _G.Chat_GetChatCategory
 local CreateFrame = _G.CreateFrame
-local GetAchievementInfo = _G.GetAchievementInfo
 local GetBattlefieldStatus = _G.GetBattlefieldStatus
 local GetColoredName = _G.GetColoredName
 local GetGuildInfo = _G.GetGuildInfo
 local GetScreenHeight = _G.GetScreenHeight
 local GetScreenWidth = _G.GetScreenWidth
-local GetStatistic = _G.GetStatistic
 local GetTime = _G.GetTime
 local InCombatLockdown = _G.InCombatLockdown
 local IsInGuild = _G.IsInGuild
 local IsMacClient = _G.IsMacClient
 local IsShiftKeyDown = _G.IsShiftKeyDown
-local NONE = _G.NONE
 local SetCVar = _G.SetCVar
 local UIParent = _G.UIParent
 local UnitCastingInfo = _G.UnitCastingInfo
@@ -73,7 +70,11 @@ local daysAbr = {
 
 -- Source wowhead.com
 local stats = {
-	"Tell Kkthnx to put some random info here!",
+	"Burning Crusade was released on January 16th, 2007",
+	"Burning Crusade, was the first expansion for World of Warcraft",
+	"Druids receive Flight Form at level 68",
+	"Flying mounts are only usable in Outland at level 70",
+	"Normal flying mount training costs 225g",
 }
 
 local function IsIn(val, ...)
@@ -431,15 +432,11 @@ function Module:CreateAFKCam()
 
 	-- WoW logo
 	AFKMode.top.wowlogo = CreateFrame("Frame", nil, AFKMode) -- need this to upper the logo layer
-	AFKMode.top.wowlogo:SetPoint("TOP", AFKMode.top, "TOP", 0, -5)
+	AFKMode.top.wowlogo:SetPoint("TOP", AFKMode.top, "TOP", 0, 150)
 	AFKMode.top.wowlogo:SetFrameStrata("MEDIUM")
-	AFKMode.top.wowlogo:SetSize(300, 150)
+	AFKMode.top.wowlogo:SetSize(512, 512)
 	AFKMode.top.wowlogo.tex = AFKMode.top.wowlogo:CreateTexture(nil, "OVERLAY")
-	local currentExpansionLevel = GetClampedCurrentExpansionLevel()
-	local expansionDisplayInfo = GetExpansionDisplayInfo(currentExpansionLevel)
-	if expansionDisplayInfo then
-		AFKMode.top.wowlogo.tex:SetTexture(expansionDisplayInfo.logo)
-	end
+	AFKMode.top.wowlogo.tex:SetTexture([[Interface\GLUES\COMMON\Glues-WoW-ClassicBurningCrusadeLogo]])
 	AFKMode.top.wowlogo.tex:SetAllPoints()
 
 	-- Date text
@@ -458,44 +455,22 @@ function Module:CreateAFKCam()
 	local modelOffsetY = 205
 	if K.Race == "Human" then
 		modelOffsetY = 195
-	elseif K.Race == "Worgen" then
-		modelOffsetY = 280
-	elseif K.Race == "Tauren" or K.Race == "HighmountainTauren" then
+	elseif K.Race == "Tauren" then
 		modelOffsetY = 250
-	elseif K.Race == "Draenei" or K.Race == "LightforgedDraenei" then
+	elseif K.Race == "Draenei" then
 		if K.Sex == 2 then
 			modelOffsetY = 250
 		end
-	elseif K.Race == "Pandaren" then
-		if K.Sex == 2 then
-			modelOffsetY = 220
-		elseif K.Sex == 3 then
-			modelOffsetY = 280
-		end
-	elseif K.Race == "KulTiran" then
-		if K.Sex == 2 then
-			modelOffsetY = 220
-		elseif K.Sex == 3 then
-			modelOffsetY = 240
-		end
-	elseif K.Race == "Goblin" then
-		if K.Sex == 2 then
-			modelOffsetY = 240
-		elseif K.Sex == 3 then
-			modelOffsetY = 220
-		end
-	elseif K.Race == "Troll" or K.Race == "ZandalariTroll" then
+	elseif K.Race == "Troll" then
 		if K.Sex == 2 then
 			modelOffsetY = 250
 		elseif K.Sex == 3 then
 			modelOffsetY = 280
 		end
-	elseif K.Race == "Dwarf" or K.Race == "DarkIronDwarf" then
+	elseif K.Race == "Dwarf" then
 		if K.Sex == 2 then
 			modelOffsetY = 250
 		end
-	elseif K.Race == "Vulpera" then
-		modelOffsetY = 220
 	end
 
 	AFKMode.bottom.faction = AFKMode.bottom:CreateTexture(nil, "OVERLAY")

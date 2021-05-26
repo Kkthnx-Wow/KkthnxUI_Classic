@@ -276,34 +276,6 @@ function Module:HideMinimapClock()
 	end
 end
 
-function Module:ShowCalendar()
-	if C["Minimap"].Calendar then
-		if not GameTimeFrame.styled then
-			GameTimeFrame:SetParent(Minimap)
-			GameTimeFrame:SetScale(0.54)
-			GameTimeFrame:ClearAllPoints()
-			GameTimeFrame:SetPoint("TOPRIGHT", Minimap, -4, -4)
-			GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
-			--GameTimeFrame:GetNormalTexture():SetTexCoord(0, 1, 0, 1)
-			--GameTimeFrame:SetNormalTexture("Interface\\AddOns\\KkthnxUI\\Media\\Minimap\\Calendar.blp")
-			GameTimeFrame:SetPushedTexture(nil)
-			GameTimeFrame:SetHighlightTexture(nil)
-
-			local fs = GameTimeFrame:GetFontString()
-			fs:ClearAllPoints()
-			fs:SetPoint("CENTER", 0, -5)
-			fs:FontTemplate(nil, 20)
-			fs:SetAlpha(0.9)
-			fs:SetShadowOffset(0, 0)
-
-			GameTimeFrame.styled = true
-		end
-		GameTimeFrame:Show()
-	else
-		GameTimeFrame:Hide()
-	end
-end
-
 function Module:Minimap_OnMouseWheel(zoom)
 	if zoom > 0 then
 		Minimap_ZoomIn()
@@ -370,7 +342,6 @@ function Module:OnEnable()
 	Minimap.mover = minimapMover
 
 	self:HideMinimapClock()
-	-- self:ShowCalendar()
 	self:UpdateBlipTexture()
 	self:UpdateMinimapScale()
 
@@ -388,6 +359,8 @@ function Module:OnEnable()
 		"MinimapZoomIn",
 		"MiniMapWorldMapButton",
 		"MiniMapMailBorder",
+		"MinimapToggleButton",
+		"GameTimeFrame",
 	}
 
 	for _, v in pairs(frames) do

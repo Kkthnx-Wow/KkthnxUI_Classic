@@ -51,10 +51,6 @@ function Module:SetupKillingBlow()
 				TargetName = TargetName
 			end
 
-			if C["Announcements"].KillingBlow then
-				TopBannerManager_Show(_G["BossBanner"], {name = TargetName, mode = "PVPKILL"})
-			end
-
 			if C["Announcements"].PvPEmote then
 				if select(4, GetAchievementInfo(247)) then
 					-- Fire off a random emote, to keep it interesting.
@@ -68,23 +64,6 @@ function Module:SetupKillingBlow()
 end
 
 function Module:CreateKillingBlow()
-	-- if not C["Announcements"].KillingBlow and not C["Announcements"].PvPEmote then
-	-- 	return
-	-- end
-
-	hooksecurefunc(_G["BossBanner"], "PlayBanner", function(self, data)
-		if (data) then
-			if (data.mode == "PVPKILL") then
-				self.Title:SetText(data.name)
-				self.Title:Show()
-				self.SubTitle:Hide()
-				self:Show()
-				BossBanner_BeginAnims(self)
-				PlaySoundFile("Interface\\AddOns\\KkthnxUI\\Media\\Sounds\\KillingBlow.ogg", "Master")
-			end
-		end
-	end)
-
 	K:RegisterEvent("UPDATE_BATTLEFIELD_SCORE", self.OpponentsTable)
 	K:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", self.SetupKillingBlow)
 end

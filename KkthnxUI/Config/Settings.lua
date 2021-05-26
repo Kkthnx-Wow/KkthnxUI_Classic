@@ -44,14 +44,11 @@ C["ActionBar"] = {
 
 -- Announcements
 C["Announcements"] = {
-	["AlertInChat"] = false,
-	["AlertInWild"] = false,
 	["HealthAlert"] = false,
 	["ItemAlert"] = false,
 	["KillingBlow"] = false,
 	["PullCountdown"] = true,
 	["PvPEmote"] = false,
-	["RareAlert"] = false,
 	["ResetInstance"] = true,
 	["SaySapped"] = false,
 	["Interrupt"] = false,
@@ -59,16 +56,15 @@ C["Announcements"] = {
 	["AlertInInstance"] = true,
 	["BrokenSpell"] = false,
 
-
-	["Daily"] = false,
-	["IncludeDetails"] = true,
-	["Level"] = false,
-	["LevelHideOnMax"] = true,
-	["Paused"] = false,
-	["QuestNotifier"] = false,
-	["SuggestedGroup"] = true,
-	["Tag"] = true,
-	["Weekly"] = false,
+	-- ["Daily"] = false,
+	-- ["IncludeDetails"] = true,
+	-- ["Level"] = false,
+	-- ["LevelHideOnMax"] = true,
+	-- ["Paused"] = false,
+	-- ["QuestNotifier"] = false,
+	-- ["SuggestedGroup"] = true,
+	-- ["Tag"] = true,
+	-- ["Weekly"] = false,
 }
 
 -- Automation

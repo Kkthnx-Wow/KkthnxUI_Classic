@@ -6,8 +6,7 @@ function Module:OnEnable()
 	Module:CreateInterruptAnnounce()
 	Module:CreateItemAnnounce()
 	Module:CreateKillingBlow()
-	Module:CreateQuestNotifier()
-	Module:CreateRareAnnounce()
+	-- Module:CreateQuestNotifier() -- FIX ME LATER
 	Module:CreateResetInstance()
 	Module:CreateSaySappedAnnounce()
 end
