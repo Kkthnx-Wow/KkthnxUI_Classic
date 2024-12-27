@@ -1,234 +1,249 @@
-local K = unpack(select(2, ...))
-local Module = K:GetModule("Tooltip")
-
--- Sourced: AlreadyKnown (villiv)
--- Edited: KkthnxUI (Kkthnx)
+local K, C = KkthnxUI[1], KkthnxUI[2]
+local Module = K:GetModule("Miscellaneous")
 
 local _G = _G
-local math_ceil = _G.math.ceil
-local mod = _G.mod
-local string_find = _G.string.find
-local string_format = _G.string.format
-local string_match = _G.string.match
+local ceil = ceil
+local format = format
+local mod = mod
+local select = select
+local strfind = strfind
+local strmatch = strmatch
+local tonumber = tonumber
 
-local BUYBACK_ITEMS_PER_PAGE = _G.BUYBACK_ITEMS_PER_PAGE or 12
-local COLLECTED = _G.COLLECTED
-local CreateFrame = _G.CreateFrame
-local GetBuybackItemInfo = _G.GetBuybackItemInfo
-local GetBuybackItemLink = _G.GetBuybackItemLink
-local GetCurrentGuildBankTab = _G.GetCurrentGuildBankTab
-local GetGuildBankItemInfo = _G.GetGuildBankItemInfo
-local GetGuildBankItemLink = _G.GetGuildBankItemLink
-local GetItemInfo = _G.GetItemInfo
-local GetMerchantItemInfo = _G.GetMerchantItemInfo
-local GetMerchantItemLink = _G.GetMerchantItemLink
-local GetMerchantNumItems = _G.GetMerchantNumItems
-local GetNumBuybackItems = _G.GetNumBuybackItems
-local HybridScrollFrame_GetButtons = _G.HybridScrollFrame_GetButtons
-local ITEM_SPELL_KNOWN = _G.ITEM_SPELL_KNOWN
-local LE_ITEM_CLASS_BATTLEPET = _G.LE_ITEM_CLASS_BATTLEPET
-local LE_ITEM_CLASS_CONSUMABLE = _G.LE_ITEM_CLASS_CONSUMABLE
-local LE_ITEM_CLASS_ITEM_ENHANCEMENT = _G.LE_ITEM_CLASS_ITEM_ENHANCEMENT
-local LE_ITEM_CLASS_MISCELLANEOUS = _G.LE_ITEM_CLASS_MISCELLANEOUS
-local LE_ITEM_CLASS_RECIPE = _G.LE_ITEM_CLASS_RECIPE
-local MAX_GUILDBANK_SLOTS_PER_TAB = _G.MAX_GUILDBANK_SLOTS_PER_TAB or 98
-local MERCHANT_ITEMS_PER_PAGE = _G.MERCHANT_ITEMS_PER_PAGE or 10
-local NUM_SLOTS_PER_GUILDBANK_GROUP = _G.NUM_SLOTS_PER_GUILDBANK_GROUP or 14
-local SetItemButtonTextureVertexColor = _G.SetItemButtonTextureVertexColor
-local UIParent = _G.UIParent
-local hooksecurefunc = _G.hooksecurefunc
+local GetBuybackItemInfo = GetBuybackItemInfo
+local GetBuybackItemLink = GetBuybackItemLink
+local GetCurrentGuildBankTab = GetCurrentGuildBankTab
+local GetGuildBankItemInfo = GetGuildBankItemInfo
+local GetGuildBankItemLink = GetGuildBankItemLink
+local C_MerchantFrame_GetItemInfo = C_MerchantFrame.GetItemInfo
+local GetMerchantItemLink = GetMerchantItemLink
+local GetMerchantNumItems = GetMerchantNumItems
+local GetNumBuybackItems = GetNumBuybackItems
+local SetItemButtonDesaturated = SetItemButtonDesaturated
+local SetItemButtonTextureVertexColor = SetItemButtonTextureVertexColor
 
-local COLOR = {r = .1, g = 1, b = .1}
-local knowables, knowns = {
-	[LE_ITEM_CLASS_CONSUMABLE] = true,
-	[LE_ITEM_CLASS_RECIPE] = true,
-	[LE_ITEM_CLASS_MISCELLANEOUS] = true,
-}, {}
+local C_AddOns_IsAddOnLoaded = C_AddOns.IsAddOnLoaded
+local C_Item_GetItemInfo = C_Item.GetItemInfo
+-- local C_TooltipInfo_GetHyperlink = C_TooltipInfo.GetHyperlink
 
-local function isPetCollected(speciesID)
-	if not speciesID or speciesID == 0 then return end
-	local numOwned = C_PetJournal.GetNumCollectedInfo(speciesID)
-	if numOwned > 0 then
-		return true
-	end
-end
+local BUYBACK_ITEMS_PER_PAGE = BUYBACK_ITEMS_PER_PAGE
+local COLLECTED = COLLECTED
+local ITEM_SPELL_KNOWN = ITEM_SPELL_KNOWN
+local MAX_GUILDBANK_SLOTS_PER_TAB = MAX_GUILDBANK_SLOTS_PER_TAB or 98
+local NUM_SLOTS_PER_GUILDBANK_GROUP = NUM_SLOTS_PER_GUILDBANK_GROUP or 14
+
+local knowables = {
+	[Enum.ItemClass.Consumable] = true,
+	[Enum.ItemClass.Recipe] = true,
+	[Enum.ItemClass.Miscellaneous] = true,
+	[Enum.ItemClass.ItemEnhancement] = true,
+}
+local knowns = {}
 
 local function IsAlreadyKnown(link, index)
-	if not link then return end
+	if not link then
+		return
+	end
 
-	if string_match(link, "battlepet:") then
-		local speciesID = select(2, string.split(":", link))
-		return isPetCollected(speciesID)
-	elseif string_match(link, "item:") then
-		local name, _, _, _, _, _, _, _, _, _, _, itemClassID = GetItemInfo(link)
-		if not name then return end
+	local linkType, linkID = strmatch(link, "|H(%a+):(%d+)")
+	linkID = tonumber(linkID)
 
-		if itemClassID == LE_ITEM_CLASS_BATTLEPET and index then
-			local speciesID = K.ScanTooltip:SetGuildBankItem(GetCurrentGuildBankTab(), index)
-			return isPetCollected(speciesID)
-		else
-			if knowns[link] then return true end
-			if not knowables[itemClassID] then return end
+	if linkType == "item" then
+		local name, _, _, level, _, _, _, _, _, _, _, itemClassID = C_Item_GetItemInfo(link)
+		if not name then
+			return
+		end
 
-			K.ScanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-			K.ScanTooltip:SetHyperlink(link)
-			for i = 1, K.ScanTooltip:NumLines() do
-				local text = _G["KKUI_ScanTooltipTextLeft"..i]:GetText() or ""
-				if string_find(text, COLLECTED) or text == ITEM_SPELL_KNOWN then
-					knowns[link] = true
-					return true
+		if knowns[link] then
+			return true
+		end
+		if not knowables[itemClassID] then
+			return
+		end
+
+		local data = C_TooltipInfo_GetHyperlink(link, nil, nil, true)
+		if data then
+			for i = 1, #data.lines do
+				local lineData = data.lines[i]
+				local argVal = lineData and lineData.args
+				local text = lineData and lineData.leftText
+				if text then
+					if strfind(text, COLLECTED) or text == ITEM_SPELL_KNOWN then
+						knowns[link] = true
+						return true
+					end
 				end
 			end
 		end
 	end
 end
 
--- merchant frame
-local function MerchantFrame_UpdateMerchantInfo()
+function Module:Merchant()
+	-- if not self.db.enable then
+	-- 	return
+	-- end
+
 	local numItems = GetMerchantNumItems()
-	for i = 1, MERCHANT_ITEMS_PER_PAGE do
-		local index = (MerchantFrame.page - 1) * MERCHANT_ITEMS_PER_PAGE + i
-		if index > numItems then return end
+	for i = 1, _G.MERCHANT_ITEMS_PER_PAGE do
+		local index = (_G.MerchantFrame.page - 1) * _G.MERCHANT_ITEMS_PER_PAGE + i
+		if index > numItems then
+			return
+		end
 
-		local button = _G["MerchantItem"..i.."ItemButton"]
-		if button and button:IsShown() then
-			local _, _, _, _, numAvailable, isUsable = GetMerchantItemInfo(index)
+		local itemButton = _G["MerchantItem" .. i .. "ItemButton"]
+		if itemButton and itemButton:IsShown() then
+			local info = C_MerchantFrame_GetItemInfo(index)
+			local numAvailable, isUsable = info.numAvailable, info.isUsable
 			if isUsable and IsAlreadyKnown(GetMerchantItemLink(index)) then
-				local r, g, b = COLOR.r, COLOR.g, COLOR.b
+				-- if self.db.mode == "MONOCHROME" then
+				-- _G["MerchantItem" .. i .. "ItemButtonIconTexture"]:SetDesaturated(true)
+				-- else
+				local r, g, b = 0, 1, 0
 				if numAvailable == 0 then
-					r, g, b = r*.5, g*.5, b*.5
+					r, g, b = r * 0.5, g * 0.5, b * 0.5
 				end
-				SetItemButtonTextureVertexColor(button, r, g, b)
+				SetItemButtonTextureVertexColor(itemButton, 0.9 * r, 0.9 * g, 0.9 * b)
+				-- end
+			else
+				_G["MerchantItem" .. i .. "ItemButtonIconTexture"]:SetDesaturated(false)
 			end
 		end
 	end
 end
-hooksecurefunc("MerchantFrame_UpdateMerchantInfo", MerchantFrame_UpdateMerchantInfo)
 
-local function MerchantFrame_UpdateBuybackInfo()
+function Module:Buyback()
+	-- if not self.db.enable then
+	-- 	return
+	-- end
+
 	local numItems = GetNumBuybackItems()
 	for index = 1, BUYBACK_ITEMS_PER_PAGE do
-		if index > numItems then return end
+		if index > numItems then
+			return
+		end
 
-		local button = _G["MerchantItem"..index.."ItemButton"]
+		local button = _G["MerchantItem" .. index .. "ItemButton"]
 		if button and button:IsShown() then
-			local _, _, _, _, _, isUsable = GetBuybackItemInfo(index)
+			local isUsable = select(6, GetBuybackItemInfo(index))
 			if isUsable and IsAlreadyKnown(GetBuybackItemLink(index)) then
-				SetItemButtonTextureVertexColor(button, COLOR.r, COLOR.g, COLOR.b)
+				-- if self.db.mode == "MONOCHROME" then
+				-- _G["MerchantItem" .. index .. "ItemButtonIconTexture"]:SetDesaturated(true)
+				-- else
+				local r, g, b = 0, 1, 0
+				SetItemButtonTextureVertexColor(button, 0.9 * r, 0.9 * g, 0.9 * b)
+				-- end
+			else
+				_G["MerchantItem" .. index .. "ItemButtonIconTexture"]:SetDesaturated(false)
 			end
 		end
 	end
 end
-hooksecurefunc("MerchantFrame_UpdateBuybackInfo", MerchantFrame_UpdateBuybackInfo)
 
--- guild bank frame
-local function GuildBankFrame_Update()
-	if GuildBankFrame.mode ~= "bank" then return end
+function Module:GuildBank(frame)
+	-- if not self.db.enable then
+	-- 	return
+	-- end
+
+	if frame.mode ~= "bank" then
+		return
+	end
 
 	local tab = GetCurrentGuildBankTab()
 	for i = 1, MAX_GUILDBANK_SLOTS_PER_TAB do
 		local index = mod(i, NUM_SLOTS_PER_GUILDBANK_GROUP)
-		if index == 0 then index = NUM_SLOTS_PER_GUILDBANK_GROUP end
+		if index == 0 then
+			index = NUM_SLOTS_PER_GUILDBANK_GROUP
+		end
 
-		local button = _G["GuildBankColumn"..math.ceil((i - .5) / NUM_SLOTS_PER_GUILDBANK_GROUP).."Button"..index]
+		local column = ceil((i - 0.5) / NUM_SLOTS_PER_GUILDBANK_GROUP)
+		local button = frame.Columns[column].Buttons[index]
 		if button and button:IsShown() then
 			local texture, _, locked = GetGuildBankItemInfo(tab, i)
 			if texture and not locked then
 				if IsAlreadyKnown(GetGuildBankItemLink(tab, i), i) then
-					SetItemButtonTextureVertexColor(button, COLOR.r, COLOR.g, COLOR.b)
+					-- if self.db.mode == "MONOCHROME" then
+					-- SetItemButtonDesaturated(button, true)
+					-- else
+					local r, g, b = 0, 1, 0
+					SetItemButtonTextureVertexColor(button, r, g, b)
+					-- end
 				else
 					SetItemButtonTextureVertexColor(button, 1, 1, 1)
+					SetItemButtonDesaturated(button, false)
 				end
 			end
 		end
 	end
 end
 
-local isBlizzard_GuildBankUILoaded
-if IsAddOnLoaded("Blizzard_GuildBankUI") then
-	isBlizzard_GuildBankUILoaded = true
-	hooksecurefunc("GuildBankFrame_Update", GuildBankFrame_Update)
-end
+function Module:AuctionHouse(frame)
+	-- if not self.db.enable then
+	-- 	return
+	-- end
 
--- auction frame
-local function AuctionFrameBrowse_Update()
-	local numItems = GetNumAuctionItems("list")
-	local offset = FauxScrollFrame_GetOffset(BrowseScrollFrame)
-	for i = 1, NUM_BROWSE_TO_DISPLAY do
-		local index = offset + i
-		if index > numItems then return end
-
-		local texture = _G["BrowseButton"..i.."ItemIconTexture"]
-		if texture and texture:IsShown() then
-			local _, _, _, _, canUse = GetAuctionItemInfo("list", index)
-			if canUse and IsAlreadyKnown(GetAuctionItemLink("list", index)) then
-				texture:SetVertexColor(COLOR.r, COLOR.g, COLOR.b)
-			end
-		end
-	end
-end
-
-local function AuctionFrameBid_Update()
-	local numItems = GetNumAuctionItems("bidder")
-	local offset = FauxScrollFrame_GetOffset(BidScrollFrame)
-	for i = 1, NUM_BIDS_TO_DISPLAY do
-		local index = offset + i
-		if index > numItems then return end
-
-		local texture = _G["BidButton"..i.."ItemIconTexture"]
-		if texture and texture:IsShown() then
-			local _, _, _, _, canUse = GetAuctionItemInfo("bidder", index)
-			if canUse and IsAlreadyKnown(GetAuctionItemLink("bidder", index)) then
-				texture:SetVertexColor(COLOR.r, COLOR.g, COLOR.b)
-			end
-		end
-	end
-end
-
-local function AuctionFrameAuctions_Update()
-	local numItems = GetNumAuctionItems("owner")
-	local offset = FauxScrollFrame_GetOffset(AuctionsScrollFrame)
-	for i = 1, NUM_AUCTIONS_TO_DISPLAY do
-		local index = offset + i
-		if index > numItems then return end
-
-		local texture = _G["AuctionsButton"..i.."ItemIconTexture"]
-		if texture and texture:IsShown() then
-			local _, _, _, _, canUse, _, _, _, _, _, _, _, saleStatus = GetAuctionItemInfo("owner", index)
-			if canUse and IsAlreadyKnown(GetAuctionItemLink("owner", index)) then
-				local r, g, b = COLOR.r, COLOR.g, COLOR.b
-				if saleStatus == 1 then
-					r, g, b = r * .5, g * .5, b * .5
+	for i = 1, frame.ScrollTarget:GetNumChildren() do
+		local child = select(i, frame.ScrollTarget:GetChildren())
+		if child.cells then
+			local button = child.cells[2]
+			local itemKey = button and button.rowData and button.rowData.itemKey
+			if itemKey and itemKey.itemID then
+				local itemLink
+				if itemKey.itemID == 82800 then
+					itemLink = format("|Hbattlepet:%d::::::|h[Dummy]|h", itemKey.battlePetSpeciesID)
+				else
+					itemLink = format("|Hitem:%d", itemKey.itemID)
 				end
-				texture:SetVertexColor(r, g, b)
+
+				if itemLink and IsAlreadyKnown(itemLink) then
+					-- if self.db.mode == "MONOCHROME" then
+					-- button.Icon:SetDesaturated(true)
+					-- else
+					local r, g, b = 0, 1, 0
+					child.SelectedHighlight:Show()
+					child.SelectedHighlight:SetVertexColor(r, g, b)
+					child.SelectedHighlight:SetAlpha(0.25)
+					button.Icon:SetVertexColor(r, g, b)
+					button.IconBorder:SetVertexColor(r, g, b)
+					button.Icon:SetDesaturated(false)
+					-- end
+				else
+					child.SelectedHighlight:SetVertexColor(1, 1, 1)
+					button.Icon:SetVertexColor(1, 1, 1)
+					button.IconBorder:SetVertexColor(1, 1, 1)
+					button.Icon:SetDesaturated(false)
+				end
 			end
 		end
 	end
 end
 
-local isBlizzard_AuctionUILoaded
-if IsAddOnLoaded("Blizzard_AuctionUI") then
-	isBlizzard_AuctionUILoaded = true
-	hooksecurefunc("AuctionFrameBrowse_Update", AuctionFrameBrowse_Update)
-	hooksecurefunc("AuctionFrameBid_Update", AuctionFrameBid_Update)
-	hooksecurefunc("AuctionFrameAuctions_Update", AuctionFrameAuctions_Update)
-end
-
--- for LoD addons
-if not (isBlizzard_GuildBankUILoaded and isBlizzard_AuctionUILoaded) then
-	local function OnEvent(event, addonName)
-		if addonName == "Blizzard_GuildBankUI" then
-			isBlizzard_GuildBankUILoaded = true
-			hooksecurefunc("GuildBankFrame_Update", GuildBankFrame_Update)
-		elseif addonName == "Blizzard_AuctionUI" then
-			isBlizzard_AuctionUILoaded = true
-			hooksecurefunc("AuctionFrameBrowse_Update", AuctionFrameBrowse_Update)
-			hooksecurefunc("AuctionFrameBid_Update", AuctionFrameBid_Update)
-			hooksecurefunc("AuctionFrameAuctions_Update", AuctionFrameAuctions_Update)
+do
+	local numHooked = 0
+	function Module:ADDON_LOADED(event, addOnName)
+		if addOnName == "Blizzard_AuctionHouseUI" then
+			hooksecurefunc(AuctionHouseFrame.BrowseResultsFrame.ItemList.ScrollBox, "Update", self.AuctionHouse)
+			numHooked = numHooked + 1
+		elseif addOnName == "Blizzard_GuildBankUI" then
+			hooksecurefunc(GuildBankFrame, "Update", self.GuildBank)
+			numHooked = numHooked + 1
 		end
-		if isBlizzard_GuildBankUILoaded and isBlizzard_AuctionUILoaded then
-			K:UnregisterEvent(event, OnEvent)
+
+		if numHooked == 2 then
+			K:UnregisterEvent("ADDON_LOADED", self.ADDON_LOADED)
 		end
 	end
-	K:RegisterEvent("ADDON_LOADED", OnEvent)
+end
+
+function Module:CreateAlreadyKnown()
+	if C_AddOns_IsAddOnLoaded("AlreadyKnown") then
+		return
+	end
+
+	-- if not E.db.WT.item.alreadyKnown.enable then
+	-- 	return
+	-- end
+
+	-- hooksecurefunc("MerchantFrame_UpdateMerchantInfo", self.Merchant)
+	-- hooksecurefunc("MerchantFrame_UpdateBuybackInfo", self.Buyback)
+	-- K:RegisterEvent("ADDON_LOADED", self.ADDON_LOADED)
 end

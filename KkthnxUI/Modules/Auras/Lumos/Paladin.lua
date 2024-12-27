@@ -1,16 +1,12 @@
-local K = unpack(select(2, ...))
+local K = KkthnxUI[1]
 local Module = K:GetModule("Auras")
 
 if K.Class ~= "PALADIN" then
 	return
 end
 
-local _G = _G
-
-local GetSpecialization = _G.GetSpecialization
-local GetSpellTexture = _G.GetSpellTexture
-local IsPlayerSpell = _G.IsPlayerSpell
-local IsUsableSpell = _G.IsUsableSpell
+local C_Spell_IsSpellUsable, IsPlayerSpell = C_Spell.IsSpellUsable, IsPlayerSpell
+local GetCurrentGlyphNameForSpell = GetCurrentGlyphNameForSpell
 
 local function UpdateCooldown(button, spellID, texture)
 	return Module:UpdateCooldown(button, spellID, texture)
@@ -20,17 +16,14 @@ local function UpdateBuff(button, spellID, auraID, cooldown, glow)
 	return Module:UpdateAura(button, "player", auraID, "HELPFUL", spellID, cooldown, glow)
 end
 
-local function UpdateDebuff(button, spellID, auraID, cooldown, glow)
-	return Module:UpdateAura(button, "target", auraID, "HARMFUL", spellID, cooldown, glow)
+local function checkQueenGlyph()
+	local name, spellID = GetCurrentGlyphNameForSpell(86659)
+	Module.hasQueenGlyph = name and spellID == 212642
 end
 
-local function UpdateSpellStatus(button, spellID)
-	button.Icon:SetTexture(GetSpellTexture(spellID))
-	if IsUsableSpell(spellID) then
-		button.Icon:SetDesaturated(false)
-	else
-		button.Icon:SetDesaturated(true)
-	end
+function Module:PostCreateLumos()
+	checkQueenGlyph()
+	K:RegisterEvent("SPELLS_CHANGED", checkQueenGlyph)
 end
 
 function Module:ChantLumos(self)
@@ -65,37 +58,20 @@ function Module:ChantLumos(self)
 		UpdateBuff(self.lumos[2], 53600, 132403, true, "END")
 		UpdateBuff(self.lumos[3], 31884, 31884, true, true)
 		UpdateBuff(self.lumos[4], 31850, 31850, true, true)
-		UpdateBuff(self.lumos[5], 86659, 86659, true, true)
+
+		do
+			local button = self.lumos[5]
+			if Module.hasQueenGlyph then
+				UpdateBuff(button, 212641, 212641, true, true)
+			else
+				UpdateBuff(button, 86659, 86659, true, true)
+			end
+		end
 	elseif spec == 3 then
-		do
-			local button = self.lumos[1]
-			if IsPlayerSpell(267610) then
-				UpdateBuff(button, 267610, 267611)
-			elseif IsPlayerSpell(343527) then
-				UpdateDebuff(button, 343527, 343527, true)
-			else
-				UpdateCooldown(button, 20271, true)
-			end
-		end
-
-		do
-			local button = self.lumos[2]
-			UpdateCooldown(button, 24275)
-			UpdateSpellStatus(button, 24275)
-		end
-
-		UpdateCooldown(self.lumos[3], 255937, true)
-
-		do
-			local button = self.lumos[4]
-			if IsPlayerSpell(223817) then
-				UpdateBuff(button, 223817, 223819, nil, true)
-			elseif IsPlayerSpell(105809) then
-				UpdateBuff(button, 105809, 105809, true)
-			else
-				UpdateBuff(button, 152262, 152262, true)
-			end
-		end
+		UpdateCooldown(self.lumos[1], 20271, true)
+		UpdateCooldown(self.lumos[2], 35395, true)
+		UpdateCooldown(self.lumos[3], 184575, true)
+		UpdateCooldown(self.lumos[4], 255937, true)
 
 		do
 			local button = self.lumos[5]

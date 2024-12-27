@@ -1,43 +1,45 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Automation")
 
-local _G = _G
+local C_BattleNet = C_BattleNet
+local C_FriendList = C_FriendList
+local IsGuildMember = IsGuildMember
+local IsInGroup = IsInGroup
+local QueueStatusButton = QueueStatusButton
+local StaticPopupSpecial_Hide = StaticPopupSpecial_Hide
+local StaticPopup_Hide = StaticPopup_Hide
+local LFGInvitePopup = LFGInvitePopup
 
-local AcceptGroup = _G.AcceptGroup
-local BNGetGameAccountInfoByGUID = _G.BNGetGameAccountInfoByGUID
-local C_FriendList_IsFriend = _G.C_FriendList.IsFriend
-local IsGuildMember = _G.IsGuildMember
-local IsInGroup = _G.IsInGroup
-local LFGInvitePopup = _G.LFGInvitePopup
-local QueueStatusMinimapButton = _G.QueueStatusMinimapButton
-local StaticPopupSpecial_Hide = _G.StaticPopupSpecial_Hide
-local StaticPopup_Hide = _G.StaticPopup_Hide
+local previousInviterGUID
 
-local hideStatic
-function Module.AutoInvite(event, _, _, _, _, _, _, inviterGUID)
+local function HandlePartyInvite(inviterGUID)
+	if IsInGroup() or QueueStatusButton:IsShown() or inviterGUID == previousInviterGUID then
+		return
+	end
+
+	local accountInfo = C_BattleNet.GetAccountInfoByGUID(inviterGUID)
+	if accountInfo or C_FriendList.IsFriend(inviterGUID) or IsGuildMember(inviterGUID) then
+		AcceptGroup()
+		previousInviterGUID = inviterGUID
+	end
+end
+
+local function AutoInvite(event, _, _, _, _, _, _, inviterGUID)
 	if event == "PARTY_INVITE_REQUEST" then
-		-- Prevent Losing Que Inside LFD If Someone Invites You To Group
-		if QueueStatusMinimapButton:IsShown() or IsInGroup() or (not inviterGUID or inviterGUID == "") then
-			return
-		end
-
-		if BNGetGameAccountInfoByGUID(inviterGUID) or C_FriendList_IsFriend(inviterGUID) or IsGuildMember(inviterGUID) then
-			hideStatic = true
-			AcceptGroup()
-		end
-	elseif event == "GROUP_ROSTER_UPDATE" and hideStatic then
-		StaticPopupSpecial_Hide(LFGInvitePopup) -- New LFD Popup When Invited In Custom Created Group
+		HandlePartyInvite(inviterGUID)
+	elseif event == "GROUP_ROSTER_UPDATE" then
+		StaticPopupSpecial_Hide(LFGInvitePopup)
 		StaticPopup_Hide("PARTY_INVITE")
-		hideStatic = nil
+		previousInviterGUID = nil
 	end
 end
 
 function Module:CreateAutoInvite()
 	if C["Automation"].AutoInvite then
-		K:RegisterEvent("PARTY_INVITE_REQUEST", Module.AutoInvite)
-		K:RegisterEvent("GROUP_ROSTER_UPDATE", Module.AutoInvite)
+		K:RegisterEvent("PARTY_INVITE_REQUEST", AutoInvite)
+		K:RegisterEvent("GROUP_ROSTER_UPDATE", AutoInvite)
 	else
-		K:UnregisterEvent("PARTY_INVITE_REQUEST", Module.AutoInvite)
-		K:UnregisterEvent("GROUP_ROSTER_UPDATE", Module.AutoInvite)
+		K:UnregisterEvent("PARTY_INVITE_REQUEST", AutoInvite)
+		K:UnregisterEvent("GROUP_ROSTER_UPDATE", AutoInvite)
 	end
 end

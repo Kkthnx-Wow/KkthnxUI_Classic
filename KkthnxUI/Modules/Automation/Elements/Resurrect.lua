@@ -1,78 +1,67 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Automation")
 
-local _G = _G
+local AcceptResurrect = AcceptResurrect
+local DoEmote = DoEmote
+local StaticPopup_Hide = StaticPopup_Hide
+local UnitAffectingCombat = UnitAffectingCombat
+local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 
-local UnitAffectingCombat = _G.UnitAffectingCombat
-local AcceptResurrect = _G.AcceptResurrect
-local C_Timer_After = _G.C_Timer.After
-local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
-local DoEmote = _G.DoEmote
+-- Localized names for specific items
+local localizedPylonNames = {
+	enUS = "Failure Detection Pylon",
+	zhCN = "故障检测晶塔",
+	zhTW = "滅團偵測水晶塔",
+	ruRU = "Пилон для обнаружения проблем",
+	koKR = "고장 감지 변환기",
+	esMX = "Pilón detector de errores",
+	ptBR = "Pilar Detector de Falhas",
+	deDE = "Fehlschlagdetektorpylon",
+	esES = "Pilón detector de errores",
+	frFR = "Pylône de détection des échecs",
+	itIT = "Pilone d'Individuazione Fallimenti",
+}
+local localizedBrazierNames = {
+	enUS = "Brazier of Awakening",
+	zhCN = "觉醒火盆",
+	zhTW = "覺醒火盆",
+	ruRU = "Жаровня пробуждения",
+	koKR = "각성의 화로",
+	esMX = "Blandón del Despertar",
+	ptBR = "Braseiro do Despertar",
+	deDE = "Kohlenbecken des Erwachens",
+	esES = "Blandón de Despertar",
+	frFR = "Brasero de l'Éveil",
+	itIT = "Braciere del Risveglio",
+}
 
-local GameLocale = GetLocale()
-
-function Module.SetupAutoResurrect(_, arg1)
-	-- Exclude pylon and brazier requests
-	local pylonLoc
-
-	-- Exclude Failure Detection Pylon
-	pylonLoc = "Failure Detection Pylon"
-	if GameLocale == "zhCN" then pylonLoc = "故障检测晶塔"
-	elseif GameLocale == "zhTW" then pylonLoc = "滅團偵測水晶塔"
-	elseif GameLocale == "ruRU" then pylonLoc = "Пилон для обнаружения проблем"
-	elseif GameLocale == "koKR" then pylonLoc = "고장 감지 변환기"
-	elseif GameLocale == "esMX" then pylonLoc = "Pilón detector de errores"
-	elseif GameLocale == "ptBR" then pylonLoc = "Pilar Detector de Falhas"
-	elseif GameLocale == "deDE" then pylonLoc = "Fehlschlagdetektorpylon"
-	elseif GameLocale == "esES" then pylonLoc = "Pilón detector de errores"
-	elseif GameLocale == "frFR" then pylonLoc = "Pylône de détection des échecs"
-	elseif GameLocale == "itIT" then pylonLoc = "Pilone d'Individuazione Fallimenti"
-	end
-
-	if arg1 == pylonLoc then
+local function HandleAutoResurrect(_, arg1)
+	local clientLocale = K.Client
+	-- Ignore resurrection requests from specific items
+	if localizedPylonNames[clientLocale] == arg1 or localizedBrazierNames[clientLocale] == arg1 then
 		return
 	end
 
-	-- Exclude Brazier of Awakening
-	pylonLoc = "Brazier of Awakening"
-	if GameLocale == "zhCN" then pylonLoc = "觉醒火盆"
-	elseif GameLocale == "zhTW" then pylonLoc = "覺醒火盆"
-	elseif GameLocale == "ruRU" then pylonLoc = "Жаровня пробуждения"
-	elseif GameLocale == "koKR" then pylonLoc = "각성의 화로"
-	elseif GameLocale == "esMX" then pylonLoc = "Blandón del Despertar"
-	elseif GameLocale == "ptBR" then pylonLoc = "Braseiro do Despertar"
-	elseif GameLocale == "deDE" then pylonLoc = "Kohlenbecken des Erwachens"
-	elseif GameLocale == "esES" then pylonLoc = "Blandón de Despertar"
-	elseif GameLocale == "frFR" then pylonLoc = "Brasero de l'Éveil"
-	elseif GameLocale == "itIT" then pylonLoc = "Braciere del Risveglio"
-	end
-
-	if arg1 == pylonLoc then
-		return
-	end
-
-	-- Manage other resurrection requests
-	if not UnitAffectingCombat(arg1) then
+	-- Accept resurrection if not in combat
+	if not UnitAffectingCombat("player") then
 		AcceptResurrect()
 		StaticPopup_Hide("RESURRECT_NO_TIMER")
 
-		if C["Automation"].AutoResurrectThank ~= true then
-			return
+		-- Optionally thank the resurrector
+		if C["Automation"].AutoResurrectThank then
+			K.Delay(3, function()
+				if not UnitIsDeadOrGhost("player") then
+					DoEmote("thank", arg1)
+				end
+			end)
 		end
-
-		C_Timer_After(2, function() -- Give this more time to say thanks.
-			if not UnitIsDeadOrGhost("player") then
-				DoEmote("thank", arg1)
-			end
-		end)
 	end
-	return
 end
 
 function Module:CreateAutoResurrect()
-	if not C["Automation"].AutoResurrect then
-		return
+	if C["Automation"].AutoResurrect then
+		K:RegisterEvent("RESURRECT_REQUEST", HandleAutoResurrect)
+	else
+		K:UnregisterEvent("RESURRECT_REQUEST", HandleAutoResurrect)
 	end
-
-	K:RegisterEvent("RESURRECT_REQUEST", Module.SetupAutoResurrect)
 end

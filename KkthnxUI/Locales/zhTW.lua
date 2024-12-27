@@ -1,9 +1,7 @@
-local K, _, L = unpack(select(2, ...))
+local K, L = KkthnxUI[1], KkthnxUI[3]
 
-local _G = _G
-
-local GetLocale = _G.GetLocale
+local GetLocale = GetLocale
 
 if GetLocale() ~= "zhTW" then
-    return
+	return
 end

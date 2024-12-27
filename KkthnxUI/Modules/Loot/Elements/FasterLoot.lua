@@ -1,21 +1,21 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Loot")
 
--- Sourced: NDui
-
-local _G = _G
-
-local GetCVarBool = _G.GetCVarBool
-local GetNumLootItems = _G.GetNumLootItems
-local GetTime = _G.GetTime
-local IsModifiedClick = _G.IsModifiedClick
-local LootSlot = _G.LootSlot
+-- Local references to global functions
+local GetCVarBool = GetCVarBool
+local GetNumLootItems = GetNumLootItems
+local GetTime = GetTime
+local IsModifiedClick = IsModifiedClick
+local LootSlot = LootSlot
 
 local lootDelay = 0
-local function SetupFasterLoot()
+
+-- Function to handle faster loot
+local function HandleFasterLoot()
 	local thisTime = GetTime()
-	if thisTime - lootDelay >= .3 then
+	if thisTime - lootDelay >= 0.3 then
 		lootDelay = thisTime
+
 		if GetCVarBool("autoLootDefault") ~= IsModifiedClick("AUTOLOOTTOGGLE") then
 			for i = GetNumLootItems(), 1, -1 do
 				LootSlot(i)
@@ -25,14 +25,11 @@ local function SetupFasterLoot()
 	end
 end
 
+-- Function to enable or disable faster loot based on the configuration
 function Module:CreateFasterLoot()
-	if IsAddOnLoaded("SpeedyAutoLoot") then
-		return
-	end
-
 	if C["Loot"].FastLoot then
-		K:RegisterEvent("LOOT_READY", SetupFasterLoot)
+		K:RegisterEvent("LOOT_READY", HandleFasterLoot)
 	else
-		K:UnregisterEvent("LOOT_READY", SetupFasterLoot)
+		K:UnregisterEvent("LOOT_READY", HandleFasterLoot)
 	end
 end

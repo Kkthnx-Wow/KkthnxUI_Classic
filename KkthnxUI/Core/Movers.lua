@@ -1,48 +1,49 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 local Module = K:NewModule("Mover")
 
 -- Sourced: NDui (siweia)
 -- Edited: KkthnxUI (Kkthnx)
 
-local _G = _G
-local table_wipe = _G.table.wipe
-local unpack = _G.unpack
+local table_wipe = table.wipe
+local unpack = unpack
 
-local CANCEL = _G.CANCEL
-local CreateFrame = _G.CreateFrame
-local ERR_NOT_IN_COMBAT = _G.ERR_NOT_IN_COMBAT
-local InCombatLockdown = _G.InCombatLockdown
-local IsControlKeyDown = _G.IsControlKeyDown
-local IsModifierKeyDown = _G.IsModifierKeyDown
-local IsShiftKeyDown = _G.IsShiftKeyDown
-local LOCK = _G.LOCK
-local NONE = _G.NONE
-local OKAY = _G.OKAY
-local PlaySound = _G.PlaySound
-local RESET = _G.RESET
-local SOUNDKIT = _G.SOUNDKIT
-local StaticPopup_Show = _G.StaticPopup_Show
-local UIErrorsFrame = _G.UIErrorsFrame
-local UIParent = _G.UIParent
+local CANCEL = CANCEL
+local CreateFrame = CreateFrame
+local ERR_NOT_IN_COMBAT = ERR_NOT_IN_COMBAT
+local InCombatLockdown = InCombatLockdown
+local IsControlKeyDown = IsControlKeyDown
+local IsModifierKeyDown = IsModifierKeyDown
+local IsShiftKeyDown = IsShiftKeyDown
+local LOCK = LOCK
+local NONE = NONE
+local OKAY = OKAY
+local PlaySound = PlaySound
+local RESET = RESET
+local SOUNDKIT = SOUNDKIT
+local StaticPopup_Show = StaticPopup_Show
+local UIErrorsFrame = UIErrorsFrame
+local UIParent = UIParent
 
 -- Frame Mover
-local MoverList, f = {}
+local MoverList = {}
+local f
 local updater
 
 function K:Mover(text, value, anchor, width, height, isAuraWatch)
+	-- Ensure `self` is valid
+	if not self or type(self) ~= "table" then
+		return
+	end
+
 	local key = "Mover"
 	if isAuraWatch then
 		key = "AuraWatchMover"
 	end
 
-	local mover = CreateFrame("Button", nil, UIParent)
-	mover:SetWidth(width or self:GetWidth())
-	mover:SetHeight(height or self:GetHeight())
-
-	mover.bg = mover:CreateTexture(nil, "BACKGROUND", nil, 0)
-	mover.bg:SetColorTexture(38/255, 125/255, 206/255, 90/255)
-	mover.bg:SetPoint("TOPLEFT", mover, "TOPLEFT", 1, -1)
-	mover.bg:SetPoint("BOTTOMRIGHT", mover, "BOTTOMRIGHT", -1, 1)
+	local mover = CreateFrame("Button", "KKUI_Mover", UIParent)
+	mover:SetWidth(width or (self.GetWidth and self:GetWidth() or 50)) -- Default to 50 if self:GetWidth is unavailable
+	mover:SetHeight(height or (self.GetHeight and self:GetHeight() or 50)) -- Default to 50 if self:GetHeight is unavailable
+	mover:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, { 38 / 255, 125 / 255, 206 / 255, 80 / 255 })
 	mover:Hide()
 
 	mover.text = K.CreateFontString(mover, 12, text, "")
@@ -73,8 +74,13 @@ function K:Mover(text, value, anchor, width, height, isAuraWatch)
 		table.insert(MoverList, mover)
 	end
 
-	self:ClearAllPoints()
-	self:SetPoint("TOPLEFT", mover)
+	-- Validate `self` before setting points
+	if self.ClearAllPoints and self.SetPoint then
+		self:ClearAllPoints()
+		self:SetPoint("TOPLEFT", mover)
+	else
+		error("K:Mover: 'self' does not have valid frame methods (ClearAllPoints, SetPoint).")
+	end
 
 	return mover
 end
@@ -99,10 +105,10 @@ function Module:CalculateMoverPoints(mover, trimX, trimY)
 	end
 
 	if x >= RIGHT then
-		point = point.."RIGHT"
+		point = point .. "RIGHT"
 		x = mover:GetRight() - screenWidth
 	elseif x <= LEFT then
-		point = point.."LEFT"
+		point = point .. "LEFT"
 		x = mover:GetLeft()
 	else
 		x = x - screenCenter
@@ -110,13 +116,17 @@ function Module:CalculateMoverPoints(mover, trimX, trimY)
 
 	x = x + (trimX or 0)
 	y = y + (trimY or 0)
+	x, y = K.Round(x), K.Round(y)
 
 	return x, y, point
 end
 
 function Module:UpdateTrimFrame()
+	if not f then
+		return
+	end
+
 	local x, y = Module:CalculateMoverPoints(self)
-	x, y = K.Round(x), K.Round(y)
 	f.__x:SetText(x)
 	f.__y:SetText(y)
 	f.__x.__current = x
@@ -128,21 +138,20 @@ function Module:DoTrim(trimX, trimY)
 	local mover = updater.__owner
 	if mover then
 		local x, y, point = Module:CalculateMoverPoints(mover, trimX, trimY)
-		x, y = K.Round(x), K.Round(y)
 		f.__x:SetText(x)
 		f.__y:SetText(y)
 		f.__x.__current = x
 		f.__y.__current = y
 		mover:ClearAllPoints()
 		mover:SetPoint(point, UIParent, point, x, y)
-		KkthnxUIDB.Variables[K.Realm][K.Name][mover.__key][mover.__value] = {point, "UIParent", point, x, y}
+		KkthnxUIDB.Variables[K.Realm][K.Name][mover.__key][mover.__value] = { point, "UIParent", point, x, y }
 	end
 end
 
 function Module:Mover_OnClick(btn)
 	if IsShiftKeyDown() and btn == "RightButton" then
 		if self.isAuraWatch then
-			UIErrorsFrame:AddMessage(K.InfoColor.."You can't hide AuraWatch mover by that.")
+			UIErrorsFrame:AddMessage(K.InfoColor .. "You can't hide AuraWatch mover by that.")
 		else
 			self:Hide()
 		end
@@ -157,12 +166,12 @@ function Module:Mover_OnClick(btn)
 end
 
 function Module:Mover_OnEnter()
-	self.bg:SetColorTexture(K.r, K.g, K.b, 0.9)
-	self.text:SetTextColor(1, .8, 0)
+	self.KKUI_Background:SetVertexColor(K.r, K.g, K.b, 0.8)
+	self.text:SetTextColor(1, 0.8, 0)
 end
 
 function Module:Mover_OnLeave()
-	self.bg:SetColorTexture(38/255, 125/255, 206/255, 90/255)
+	self.KKUI_Background:SetVertexColor(38 / 255, 125 / 255, 206 / 255, 80 / 255)
 	self.text:SetTextColor(1, 1, 1)
 end
 
@@ -181,7 +190,7 @@ function Module:Mover_OnDragStop()
 
 	self:ClearAllPoints()
 	self:SetPoint(orig, "UIParent", tar, x, y)
-	KkthnxUIDB.Variables[K.Realm][K.Name][self.__key][self.__value] = {orig, "UIParent", tar, x, y}
+	KkthnxUIDB.Variables[K.Realm][K.Name][self.__key][self.__value] = { orig, "UIParent", tar, x, y }
 	Module.UpdateTrimFrame(self)
 	updater:Hide()
 end
@@ -189,7 +198,7 @@ end
 function Module:UnlockElements()
 	for i = 1, #MoverList do
 		local mover = MoverList[i]
-		if not mover:IsShown() then
+		if not mover:IsShown() and not mover.isDisable then
 			mover:Show()
 		end
 	end
@@ -232,11 +241,11 @@ local function CreateConsole()
 
 	f.text = f:CreateFontString(nil, "OVERLAY")
 	f.text:SetPoint("TOP", 0, -10)
-	f.text:FontTemplate()
-	f.text:SetText(K.Title.." Movers Config")
+	f.text:SetFontObject(K.UIFont)
+	f.text:SetText(K.Title .. " Movers Config")
 	f.text:SetWordWrap(false)
 
-	local bu, text = {}, {LOCK, "Grids", "AuraWatch", RESET}
+	local bu, text = {}, { LOCK, "Grids", "AuraWatch", RESET }
 	for i = 1, 4 do
 		bu[i] = CreateFrame("Button", nil, f)
 		bu[i]:SetSize(100, 24)
@@ -244,7 +253,7 @@ local function CreateConsole()
 
 		bu[i].text = bu[i]:CreateFontString(nil, "OVERLAY")
 		bu[i].text:SetPoint("CENTER")
-		bu[i].text:FontTemplate()
+		bu[i].text:SetFontObject(K.UIFont)
 		bu[i].text:SetText(text[i])
 		bu[i].text:SetWordWrap(false)
 
@@ -253,7 +262,7 @@ local function CreateConsole()
 		elseif i == 3 then
 			bu[i]:SetPoint("TOP", bu[1], "BOTTOM", 0, -6)
 		else
-			bu[i]:SetPoint("LEFT", bu[i-1], "RIGHT", 6, 0)
+			bu[i]:SetPoint("LEFT", bu[i - 1], "RIGHT", 6, 0)
 		end
 	end
 
@@ -282,7 +291,8 @@ local function CreateConsole()
 	header:SetPoint("TOP")
 	K.CreateMoverFrame(header, f)
 
-	local tips = K.InfoColor.."|nCTRL + "..L["Right Click"]..K.SystemColor.." = Reset Mover"..K.InfoColor.."|nSHIFT + "..L["Right Click"]..K.SystemColor.." = Hide Panel"
+	-- stylua: ignore
+	local tips = K.InfoColor .. "|nCTRL + " .. L["Right Click"] .. K.SystemColor .. " = Reset Mover" .. K.InfoColor .. "|nSHIFT + " .. L["Right Click"] .. K.SystemColor .. " = Hide Panel"
 	header.title = "Mover Tips"
 	K.AddTooltip(header, "ANCHOR_TOP", tips)
 
@@ -298,10 +308,11 @@ local function CreateConsole()
 	f.__trimText = K.CreateFontString(frame, 12, NONE, "", "system", "BOTTOM", 0, 5)
 
 	local xBox = CreateFrame("EditBox", nil, frame)
-	xBox:SetSize(60, 22)
+	xBox:SetSize(60, 18)
 	xBox:SetAutoFocus(false)
 	xBox:SetTextInsets(5, 5, 0, 0)
-	xBox:SetFont(C["Media"].Fonts.KkthnxUIFont, 12, "")
+	xBox:SetFontObject(K.UIFont)
+	xBox:CreateBorder()
 	xBox:SetScript("OnEscapePressed", frame.ClearFocus)
 	xBox:SetScript("OnEnterPressed", frame.ClearFocus)
 	xBox:SetPoint("TOPRIGHT", frame, "TOP", -12, -5)
@@ -320,10 +331,11 @@ local function CreateConsole()
 	f.__x = xBox
 
 	local yBox = CreateFrame("EditBox", nil, frame)
-	yBox:SetSize(60, 22)
+	yBox:SetSize(60, 18)
 	yBox:SetAutoFocus(false)
 	yBox:SetTextInsets(5, 5, 0, 0)
-	yBox:SetFont(C["Media"].Fonts.KkthnxUIFont, 12, "")
+	yBox:SetFontObject(K.UIFont)
+	yBox:CreateBorder()
 	yBox:SetScript("OnEscapePressed", frame.ClearFocus)
 	yBox:SetScript("OnEnterPressed", frame.ClearFocus)
 	yBox:SetPoint("TOPRIGHT", frame, "TOP", -12, -29)
@@ -343,10 +355,10 @@ local function CreateConsole()
 
 	local arrows = {}
 	local arrowIndex = {
-		[1] = {degree = 180, offset = -1, x = 28, y = 9},
-		[2] = {degree = 0, offset = 1, x = 72, y = 9},
-		[3] = {degree = 90, offset = 1, x = 50, y = 22},
-		[4] = {degree = -90, offset = -1, x = 50, y = -4},
+		[1] = { degree = 180, offset = -1, x = 28, y = 9 },
+		[2] = { degree = 0, offset = 1, x = 72, y = 9 },
+		[3] = { degree = 90, offset = 1, x = 50, y = 22 },
+		[4] = { degree = -90, offset = -1, x = 50, y = -4 },
 	}
 	local function arrowOnClick(self)
 		local modKey = IsModifierKeyDown()
@@ -361,11 +373,12 @@ local function CreateConsole()
 	for i = 1, 4 do
 		arrows[i] = CreateFrame("Button", nil, frame)
 		arrows[i]:SetSize(16, 16)
+		arrows[i]:SkinButton()
 
 		arrows[i].Icon = arrows[i]:CreateTexture(nil, "ARTWORK")
 		arrows[i].Icon:SetTexture("Interface\\OPTIONSFRAME\\VoiceChat-Play")
 		arrows[i].Icon:SetAllPoints()
-		arrows[i].Icon:SetTexCoord(unpack(K.TexCoords))
+		arrows[i].Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
 		local arrowData = arrowIndex[i]
 		arrows[i].__index = i
@@ -417,4 +430,80 @@ function Module:OnEnable()
 	updater:SetScript("OnUpdate", function()
 		Module.UpdateTrimFrame(updater.__owner)
 	end)
+
+	local loadMoverModules = {
+		--"DisableBlizzardMover",
+	}
+
+	for _, funcName in ipairs(loadMoverModules) do
+		local func = self[funcName]
+		if type(func) == "function" then
+			local success, err = pcall(func, self)
+			if not success then
+				error("Error in function " .. funcName .. ": " .. tostring(err), 2)
+			end
+		end
+	end
+end
+
+-- Disable blizzard edit mode
+local function isUnitFrameEnable()
+	return C["Unitframe"].Enable
+end
+
+local function isBuffEnable()
+	return C["Auras"].Enable or C["Auras"].HideBlizBuff
+end
+
+local function isActionbarEnable()
+	return C["ActionBar"].Enable
+end
+
+local function isCastbarEnable()
+	return C["Unitframe"].Enable and C["Unitframe"].Castbars
+end
+
+local function isPartyEnable()
+	return C["Raid"].Enable and C["Party"].Enable
+end
+
+local function isRaidEnable()
+	return C["Raid"].Enable
+end
+
+local function isArenaEnable()
+	return C["Unitframe"].Enable and C["Arena"].Enable
+end
+
+function Module:DisableBlizzardMover()
+	local editMode = _G.EditModeManagerFrame
+
+	-- account settings will be tainted
+	local mixin = editMode.AccountSettings
+	if isCastbarEnable() then
+		mixin.RefreshCastBar = K.Noop
+	end
+	if isBuffEnable() then
+		mixin.RefreshBuffsAndDebuffs = K.Noop
+	end
+	if isRaidEnable() then
+		mixin.RefreshRaidFrames = K.Noop
+	end
+	if isArenaEnable() then
+		mixin.RefreshArenaFrames = K.Noop
+	end
+	if isPartyEnable() then
+		mixin.RefreshPartyFrames = K.Noop
+	end
+	if isUnitFrameEnable() then
+		mixin.RefreshTargetAndFocus = K.Noop
+		mixin.RefreshBossFrames = K.Noop
+	end
+	if isActionbarEnable() then
+		mixin.RefreshPetFrame = K.Noop
+		mixin.RefreshEncounterBar = K.Noop
+		mixin.RefreshActionBarShown = K.Noop
+		mixin.RefreshVehicleLeaveButton = K.Noop
+		mixin.ResetActionBarShown = K.Noop
+	end
 end

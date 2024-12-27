@@ -1,13 +1,11 @@
-local K, C = unpack(select(2, ...))
+local K = KkthnxUI[1]
 local Module = K:GetModule("Skins")
 local ModuleTooltip = K:GetModule("Tooltip")
 
-local _G = _G
-
-local IsAddOnLoaded = _G.IsAddOnLoaded
+local C_AddOns_IsAddOnLoaded = C_AddOns.IsAddOnLoaded
 
 function Module:ReskinRaiderIO()
-	if not IsAddOnLoaded("RaiderIO") then
+	if not C_AddOns_IsAddOnLoaded("RaiderIO") then
 		return
 	end
 

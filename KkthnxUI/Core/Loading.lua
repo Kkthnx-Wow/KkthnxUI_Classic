@@ -1,62 +1,86 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
+local KKUI_AddonLoader = CreateFrame("Frame")
+
+local function KKUI_VerifyDatabase()
+	KkthnxUIDB = KkthnxUIDB or {}
+	KkthnxUIDB.Variables = KkthnxUIDB.Variables or {}
+	KkthnxUIDB.Variables[K.Realm] = KkthnxUIDB.Variables[K.Realm] or {}
+	KkthnxUIDB.Variables[K.Realm][K.Name] = KkthnxUIDB.Variables[K.Realm][K.Name] or {}
+
+	local charData = KkthnxUIDB.Variables[K.Realm][K.Name]
+	charData.AuraWatchList = charData.AuraWatchList or { Switcher = {}, IgnoreSpells = {} }
+	charData.AuraWatchMover = charData.AuraWatchMover or {}
+	charData.AutoQuest = charData.AutoQuest or false
+	charData.AutoQuestIgnoreNPC = charData.AutoQuestIgnoreNPC or {}
+	charData.BindType = charData.BindType or 1
+	charData.CustomItems = charData.CustomItems or {}
+	charData.CustomJunkList = charData.CustomJunkList or {}
+	charData.CustomNames = charData.CustomNames or {}
+	charData.InternalCD = charData.InternalCD or {}
+	charData.Mover = charData.Mover or {}
+	charData.RevealWorldMap = charData.RevealWorldMap or false
+	charData.AutoDeposit = charData.AutoDeposit or false
+	charData.SplitCount = charData.SplitCount or 1
+	charData.TempAnchor = charData.TempAnchor or {}
+	charData.Tracking = charData.Tracking or { PvP = {}, PvE = {} }
+
+	if charData.FavouriteItems then
+		local customItems = charData.CustomItems
+		for itemID in pairs(charData.FavouriteItems) do
+			customItems[itemID] = 1
+		end
+		charData.FavouriteItems = nil
+	end
+
+	KkthnxUIDB.Settings = KkthnxUIDB.Settings or {}
+	KkthnxUIDB.Settings[K.Realm] = KkthnxUIDB.Settings[K.Realm] or {}
+	KkthnxUIDB.Settings[K.Realm][K.Name] = KkthnxUIDB.Settings[K.Realm][K.Name] or {}
+
+	KkthnxUIDB.ChatHistory = KkthnxUIDB.ChatHistory or {}
+	KkthnxUIDB.Gold = KkthnxUIDB.Gold or {}
+	KkthnxUIDB.ShowSlots = KkthnxUIDB.ShowSlots or false
+	KkthnxUIDB.ChangeLog = KkthnxUIDB.ChangeLog or {}
+	KkthnxUIDB.KeystoneInfo = KkthnxUIDB.KeystoneInfo or {}
+	KkthnxUIDB.DisabledAddOns = KkthnxUIDB.DisabledAddOns or {}
+end
 
 local function KKUI_CreateDefaults()
 	K.Defaults = {}
-
 	for group, options in pairs(C) do
-		if (not K.Defaults[group]) then
+		if type(options) == "table" then
 			K.Defaults[group] = {}
-		end
-
-		for option, value in pairs(options) do
-			K.Defaults[group][option] = value
-
-			if (type(C[group][option]) == "table") then
-				if C[group][option].Options then
-					K.Defaults[group][option] = value.Value
-				else
-					K.Defaults[group][option] = value
-				end
-			else
-				K.Defaults[group][option] = value
+			for option, value in pairs(options) do
+				local defaultValue = type(value) == "table" and value.Options and value.Value or value
+				K.Defaults[group][option] = defaultValue
 			end
 		end
 	end
 end
 
 local function KKUI_LoadCustomSettings()
-	local Settings = KkthnxUIDB.Settings[K.Realm][K.Name]
+	local settings = KkthnxUIDB.Settings[K.Realm] and KkthnxUIDB.Settings[K.Realm][K.Name]
+	if type(settings) ~= "table" then
+		return
+	end
 
-	for group, options in pairs(Settings) do
-		if C[group] then
-			local Count = 0
-
-			for option, value in pairs(options) do
-				if (C[group][option] ~= nil) then
-					if (C[group][option] == value) then
-						Settings[group][option] = nil
+	for group, options in pairs(settings) do
+		local count = 0
+		for option, value in pairs(options) do
+			if C[group] and C[group][option] ~= nil then
+				if C[group][option] == value then
+					options[option] = nil
+				else
+					count = count + 1
+					if type(C[group][option]) == "table" and C[group][option].Options then
+						C[group][option].Value = value
 					else
-						Count = Count + 1
-
-						if (type(C[group][option]) == "table") then
-							if C[group][option].Options then
-								C[group][option].Value = value
-							else
-								C[group][option] = value
-							end
-						else
-							C[group][option] = value
-						end
+						C[group][option] = value
 					end
 				end
 			end
-
-			-- Keeps settings clean and small
-			if (Count == 0) then
-				Settings[group] = nil
-			end
-		else
-			Settings[group] = nil
+		end
+		if count == 0 then
+			settings[group] = nil
 		end
 	end
 end
@@ -77,8 +101,8 @@ local function KKUI_LoadProfiles()
 		local Server = Index
 
 		for Nickname, Settings in pairs(Table) do
-			local ProfileName = Server.."-"..Nickname
-			local MyProfileName = K.Realm.."-"..K.Name
+			local ProfileName = Server .. "-" .. Nickname
+			local MyProfileName = K.Realm .. "-" .. K.Name
 
 			if MyProfileName ~= ProfileName then
 				Menu[ProfileName] = ProfileName
@@ -87,165 +111,22 @@ local function KKUI_LoadProfiles()
 	end
 end
 
-local function KKUI_MergeDatabase()
-	if KkthnxUIData then
-		KkthnxUIDB["Variables"] = KkthnxUIData
-		KkthnxUIData = nil
-	end
-
-	if KkthnxUISettingsPerCharacter then
-		KkthnxUIDB["Settings"] = KkthnxUISettingsPerCharacter
-		KkthnxUISettingsPerCharacter = nil
-	end
-
-	if KkthnxUIGold then
-		KkthnxUIDB["Gold"] = KkthnxUIGold
-		KkthnxUIGold = nil
-	end
-
-	if KkthnxUIChatHistory then
-		KkthnxUIDB["ChatHistory"] = KkthnxUIChatHistory
-		KkthnxUIChatHistory = nil
-	end
-end
-
-local function KKUI_VerifyDatabase()
-	if not KkthnxUIDB then
-		KkthnxUIDB = {}
-	end
-
-	-- VARIABLES
-	if not KkthnxUIDB.Variables then
-		KkthnxUIDB.Variables = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm] then
-		KkthnxUIDB.Variables[K.Realm] = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name] then
-		KkthnxUIDB.Variables[K.Realm][K.Name] = {}
-	end
-
-	if KkthnxUIDB.Variables[K.Realm][K.Name].AutoQuest == nil then
-		KkthnxUIDB.Variables[K.Realm][K.Name].AutoQuest = false
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].BindType then
-		KkthnxUIDB.Variables[K.Realm][K.Name].BindType = 1
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].ChangeLog then
-		KkthnxUIDB.Variables[K.Realm][K.Name].ChangeLog = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList then
-		KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList = {}
-	end
-
-	if KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion == nil then
-		KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion = K.Version
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].FavouriteItems then
-		KkthnxUIDB.Variables[K.Realm][K.Name].FavouriteItems = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].Mover then
-		KkthnxUIDB.Variables[K.Realm][K.Name].Mover = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchMover then
-		KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchMover = {}
-	end
-
-	if KkthnxUIDB.Variables[K.Realm][K.Name].RevealWorldMap == nil then
-		KkthnxUIDB.Variables[K.Realm][K.Name].RevealWorldMap = false
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].SplitCount then
-		KkthnxUIDB.Variables[K.Realm][K.Name].SplitCount = 1
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].ContactList then
-		KkthnxUIDB.Variables[K.Realm][K.Name].ContactList = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].TempAnchor then
-		KkthnxUIDB.Variables[K.Realm][K.Name].TempAnchor = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD then
-		KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList then
-		KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList = {}
-		KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.Switcher = {}
-		KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.IgnoreSpells = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.IgnoreSpells then
-		KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.IgnoreSpells = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].KeystoneInfo then
-		KkthnxUIDB.Variables[K.Realm][K.Name].KeystoneInfo = {}
-	end
-
-	-- Settings
-	if (not KkthnxUIDB.Settings) then
-		KkthnxUIDB.Settings = {}
-	end
-
-	if not KkthnxUIDB.Settings[K.Realm] then
-		KkthnxUIDB.Settings[K.Realm] = {}
-	end
-
-	if not KkthnxUIDB.Settings[K.Realm][K.Name] then
-		KkthnxUIDB.Settings[K.Realm][K.Name] = {}
-	end
-
-	-- Chat History
-	if not KkthnxUIDB.ChatHistory then
-		KkthnxUIDB.ChatHistory = {}
-	end
-
-	-- Gold
-	if not KkthnxUIDB.Gold then
-		KkthnxUIDB.Gold = {}
-	end
-
-	if KkthnxUIDB.ShowSlots == nil then
-		KkthnxUIDB.ShowSlots = false
-	end
-
-	-- StatPriority
-	if not KkthnxUIDB.StatPriority then
-		KkthnxUIDB.StatPriority = {}
-		KkthnxUIDB.StatPriority.Custom = {}
-	end
-end
-
-local addonLoader = CreateFrame("Frame")
-addonLoader:RegisterEvent("ADDON_LOADED")
-addonLoader:SetScript("OnEvent", function(self, _, addon)
-	if addon ~= "KkthnxUI" then
-		return
-	end
-
-	-- We verify everything is ok with our savedvariables
-	KKUI_VerifyDatabase()
-	-- KkthnxUI was using different table to save settings, when players will hit this version, we need to move their settings into our new table
-	KKUI_MergeDatabase()
-
+local function KKUI_LoadVariables()
 	KKUI_CreateDefaults()
 	KKUI_LoadProfiles()
 	KKUI_LoadCustomSettings()
-
 	K.GUI:Enable()
 	K.Profiles:Enable()
-	K.SetupUIScale(true)
+end
 
-	self:UnregisterAllEvents()
-end)
+local function KKUI_OnEvent(_, event, addonName)
+	if event == "ADDON_LOADED" and addonName == "KkthnxUI" then
+		KKUI_VerifyDatabase()
+		KKUI_LoadVariables()
+		K:SetupUIScale(true)
+		KKUI_AddonLoader:UnregisterEvent("ADDON_LOADED")
+	end
+end
+
+KKUI_AddonLoader:RegisterEvent("ADDON_LOADED")
+KKUI_AddonLoader:SetScript("OnEvent", KKUI_OnEvent)

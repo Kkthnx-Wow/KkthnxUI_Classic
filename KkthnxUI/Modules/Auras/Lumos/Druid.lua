@@ -1,19 +1,9 @@
-local K = unpack(select(2, ...))
+local K = KkthnxUI[1]
 local Module = K:GetModule("Auras")
 
 if K.Class ~= "DRUID" then
 	return
 end
-
-local _G = _G
-local math_floor = _G.math.floor
-
-local GetSpecialization = _G.GetSpecialization
-local GetSpellCount = _G.GetSpellCount
-local GetSpellTexture = _G.GetSpellTexture
-local IsPlayerSpell = _G.IsPlayerSpell
-local IsUsableSpell = _G.IsUsableSpell
-local UnitPower = _G.UnitPower
 
 local function UpdateCooldown(button, spellID, texture)
 	return Module:UpdateCooldown(button, spellID, texture)
@@ -28,8 +18,8 @@ local function UpdateDebuff(button, spellID, auraID, cooldown, glow)
 end
 
 local function UpdateSpellStatus(button, spellID)
-	button.Icon:SetTexture(GetSpellTexture(spellID))
-	if IsUsableSpell(spellID) then
+	button.Icon:SetTexture(C_Spell.GetSpellTexture(spellID))
+	if C_Spell.IsSpellUsable(spellID) then
 		button.Icon:SetDesaturated(false)
 	else
 		button.Icon:SetDesaturated(true)
@@ -42,22 +32,22 @@ function Module:ChantLumos(self)
 		local currentPower = UnitPower("player", 8)
 		do
 			local button = self.lumos[1]
-			local count = GetSpellCount(190984)
+			local count = C_Spell.GetSpellCastCount(190984)
 			UpdateBuff(button, 190984, 48517)
-			button.Count:SetText(count > 0 and count)
+			button.Count:SetText(count > 0 and count or "")
 		end
 
 		do
 			local button = self.lumos[2]
-			local count = GetSpellCount(194153)
+			local count = C_Spell.GetSpellCastCount(194153)
 			UpdateBuff(button, 194153, 48518)
-			button.Count:SetText(count > 0 and count)
+			button.Count:SetText(count > 0 and count or "")
 		end
 
 		do
 			local button = self.lumos[3]
 			UpdateSpellStatus(button, 78674)
-			button.Count:SetText(math_floor(currentPower/30))
+			button.Count:SetText(floor(currentPower / 30))
 		end
 
 		do

@@ -42,6 +42,8 @@ CALLBACKS
 local _, ns = ...
 local cargBags = ns.cargBags
 
+local GetContainerNumFreeSlots = C_Container and C_Container.GetContainerNumFreeSlots or GetContainerNumFreeSlots
+
 local tagPool, tagEvents, object = {}, {}
 local function tagger(tag, ...) return object.tags[tag] and object.tags[tag](object, ...) or "" end
 
@@ -91,21 +93,31 @@ end
 
 
 -- Tags
-local function GetNumFreeSlots(name)
-	if name == "Bag" then
-		return CalculateTotalNumberOfFreeBagSlots()
-	elseif name == "Bank" then
-		local numFreeSlots = GetContainerNumFreeSlots(-1)
-		for bagID = 5, 10 do
-			numFreeSlots = numFreeSlots + GetContainerNumFreeSlots(bagID)
+local function GetNumFreeSlots(self)
+	local bagType = self.Settings.BagType
+	if bagType == "Bag" then
+		local totalFree = 0
+		for i = 0, 4 do
+			if cargBags.BagGroups[i] == self.bagGroup then
+				totalFree = totalFree + GetContainerNumFreeSlots(i)
+			end
 		end
-		return numFreeSlots
+		return totalFree
+	elseif bagType == "Bank" then
+		local totalFree = self.bagGroup == 0 and GetContainerNumFreeSlots(-1) or 0
+		for i = 5, 10 do
+			if cargBags.BagGroups[i] == self.bagGroup then
+				totalFree = totalFree + GetContainerNumFreeSlots(i)
+			end
+		end
+		return totalFree
 	end
 end
 
-tagPool["space"] = function(self)
-	local str = GetNumFreeSlots(self.__name)
-	return str
+tagPool["space"] = function(tag)
+	local self = tag.__owner
+	self.totalFree = GetNumFreeSlots(self)
+	return self.totalFree
 end
 
 tagPool["item"] = function(self, item)

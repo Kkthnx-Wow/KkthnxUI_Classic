@@ -1,84 +1,100 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
+local Module = K:GetModule("Automation")
 
--- Auto opening of items in bag (kAutoOpen by Kellett)
+-- Cache functions for performance
+local C_Container_GetContainerItemInfo = C_Container.GetContainerItemInfo
+local C_Container_GetContainerItemLink = C_Container.GetContainerItemLink
+local C_Container_GetContainerNumSlots = C_Container.GetContainerNumSlots
+local C_Container_UseContainerItem = C_Container.UseContainerItem
+local OPENING = OPENING
 
-local _G = _G
+local openFrames = {
+	bank = false,
+	guildBank = false,
+	mail = false,
+	merchant = false,
+}
 
-local GetContainerItemInfo = _G.GetContainerItemInfo
-local GetContainerNumSlots = _G.GetContainerNumSlots
-local IsModifiedClick = _G.IsModifiedClick
-local AUTOLOOTTOGGLE = _G.AUTOLOOTTOGGLE
-local SetCVar = _G.SetCVar
-local GetContainerItemLink = _G.GetContainerItemLink
+-- Helper functions to set frame status
+local function FrameOpened(frameType)
+	openFrames[frameType] = true
+end
 
-local KKUI_StopModule = false
-local KKUI_Blacklist = {}
+local function FrameClosed(frameType)
+	openFrames[frameType] = false
+end
 
-local AutoOpen = CreateFrame("Frame")
-AutoOpen:RegisterEvent("BAG_UPDATE")
-AutoOpen:RegisterEvent("MERCHANT_SHOW")
-AutoOpen:RegisterEvent("MERCHANT_CLOSED")
-AutoOpen:RegisterEvent("BANKFRAME_OPENED")
-AutoOpen:RegisterEvent("BANKFRAME_CLOSED")
-AutoOpen:SetScript("OnEvent", function(self, event, ...)
-	if not C["Automation"].AutoOpenItems then
+-- Handles auto-opening items based on conditions
+local function BagDelayedUpdate(event)
+	if openFrames.bank or openFrames.mail or openFrames.merchant then
 		return
 	end
 
-	return self[event] and self[event](self, ...)
-end)
-
-function AutoOpen:MERCHANT_SHOW()
-	KKUI_StopModule = true
-end
-
-function AutoOpen:MERCHANT_CLOSED()
-	KKUI_StopModule = false
-end
-
-function AutoOpen:BANKFRAME_OPENED()
-	KKUI_StopModule = true
-end
-
-function AutoOpen:BANKFRAME_CLOSED()
-	KKUI_StopModule = false
-end
-
-function AutoOpen:BAG_UPDATE(bag)
-	if KKUI_StopModule then return end
-
-	if UnitCastingInfo("player") then
-		C_Timer.After(3.2, function()
-			--local bag = bag
-			AutoOpen:BAG_UPDATE(bag)
-		end)
+	-- Handle combat lockdown
+	if InCombatLockdown() then
+		if event ~= "PLAYER_REGEN_ENABLED" then
+			-- Register the event only if it’s not already registered
+			K:RegisterEvent("PLAYER_REGEN_ENABLED", BagDelayedUpdate)
+		end
+		return
 	end
 
+	-- Unregister PLAYER_REGEN_ENABLED after leaving combat
+	if event == "PLAYER_REGEN_ENABLED" then
+		K:UnregisterEvent("PLAYER_REGEN_ENABLED", BagDelayedUpdate)
+	end
 
-	for slot = 1, GetContainerNumSlots(bag) do
-		local _, _, locked, _, _, lootable, itemLink = GetContainerItemInfo(bag, slot)
-		local itemName = itemLink and string.match(itemLink, "%[(.*)%]") or nil
-
-		if lootable and not locked and not string.find(itemLink:lower(), "lockbox") and not string.find(itemLink, "Junkbox") and not KKUI_Blacklist[itemName] then -- make sure its not a lockbox or in blacklist
-			local autolootDefault = GetCVar("autoLootDefault")
-
-			if autolootDefault then -- autolooting
-				if IsModifiedClick(AUTOLOOTTOGGLE) then -- currently holding autoloot mod key
-					SetCVar("autoLootDefault", 0) -- swap the autoloot behaviour so it autoloots even with mod key held
-					UseContainerItem(bag, slot)
-					K.Print(K.SystemColor.._G.USE.." "..GetContainerItemLink(bag, slot))
-					SetCVar("autoLootDefault", 1) -- swap back
-				else -- not holding autoloot mod key
-					UseContainerItem(bag, slot)
-					K.Print(K.SystemColor.._G.USE.." "..GetContainerItemLink(bag, slot))
-				end
-			else -- not autolooting
-				SetCVar("autoLootDefault", 1)
-				UseContainerItem(bag, slot)
-				K.Print(K.SystemColor.._G.USE.." "..GetContainerItemLink(bag, slot))
-				SetCVar("autoLootDefault", 0)
+	-- Loop through bags and check for items to open
+	for bag = 0, 4 do
+		for slot = 0, C_Container_GetContainerNumSlots(bag) do
+			local cInfo = C_Container_GetContainerItemInfo(bag, slot)
+			if cInfo and cInfo.hasLoot and not cInfo.isLocked and C.AutoOpenItems[cInfo.itemID] then
+				K.Print(K.SystemColor .. OPENING .. ":|r " .. C_Container_GetContainerItemLink(bag, slot))
+				C_Container_UseContainerItem(bag, slot)
+				break
 			end
-			return
+		end
+	end
+end
+
+-- Event handlers
+local events = {
+	BANKFRAME_OPENED = function()
+		FrameOpened("bank")
+	end,
+	BANKFRAME_CLOSED = function()
+		FrameClosed("bank")
+	end,
+	GUILDBANKFRAME_OPENED = function()
+		FrameOpened("guildBank")
+	end,
+	GUILDBANKFRAME_CLOSED = function()
+		FrameClosed("guildBank")
+	end,
+	MAIL_SHOW = function()
+		FrameOpened("mail")
+	end,
+	MAIL_CLOSED = function()
+		FrameClosed("mail")
+	end,
+	MERCHANT_SHOW = function()
+		FrameOpened("merchant")
+	end,
+	MERCHANT_CLOSED = function()
+		FrameClosed("merchant")
+	end,
+	BAG_UPDATE_DELAYED = BagDelayedUpdate,
+}
+
+-- Register/Unregister events based on config
+function Module:CreateAutoOpenItems()
+	if C["Automation"].AutoOpenItems then
+		for event, func in pairs(events) do
+			K:RegisterEvent(event, func)
+		end
+	else
+		for event, func in pairs(events) do
+			K:UnregisterEvent(event, func)
 		end
 	end
 end

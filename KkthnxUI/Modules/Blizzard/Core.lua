@@ -1,18 +1,26 @@
-local K = unpack(select(2, ...))
+local K = KkthnxUI[1]
 local Module = K:NewModule("Blizzard")
 
 function Module:OnEnable()
-	self:CreateUIWidgets()
-	-- self:CreateTimerTracker()
-	self:CreateMirrorBars()
-	-- self:CreateAlertFrames()
-	-- self:CreateAltPowerbar()
-	-- self:CreateColorPicker()
-	-- self:CreateMirrorBars()
-	-- self:CreateNoBlizzardTutorials()
-	-- self:CreateNoTalkingHead()
-	-- self:CreateObjectiveFrame()
-	-- self:CreateOrderHallIcon()
-	-- self:CreateRaidUtility()
-	-- self:CreateTalkingHeadFrame()
+	local loadBlizzardModules = {
+		"CreateAlertFrames",
+		"CreateAltPowerbar",
+		"CreateColorPicker",
+		"CreateMirrorBars",
+		-- "CreateObjectiveFrame",
+		"CreateOrderHallIcon",
+		"CreateTimerTracker",
+		"CreateTutorialDisabling",
+		"CreateUIWidgets",
+	}
+
+	for _, funcName in ipairs(loadBlizzardModules) do
+		local func = self[funcName]
+		if type(func) == "function" then
+			local success, err = pcall(func, self)
+			if not success then
+				error("Error in function " .. funcName .. ": " .. tostring(err), 2)
+			end
+		end
+	end
 end

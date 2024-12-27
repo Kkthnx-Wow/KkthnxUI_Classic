@@ -1,37 +1,29 @@
-local K, C = unpack(select(2, ...))
+local K = KkthnxUI[1]
 
-local _G = _G
-local math_ceil = _G.math.ceil
-local math_floor = _G.math.floor
-local print = _G.print
-local string_find = _G.string.find
-local string_format = _G.string.format
-local string_split = _G.string.split
-local table_wipe = _G.table.wipe
-local tostring = _G.tostring
+local math_ceil = math.ceil
+local math_floor = math.floor
+local print = print
+local string_format = string.format
+local tostring = tostring
 
-local C_ChatInfo_RegisterAddonMessagePrefix = _G.C_ChatInfo.RegisterAddonMessagePrefix
-local C_ChatInfo_SendAddonMessage = _G.C_ChatInfo.SendAddonMessage
-local DESCRIPTION = _G.DESCRIPTION
-local EJ_GetCurrentTier = _G.EJ_GetCurrentTier
-local EJ_GetEncounterInfoByIndex = _G.EJ_GetEncounterInfoByIndex
-local EJ_GetInstanceInfo = _G.EJ_GetInstanceInfo
-local EJ_SelectInstance = _G.EJ_SelectInstance
-local EnumerateFrames = _G.EnumerateFrames
-local GetInstanceInfo = _G.GetInstanceInfo
-local GetScreenHeight = _G.GetScreenHeight
-local GetScreenWidth = _G.GetScreenWidth
-local GetSpellDescription = _G.GetSpellDescription
-local GetSpellInfo = _G.GetSpellInfo
-local GetSpellTexture = _G.GetSpellTexture
-local IsInGuild = _G.IsInGuild
-local IsInRaid = _G.IsInRaid
-local MouseIsOver = _G.MouseIsOver
-local NAME = _G.NAME
-local SlashCmdList = _G.SlashCmdList
-local UNKNOWN = _G.UNKNOWN
-local UnitGUID = _G.UnitGUID
-local UnitName = _G.UnitName
+local DESCRIPTION = DESCRIPTION
+local EJ_GetCurrentTier = EJ_GetCurrentTier
+local EJ_GetEncounterInfoByIndex = EJ_GetEncounterInfoByIndex
+local EJ_GetInstanceInfo = EJ_GetInstanceInfo
+local EJ_SelectInstance = EJ_SelectInstance
+local EnumerateFrames = EnumerateFrames
+local GetInstanceInfo = GetInstanceInfo
+local GetScreenHeight = GetScreenHeight
+local GetScreenWidth = GetScreenWidth
+local GetSpellDescription = C_Spell.GetSpellDescription
+local C_Spell_GetSpellInfo = C_Spell.GetSpellInfo
+local C_Spell_GetSpellTexture = C_Spell.GetSpellTexture
+local MouseIsOver = MouseIsOver
+local NAME = NAME
+local SlashCmdList = SlashCmdList
+local UNKNOWN = UNKNOWN
+local UnitGUID = UnitGUID
+local UnitName = UnitName
 
 -- KkthnxUI DevTools:
 -- /getenc, get selected encounters info
@@ -42,46 +34,19 @@ local UnitName = _G.UnitName
 -- /ks, get spell name and description
 -- /kt, get gametooltip names
 
-local KKUI_DEVS = {
-	-- Retail
-	["Iamnsfw-Sargeras"] = true,
-	["Kkthnx-Sargeras"] = true,
-	["Kkthnx-Thrall"] = true,
-	["Kkthnxbye-Sargeras"] = true,
-	["Kkthnxtv-Sargeras"] = true,
-	["Kkthnxui-Sargeras"] = true,
-	["Kkthnxx-Sargeras"] = true,
-	["Littledots-Sargeras"] = true,
-	["Superfreaky-Sargeras"] = true,
-	["Tattoofreak-Sargeras"] = true,
-	["Toxicfreak-Sargeras"] = true,
-
-	-- Firestorm
-	["Crackbot-Sethraliss"] = true,
-	["Forumtroll-Sethraliss"] = true,
-	["Givesnofox-Sethraliss"] = true,
-	["Kkthnx-Sethraliss"] = true,
-	["Kkthnxtv-Sethraliss"] = true,
-	["Kkthnxx-Sethraliss"] = true,
-	["Mazikeenlol-Sethraliss"] = true,
-	["Rustbucket-Sethraliss"] = true,
-	["Toxicfreak-Sethraliss"] = true,
-}
-
-local function isDeveloper()
-	local rawName = gsub(K.FullName, "%s", "")
-	return KKUI_DEVS[rawName]
-end
-K.isDeveloper = isDeveloper()
-
 -- Commands
 SlashCmdList["KKTHNXUI_ENUMTIP"] = function()
+	-- Enumerate all frames on the screen
 	local enumf = EnumerateFrames()
 	while enumf do
-		if (enumf:GetObjectType() == "GameTooltip" or string_find((enumf:GetName() or ""):lower(), "tip")) and enumf:IsVisible() and enumf:GetPoint() then
+		-- Check if the frame is a GameTooltip or has "tip" in its name (case-insensitive)
+		-- and if it is visible and has a defined position
+		if (enumf:GetObjectType() == "GameTooltip" or string.find((enumf:GetName() or ""):lower(), "tip")) and enumf:IsVisible() and enumf:GetPoint() then
+			-- Print the name of the frame
 			print(enumf:GetName())
 		end
 
+		-- Get the next frame
 		enumf = EnumerateFrames(enumf)
 	end
 end
@@ -92,8 +57,8 @@ SlashCmdList["KKTHNXUI_ENUMFRAME"] = function()
 	local frame = EnumerateFrames()
 	local chatModule = K:GetModule("Chat")
 	while frame do
-		if (frame:IsVisible() and MouseIsOver(frame)) then
-			print(frame:GetName() or string_format(UNKNOWN..": [%s]", tostring(frame)))
+		if frame:IsVisible() and MouseIsOver(frame) then
+			print(frame:GetName() or string_format(UNKNOWN .. ": [%s]", tostring(frame)))
 			chatModule:ChatCopy_OnClick("LeftButton")
 		end
 
@@ -103,18 +68,18 @@ end
 _G.SLASH_KKTHNXUI_ENUMFRAME1 = "/getframe"
 
 SlashCmdList["KKTHNXUI_DUMPSPELL"] = function(arg)
-	local name = GetSpellInfo(arg)
+	local name = C_Spell_GetSpellInfo(arg)
 	if not name then
 		print("Please enter a spell name --> /getspell SPELLNAME")
 		return
 	end
 
 	local des = GetSpellDescription(arg)
-	print(K.InfoColor.."------------------------")
-	print(" \124T"..GetSpellTexture(arg)..":16:16:::64:64:5:59:5:59\124t", K.InfoColor..arg)
-	print(NAME, K.InfoColor..(name or "nil"))
-	print(DESCRIPTION, K.InfoColor..(des or "nil"))
-	print(K.InfoColor.."------------------------")
+	print(K.InfoColor .. "------------------------")
+	print(" \124T" .. C_Spell_GetSpellTexture(arg) .. ":16:16:::64:64:5:59:5:59\124t", K.InfoColor .. arg)
+	print(NAME, K.InfoColor .. (name or "nil"))
+	print(DESCRIPTION, K.InfoColor .. (des or "nil"))
+	print(K.InfoColor .. "------------------------")
 end
 _G.SLASH_KKTHNXUI_DUMPSPELL1 = "/getspell"
 
@@ -129,73 +94,29 @@ SlashCmdList["KKTHNXUI_NPCID"] = function()
 	local guid = UnitGUID("target")
 	if name and guid then
 		local npcID = K.GetNPCID(guid)
-		print(name, K.InfoColor..(npcID or "nil"))
+		print(name, K.InfoColor .. (npcID or "nil"))
 	end
 end
 _G.SLASH_KKTHNXUI_NPCID1 = "/getnpc"
 
 SlashCmdList["KKTHNXUI_GETFONT"] = function(msg)
+	-- Get the global variable stored in the variable msg
 	local font = _G[msg]
+
+	-- Check if the font variable is not defined
 	if not font then
+		-- If it's not defined, print an error message and exit the function
 		print(msg, "not found.")
 		return
 	end
 
+	-- Get the font, size, and flags of the font object
 	local a, b, c = font:GetFont()
-	print(msg,a,b,c)
+
+	-- Print the font name, size, and flags
+	print(msg, a, b, c)
 end
 _G.SLASH_KKTHNXUI_GETFONT1 = "/getfont"
-
-do
-	local versionList = {}
-	C_ChatInfo_RegisterAddonMessagePrefix("KKUI_VersonCheck")
-
-	local function PrintVerCheck()
-		print("------------------------")
-		for name, version in pairs(versionList) do
-			print(name.." "..version)
-		end
-	end
-
-	local function SendVerCheck(channel)
-		table_wipe(versionList)
-		C_ChatInfo_SendAddonMessage("KKUI_VersonCheck", "VersionCheck", channel)
-		C_Timer.After(3, PrintVerCheck)
-	end
-
-	local function VerCheckListen(_, ...)
-		local prefix, msg, distType, sender = ...
-
-		if prefix == "KKUI_VersonCheck" then
-			if msg == "VersionCheck" then
-				C_ChatInfo_SendAddonMessage("KKUI_VersonCheck", "MyVer-"..K.Version, distType)
-			elseif string_find(msg, "MyVer") then
-				local _, version = string_split("-", msg)
-				versionList[sender] = version.." - "..distType
-			end
-		end
-	end
-	K:RegisterEvent("CHAT_MSG_ADDON", VerCheckListen)
-
-	SlashCmdList["KKTHNXUI_VER_CHECK"] = function(msg)
-		local channel
-		if IsInRaid() then
-			channel = "RAID"
-		elseif IsInGuild() then
-			channel = "GUILD"
-		end
-
-		if msg ~= "" then
-			channel = msg
-		end
-
-		if channel then
-			SendVerCheck(channel)
-		end
-	end
-
-	_G.SLASH_KKTHNXUI_VER_CHECK1 = "/kkver"
-end
 
 SlashCmdList["KKTHNXUI_GET_ENCOUNTERS"] = function()
 	if not _G.EncounterJournal then
@@ -203,12 +124,12 @@ SlashCmdList["KKTHNXUI_GET_ENCOUNTERS"] = function()
 	end
 
 	local tierID = EJ_GetCurrentTier()
-	local instID = _G.EncounterJournal.instanceID
+	local instID = EncounterJournal.instanceID
 	EJ_SelectInstance(instID)
 	local instName = EJ_GetInstanceInfo()
 	print(" ")
-	print("TIER = "..tierID)
-	print("INSTANCE = "..instID.." -- "..instName)
+	print("TIER = " .. tierID)
+	print("INSTANCE = " .. instID .. " -- " .. instName)
 	print("BOSS")
 	print(" ")
 
@@ -220,18 +141,18 @@ SlashCmdList["KKTHNXUI_GET_ENCOUNTERS"] = function()
 			return
 		end
 
-		print("BOSS = "..boss.." -- "..name)
+		print("BOSS = " .. boss .. " -- " .. name)
 	end
 end
 _G.SLASH_KKTHNXUI_GET_ENCOUNTERS1 = "/getencounter"
 
 -- Inform us of the patch info we play on.
 SlashCmdList["WOWVERSION"] = function()
-	print(K.InfoColor.."------------------------")
+	print(K.InfoColor .. "------------------------")
 	K.Print("Build: ", K.WowBuild)
 	K.Print("Released: ", K.WowRelease)
 	K.Print("Interface: ", K.TocVersion)
-	print(K.InfoColor.."------------------------")
+	print(K.InfoColor .. "------------------------")
 end
 _G.SLASH_WOWVERSION1 = "/getpatch"
 _G.SLASH_WOWVERSION2 = "/getbuild"
@@ -256,9 +177,9 @@ local function Grid_Create()
 	for i = 0, boxSize do
 		local tx = grid:CreateTexture(nil, "BACKGROUND")
 		if i == boxSize / 2 then
-			tx:SetColorTexture(1, 0, 0, .5)
+			tx:SetColorTexture(1, 0, 0, 0.5)
 		else
-			tx:SetColorTexture(0, 0, 0, .5)
+			tx:SetColorTexture(0, 0, 0, 0.5)
 		end
 		tx:SetPoint("TOPLEFT", grid, "TOPLEFT", i * wStep - (size / 2), 0)
 		tx:SetPoint("BOTTOMRIGHT", grid, "BOTTOMLEFT", i * wStep + (size / 2), 0)
@@ -267,20 +188,20 @@ local function Grid_Create()
 
 	do
 		local tx = grid:CreateTexture(nil, "BACKGROUND")
-		tx:SetColorTexture(1, 0, 0, .5)
+		tx:SetColorTexture(1, 0, 0, 0.5)
 		tx:SetPoint("TOPLEFT", grid, "TOPLEFT", 0, -(height / 2) + (size / 2))
 		tx:SetPoint("BOTTOMRIGHT", grid, "TOPRIGHT", 0, -(height / 2 + size / 2))
 	end
 
 	for i = 1, math_floor((height / 2) / hStep) do
 		local tx = grid:CreateTexture(nil, "BACKGROUND")
-		tx:SetColorTexture(0, 0, 0, .5)
+		tx:SetColorTexture(0, 0, 0, 0.5)
 
 		tx:SetPoint("TOPLEFT", grid, "TOPLEFT", 0, -(height / 2 + i * hStep) + (size / 2))
 		tx:SetPoint("BOTTOMRIGHT", grid, "TOPRIGHT", 0, -(height / 2 + i * hStep + size / 2))
 
 		tx = grid:CreateTexture(nil, "BACKGROUND")
-		tx:SetColorTexture(0, 0, 0, .5)
+		tx:SetColorTexture(0, 0, 0, 0.5)
 
 		tx:SetPoint("TOPLEFT", grid, "TOPLEFT", 0, -(height / 2 - i * hStep) + (size / 2))
 		tx:SetPoint("BOTTOMRIGHT", grid, "TOPRIGHT", 0, -(height / 2 - i * hStep + size / 2))
@@ -317,48 +238,3 @@ end
 _G.SLASH_KKUI_TOGGLEGRID1 = "/showgrid"
 _G.SLASH_KKUI_TOGGLEGRID2 = "/align"
 _G.SLASH_KKUI_TOGGLEGRID3 = "/grid"
-
--- Test UnitFrames (ShestakUI)
-local moving = false
-SlashCmdList.TEST_UF = function()
-	if InCombatLockdown() then
-		print("|cffffff00"..ERR_NOT_IN_COMBAT.."|r")
-		return
-	end
-
-	if not moving then
-		if C["Arena"].Enable then
-			for i = 1, 5 do
-				_G["oUF_Arena"..i].oldunit = _G["oUF_Arena"..i].unit
-				_G["oUF_Arena"..i].Trinket.Hide = K.Noop
-				_G["oUF_Arena"..i].Trinket.Icon:SetTexture("Interface\\Icons\\INV_Jewelry_Necklace_37")
-				_G["oUF_Arena"..i]:SetAttribute("unit", "player")
-			end
-		end
-
-		if C["Boss"].Enable then
-			for i = 1, MAX_BOSS_FRAMES do
-				_G["oUF_Boss"..i].oldunit = _G["oUF_Boss"..i].unit
-				_G["oUF_Boss"..i]:SetAttribute("unit", "player")
-			end
-		end
-		moving = true
-	else
-		if C["Arena"].Enable then
-			for i = 1, 5 do
-				_G["oUF_Arena"..i].Trinket.Hide = nil
-				_G["oUF_Arena"..i]:SetAttribute("unit", _G["oUF_Arena"..i].oldunit)
-				_G["oUF_Arena"..i.."Target"]:SetAttribute("unit", _G["oUF_Arena"..i.."Target"].oldunit)
-			end
-		end
-
-		if C["Boss"].Enable then
-			for i = 1, MAX_BOSS_FRAMES do
-				_G["oUF_Boss"..i]:SetAttribute("unit", _G["oUF_Boss"..i].oldunit)
-			end
-		end
-		moving = false
-	end
-end
-SLASH_TEST_UF1 = "/testui"
-SLASH_TEST_UF2 = "/uitest"

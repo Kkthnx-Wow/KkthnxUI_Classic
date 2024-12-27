@@ -1,14 +1,10 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 local Module = K:GetModule("Chat")
 
-local _G = _G
-local string_find = _G.string.find
-local string_gsub = _G.string.gsub
--- local string_match = _G.string.match
-
-local BetterDate = _G.BetterDate
-local INTERFACE_ACTION_BLOCKED = _G.INTERFACE_ACTION_BLOCKED
-local time = _G.time
+local string_find, string_gsub = string.find, string.gsub
+local BetterDate = BetterDate
+local INTERFACE_ACTION_BLOCKED = INTERFACE_ACTION_BLOCKED
+local C_DateAndTime_GetCurrentCalendarTime = C_DateAndTime.GetCurrentCalendarTime
 
 local timestampFormat = {
 	[2] = "[%I:%M %p] ",
@@ -17,63 +13,75 @@ local timestampFormat = {
 	[5] = "[%H:%M:%S] ",
 }
 
+local IsDeveloper = K.isDeveloper
+local WhisperColorEnabled = C["Chat"].WhisperColor
+local TimestampFormat = C["Chat"].TimestampFormat.Value
+
+local function GetCurrentTime()
+	local locTime = time()
+	local realmTime = not GetCVarBool("timeMgrUseLocalTime") and C_DateAndTime_GetCurrentCalendarTime()
+
+	if realmTime then
+		realmTime.day, realmTime.min, realmTime.sec = realmTime.monthDay, realmTime.minute, date("%S")
+		realmTime = time(realmTime)
+	end
+
+	return locTime, realmTime
+end
+
 function Module:SetupChannelNames(text, ...)
-	if string_find(text, INTERFACE_ACTION_BLOCKED) and not K.isDeveloper then
+	if string_find(text, INTERFACE_ACTION_BLOCKED) and not IsDeveloper then
 		return
 	end
 
 	local r, g, b = ...
-	if C["Chat"].WhisperColor and string_find(text, L["To"].." |H[BN]*player.+%]") then
-		r, g, b = r * 0.7, g * 0.7, b * 0.7
+	if WhisperColorEnabled and string_find(text, L["To"] .. " |H[BN]*player.+%]") then
+		r, g, b = 0.6274, 0.3231, 0.6274
 	end
 
-	-- Dev logo -- Need to make a better logo
-	-- local unitName = string_match(text, "|Hplayer:([^|:]+)")
-	-- if unitName and K.Devs[unitName] then
-	-- 	text = string_gsub(text, "(|Hplayer.+)", "|T".."Interface\\AddOns\\KkthnxUI\\Media\\Chat\\KKUI"..":12:24|t%1")
-	-- end
+	if TimestampFormat > 1 then
+		local locTime, realmTime = GetCurrentTime()
+		local defaultTimestamp = GetCVar("showTimestamps")
 
-	-- Timestamp
-	if C["Chat"].TimestampFormat.Value > 1 then
-		local currentTime = time()
-		local oldTimeStamp = _G.CHAT_TIMESTAMP_FORMAT and string_gsub(BetterDate(_G.CHAT_TIMESTAMP_FORMAT, currentTime), "%[([^]]*)%]", "%%[%1%%]")
-		if oldTimeStamp then
-			text = string_gsub(text, oldTimeStamp, "")
+		if defaultTimestamp == "none" then
+			defaultTimestamp = nil
 		end
 
-		local timeStamp = BetterDate(K.GreyColor..timestampFormat[C["Chat"].TimestampFormat.Value].."|r", currentTime)
-		text = timeStamp..text
+		local oldTimeStamp = defaultTimestamp and gsub(BetterDate(defaultTimestamp, locTime), "%[([^]]*)%]", "%%[%1%%]")
+		if oldTimeStamp then
+			text = gsub(text, oldTimeStamp, "")
+		end
+
+		local timeStamp = BetterDate(K.GreyColor .. timestampFormat[TimestampFormat] .. "|r", realmTime or locTime)
+		text = timeStamp .. text
 	end
 
 	if C["Chat"].OldChatNames then
-		text = string_gsub(text, "|h%[(%d+)%. 大脚世界频道%]|h", "|h%[%1%. 世界%]|h")
-		text = string_gsub(text, "|h%[(%d+)%. 大腳世界頻道%]|h", "|h%[%1%. 世界%]|h")
-		return self.oldAddMsg(self, text, r, g, b)
+		return self.oldAddMessage(self, text, r, g, b)
 	else
-		return self.oldAddMsg(self, string_gsub(text, "|h%[(%d+)%..-%]|h", "|h[%1]|h"), r, g, b)
+		return self.oldAddMessage(self, string_gsub(text, "|h%[(%d+)%..-%]|h", "|h[%1]|h"), r, g, b)
 	end
 end
 
-function Module:CreateChatRename()
+local function renameChatFrames()
 	for i = 1, _G.NUM_CHAT_WINDOWS do
 		if i ~= 2 then
-			local chatFrame = _G["ChatFrame"..i]
-			chatFrame.oldAddMsg = chatFrame.AddMessage
+			local chatFrame = _G["ChatFrame" .. i]
+			chatFrame.oldAddMessage = chatFrame.AddMessage
 			chatFrame.AddMessage = Module.SetupChannelNames
 		end
 	end
+end
 
-	-- Online/Offline
+local function renameChatStrings()
 	_G.ERR_FRIEND_ONLINE_SS = string_gsub(_G.ERR_FRIEND_ONLINE_SS, "%]%|h", "]|h|cff00c957")
 	_G.ERR_FRIEND_OFFLINE_S = string_gsub(_G.ERR_FRIEND_OFFLINE_S, "%%s", "%%s|cffff7f50")
 
-	-- Whisper
-	_G.CHAT_WHISPER_INFORM_GET = L["To"].." %s "
-	_G.CHAT_WHISPER_GET = L["From"].." %s "
-	_G.CHAT_BN_WHISPER_INFORM_GET = L["To"].." %s "
-	_G.CHAT_BN_WHISPER_GET = L["From"].." %s "
+	_G.CHAT_WHISPER_INFORM_GET = L["To"] .. " %s "
+	_G.CHAT_WHISPER_GET = L["From"] .. " %s "
+	_G.CHAT_BN_WHISPER_INFORM_GET = L["To"] .. " %s "
+	_G.CHAT_BN_WHISPER_GET = L["From"] .. " %s "
 
-	-- Say/Yell
 	_G.CHAT_SAY_GET = "%s "
 	_G.CHAT_YELL_GET = "%s "
 
@@ -81,26 +89,26 @@ function Module:CreateChatRename()
 		return
 	end
 
-	-- Guild
 	_G.CHAT_GUILD_GET = "|Hchannel:GUILD|h[G]|h %s "
 	_G.CHAT_OFFICER_GET = "|Hchannel:OFFICER|h[O]|h %s "
 
-	-- Raid
 	_G.CHAT_RAID_GET = "|Hchannel:RAID|h[R]|h %s "
 	_G.CHAT_RAID_WARNING_GET = "[RW] %s "
 	_G.CHAT_RAID_LEADER_GET = "|Hchannel:RAID|h[RL]|h %s "
 
-	-- Party
 	_G.CHAT_PARTY_GET = "|Hchannel:PARTY|h[P]|h %s "
 	_G.CHAT_PARTY_LEADER_GET = "|Hchannel:PARTY|h[PL]|h %s "
 	_G.CHAT_PARTY_GUIDE_GET = "|Hchannel:PARTY|h[PG]|h %s "
 
-	-- Instance
 	_G.CHAT_INSTANCE_CHAT_GET = "|Hchannel:INSTANCE|h[I]|h %s "
 	_G.CHAT_INSTANCE_CHAT_LEADER_GET = "|Hchannel:INSTANCE|h[IL]|h %s "
 
-	-- Flags
 	_G.CHAT_FLAG_AFK = "[AFK] "
 	_G.CHAT_FLAG_DND = "[DND] "
 	_G.CHAT_FLAG_GM = "[GM] "
+end
+
+function Module:CreateChatRename()
+	renameChatFrames()
+	renameChatStrings()
 end

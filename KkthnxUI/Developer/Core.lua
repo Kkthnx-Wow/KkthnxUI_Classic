@@ -1,181 +1,174 @@
-local K, C, L = unpack(select(2, ...))
-local Module = K:NewModule("GameMenuTest")
+local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
+-- local Module = K:NewModule("Developer")
 
-local GUI = K["GUI"]
+K.Devs = {
+	["Kkthnx-Area 52"] = true,
+	["Chithick-Area 52"] = true,
+	["Kkthnxbye-Area 52"] = true,
+	["Kkthnx-Valdrakken"] = true,
+}
 
-function Module:SetupGameMenu()
-	if Module.GameMenuButtonKkthnxUI then
-        GameMenuFrame:SetHeight(GameMenuFrame:GetHeight() + GameMenuButtonLogout:GetHeight() + 32)
+local function isDeveloper()
+	return K.Devs[K.Name .. "-" .. K.Realm]
+end
+K.isDeveloper = isDeveloper()
 
-		GameMenuButtonHelp:ClearAllPoints()
-		GameMenuButtonHelp:SetPoint("CENTER", GameMenuFrame, "TOP", 0, -50)
+if not K.isDeveloper then
+	return
+end
 
-		GameMenuButtonOptions:ClearAllPoints()
-		GameMenuButtonOptions:SetPoint("TOP", GameMenuButtonHelp, "BOTTOM", 0, -6)
-
-		GameMenuButtonUIOptions:ClearAllPoints()
-		GameMenuButtonUIOptions:SetPoint("TOP", GameMenuButtonOptions, "BOTTOM", 0, -6)
-
-		GameMenuButtonKeybindings:ClearAllPoints()
-		GameMenuButtonKeybindings:SetPoint("TOP", GameMenuButtonUIOptions, "BOTTOM", 0, -6)
-
-		GameMenuButtonMacros:ClearAllPoints()
-		GameMenuButtonMacros:SetPoint("TOP", GameMenuButtonKeybindings, "BOTTOM", 0, -6)
-
-		GameMenuButtonAddons:ClearAllPoints()
-		GameMenuButtonAddons:SetPoint("TOP", GameMenuButtonMacros, "BOTTOM", 0, -6)
-
-		GameMenuButtonLogout:ClearAllPoints()
-		GameMenuButtonLogout:SetPoint("TOP", Module.GameMenuButtonKkthnxUI, "BOTTOM", 0, -18)
-
-		GameMenuButtonQuit:ClearAllPoints()
-		GameMenuButtonQuit:SetPoint("TOP", GameMenuButtonLogout, "BOTTOM", 0, -6)
-
-		GameMenuButtonContinue:ClearAllPoints()
-		GameMenuButtonContinue:SetPoint("TOP", GameMenuButtonQuit, "BOTTOM", 0, -18)
-
-		Module.GameMenuButtonKkthnxUI:ClearAllPoints()
-		Module.GameMenuButtonKkthnxUI:SetPoint("TOPLEFT", GameMenuButtonAddons, "BOTTOMLEFT", 0, -6)
+function K.AddToDevTool(data, name)
+	if DevTool then
+		DevTool:AddData(data, name)
 	end
 end
 
-function Module:CreateGameMenu()
-	Module.GameMenuButtonKkthnxUI = CreateFrame("Button", nil, GameMenuFrame, "GameMenuButtonTemplate")
-	Module.GameMenuButtonKkthnxUI:SetSize(GameMenuButtonLogout:GetWidth(), GameMenuButtonLogout:GetHeight())
-	Module.GameMenuButtonKkthnxUI:SetPoint("TOPLEFT", GameMenuButtonAddons, "BOTTOMLEFT", 0, -6)
-	Module.GameMenuButtonKkthnxUI:SetText(K.InfoColor.."KkthnxUI|r")
-	Module.GameMenuButtonKkthnxUI:SetScript("OnClick", function()
-		if InCombatLockdown() then
-			UIErrorsFrame:AddMessage(K.InfoColor..ERR_NOT_IN_COMBAT)
+do
+	local _G = _G
+	local ShowUIPanel = ShowUIPanel
+	local GetInstanceInfo = GetInstanceInfo
+	local InCombatLockdown = InCombatLockdown
+	local C_TalkingHead_SetConversationsDeferred = C_TalkingHead.SetConversationsDeferred
+
+	local testConfig = {
+		objectiveFrameAutoHideInKeystone = true,
+		objectiveFrameAutoHide = true,
+	}
+
+	local AutoHider
+
+	local function IsQuestTrackerLoaded()
+		return K.IsAddOnEnabled("!KalielsTracker") or K.IsAddOnEnabled("DugisGuideViewerZ")
+	end
+
+	local function IsObjectiveTrackerCollapsed(frame)
+		return frame:GetParent() == K.UIFrameHider
+	end
+
+	local function CollapseObjectiveTracker(frame)
+		frame:SetParent(K.UIFrameHider)
+	end
+
+	local function ExpandObjectiveTracker(frame)
+		frame:SetParent(_G.UIParent)
+	end
+
+	local function AutoHideObjectiveTrackerOnShow()
+		local tracker = _G.ObjectiveTrackerFrame
+		if tracker and IsObjectiveTrackerCollapsed(tracker) then
+			ExpandObjectiveTracker(tracker)
+		end
+	end
+
+	local function AutoHideObjectiveTrackerOnHide()
+		local tracker = _G.ObjectiveTrackerFrame
+		if not tracker or IsObjectiveTrackerCollapsed(tracker) then
 			return
 		end
 
-		GUI:Toggle()
-		HideUIPanel(GameMenuFrame)
-		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
-	end)
-
-	hooksecurefunc("GameMenuFrame_UpdateVisibleButtons", Module.SetupGameMenu)
-end
-
-function Module:OnEnable()
-	Module:CreateGameMenu()
-
-    do -- NZoth textures
-		local texTop = GameMenuFrame:CreateTexture(nil, "OVERLAY", 7)
-		local texBotomLeft = GameMenuFrame:CreateTexture(nil, "OVERLAY", 7)
-		local texBottomRight = GameMenuFrame:CreateTexture(nil, "OVERLAY", 7)
-
-		GameMenuFrame.textures = {
-			TOP = texTop, BOTTOMLEFT = texBotomLeft, BOTTOMRIGHT = texBottomRight,
-			Show = function() texTop:Show() texBotomLeft:Show() texBottomRight:Show() end,
-			Hide = function() texTop:Hide() texBotomLeft:Hide() texBottomRight:Hide() end,
-		}
-
-		texTop:SetTexture([[Interface\AddOns\KkthnxUI\Media\Textures\NZothTop]])
-		texTop:SetPoint("CENTER", GameMenuFrame, "TOP", 0, -19)
-		texBotomLeft:SetTexture([[Interface\AddOns\KkthnxUI\Media\Textures\NZothBottomLeft]])
-		texBotomLeft:SetPoint("BOTTOMLEFT", GameMenuFrame, "BOTTOMLEFT", -7, -10)
-		texBottomRight:SetTexture([[Interface\AddOns\KkthnxUI\Media\Textures\NZothBottomRight]])
-		texBottomRight:SetPoint("BOTTOMRIGHT", GameMenuFrame, "BOTTOMRIGHT", 7, -10)
-	end
-
-    GameMenuButtonLogoutText:SetTextColor(1, 1, 0)
-    GameMenuButtonQuitText:SetTextColor(1, 0, 0)
-    GameMenuButtonContinueText:SetTextColor(0, 1, 0)
-
-	GameMenuFrameHeader:StripTextures()
-	GameMenuFrameHeader:ClearAllPoints()
-	GameMenuFrameHeader:SetPoint("TOP", GameMenuFrame, 0, 1)
-    -- GameMenuFrameHeader.Text:SetFont(C["Media"].Fonts.KkthnxUIFont, 13)
-
-    GameMenuFrame:StripTextures()
-	GameMenuFrame:CreateBorder(nil, -1)
-
-	for _, Button in pairs({GameMenuFrame:GetChildren()}) do
-		if Button.IsObjectType and Button:IsObjectType("Button") then
-			Button:SkinButton()
+		if testConfig.objectiveFrameAutoHideInKeystone then
+			CollapseObjectiveTracker(tracker)
+		else
+			local _, _, difficultyID = GetInstanceInfo()
+			if difficultyID ~= 8 then -- ignore hide in keystone runs
+				CollapseObjectiveTracker(tracker)
+			end
 		end
 	end
-end
 
--------------------------------------
-local helpCommands = {
-	["checkquest"] = "|cff669DFF/checkquest ID|r or |cff669DFF/questcheck ID|r - Check the completion status of a quest",
-	["clearchat"] = "|cff669DFF/clearchat|r - Clear your chat window of all text in it",
-	["clearcombat"] = "|cff669DFF/clearcombat|r - Clear your combatlog of all text in it",
-	["convert"] = "|cff669DFF/convert|r or |cff669DFF/toraid|r or |cff669DFF/toparty|r - Convert to party or raid and vise versa",
-	["dbmtest"] = "|cff669DFF/dbmtest|r - Test DeadlyBossMods bars (Must have DBM installed/enabled)",
-	["deleteheirlooms"] = "|cff669DFF/deleteheirlooms|r or |cff669DFF/deletelooms|r - Delete all heirlooms that are in your bags",
-	["deletequestitems"] = "|cff669DFF/deletequestitems|r or |cff669DFF/dqi|r - Delete all quest items that are in your bags",
-	["install"] = "|cff669DFF/install|r - Show KkthnxUI installer",
-	["kaw"] = "|cff669DFF/kaw|r - Show KkthnxUI aurawatch configurations window",
-	["kcl"] = "|cff669DFF/kcl|r - Show KkthnxUI most recent changelog",
-	["killquests"] = "|cff669DFF/killquests|r - Remove all quests from your questlog",
-	["kstatus"] = "|cff669DFF/kstatus|r - Show KkthnxUI status report window. Used to reporting bugs",
-	["moveui"] = "|cff669DFF/moveui|r - Move 'most' KkthnxUI elements as you please",
-	["rc"] = "|cff669DFF/rc|r - Start a readycheck on your current group",
-	["ri"] = "|cff669DFF/ri|r - Reset the most recent instance you were in",
-	["rl"] = "|cff669DFF/rl|r - Reload your user interface quickly",
-	["statpriority"] = "|cff669DFF/ksp|r - Show commands for KthnxUI Stat Priority",
-	["ticket"] = "|cff669DFF/ticket|r - Write a ticket to Blizzard for help",
-	["grid"] = "|cff669DFF/grid #|r or |cff669DFF/align #|r - Display a grid which allows you to better align frames",
-}
+	local function SetupAutoHideObjectiveTracker()
+		local tracker = _G.ObjectiveTrackerFrame
+		if not tracker then
+			return
+		end
 
-local Help = CreateFrame("Frame", "KKUI_Help", UIParent)
-local Texts = {}
-local Count = 1
+		if not AutoHider then
+			AutoHider = CreateFrame("Frame", nil, UIParent, "SecureHandlerStateTemplate")
+			AutoHider:SetAttribute("_onstate-objectiveHider", "if newstate == 1 then self:Hide() else self:Show() end")
+			AutoHider:SetScript("OnHide", AutoHideObjectiveTrackerOnHide)
+			AutoHider:SetScript("OnShow", AutoHideObjectiveTrackerOnShow)
+		end
 
-function Help:Enable()
-	self:SetSize(600, 500)
-	self:SetPoint("TOP", UIParent, "TOP", 0, -200)
-	self:CreateBorder()
-
-	self.Logo = self:CreateTexture(nil, "OVERLAY")
-	self.Logo:SetSize(512, 256)
-	self.Logo:SetBlendMode("ADD")
-	self.Logo:SetAlpha(0.06)
-	self.Logo:SetTexture(C["Media"].Textures.LogoTexture)
-	self.Logo:SetPoint("CENTER", self, "CENTER", 0, 0)
-
-	self.Title = self:CreateFontString(nil, "OVERLAY")
-	self.Title:SetFontObject(KkthnxUIFont)
-	self.Title:SetFont(select(1, self.Title:GetFont()), 22, select(3, self.Title:GetFont()))
-	self.Title:SetPoint("TOP", self, "TOP", 0, -8)
-	self.Title:SetText(K.InfoColor.."KkthnxUI|r "..K.SystemColor.."Commands Help|r")
-
-	local ll = CreateFrame("Frame", nil, self)
-	ll:SetPoint("TOP", self.Title, -100, -30)
-	K.CreateGF(ll, 200, 1, "Horizontal", .7, .7, .7, 0, .7)
-	ll:SetFrameStrata("HIGH")
-	local lr = CreateFrame("Frame", nil, self)
-	lr:SetPoint("TOP", self.Title, 100, -30)
-	K.CreateGF(lr, 200, 1, "Horizontal", .7, .7, .7, .7, 0)
-	lr:SetFrameStrata("HIGH")
-
-	self.Close = CreateFrame("Button", nil, self)
-	self.Close:SetSize(32, 32)
-	self.Close:SetPoint("TOPRIGHT", self, "TOPRIGHT", -4, -4)
-	self.Close:SkinCloseButton()
-	self.Close:SetScript("OnClick", function(self) self:GetParent():Hide() end)
-
-	for Index, Value in pairs(helpCommands) do
-		Texts[Index] = self:CreateFontString(nil, "OVERLAY")
-		Texts[Index]:SetFontObject(KkthnxUIFont)
-		Texts[Index]:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 20, 22 * Count)
-		Texts[Index]:SetText(Value)
-
-		Count = Count + 1
+		if testConfig.objectiveFrameAutoHide then
+			RegisterStateDriver(AutoHider, "objectiveHider", "[@arena1,exists][@arena2,exists][@arena3,exists][@arena4,exists][@arena5,exists][@boss1,exists][@boss2,exists][@boss3,exists][@boss4,exists][@boss5,exists] 1;0")
+		else
+			UnregisterStateDriver(AutoHider, "objectiveHider")
+			AutoHideObjectiveTrackerOnShow() -- reshow it when needed
+		end
 	end
 
-	self:Hide()
+	-- Clone of SplashFrameMixin:OnHide() to remove Objective Update to prevent taint on the Quest Button
+	local function OnSplashFrameHide(frame)
+		local fromGameMenu = frame.screenInfo and frame.screenInfo.gameMenuRequest
+		frame.screenInfo = nil
+
+		C_TalkingHead_SetConversationsDeferred(false)
+		_G.AlertFrame:SetAlertsEnabled(true, "splashFrame")
+		-- ObjectiveTrackerFrame:Update()
+
+		if fromGameMenu and not frame.showingQuestDialog and not InCombatLockdown() then
+			ShowUIPanel(_G.GameMenuFrame)
+		end
+
+		frame.showingQuestDialog = nil
+	end
+
+	local function SetupObjectiveTracker()
+		SetupAutoHideObjectiveTracker()
+
+		local splash = _G.SplashFrame
+		if splash then
+			splash:SetScript("OnHide", OnSplashFrameHide)
+		end
+	end
+
+	K:RegisterEvent("PLAYER_LOGIN", function()
+		if not IsQuestTrackerLoaded() then
+			SetupObjectiveTracker()
+		end
+	end)
 end
 
-Help:Enable()
+--[[ ============================================================
+    SECTION: Chat Message Blocker
+    Filters out specific phrases or patterns in chat messages 
+    (e.g., monster emotes) based on a configurable list of patterns.
+=============================================================== ]]
 
-K["Help"] = Help
+do
+	-- Cache global references for performance
+	local string_match = string.match
+	local string_gsub = string.gsub
+	local ipairs = ipairs
+	local ChatFrame_AddMessageEventFilter = ChatFrame_AddMessageEventFilter
 
-SlashCmdList["KKUI_HELP"] = function()
-	K.Help:Show()
+	-- Create the ChatFilter object
+	local ChatFilter = {}
+	ChatFilter.blockedPatterns = {
+		"^%s goes into a frenzy!$",
+		"^%s attempts to run away in fear!$",
+		"^%s collapses but the broken body rises again!$",
+		"^%s becomes enraged!$",
+	}
+
+	-- Check if a message matches any of the blocked patterns
+	function ChatFilter:IsBlockedMessage(message)
+		for _, pattern in ipairs(self.blockedPatterns) do
+			if string_match(message, string_gsub(pattern, "%%s", ".+")) then
+				return true
+			end
+		end
+		return false
+	end
+
+	-- Custom chat message filter function
+	local function MyChatFilter(self, event, msg, sender, ...)
+		if ChatFilter:IsBlockedMessage(msg) then
+			return true
+		end
+		return false
+	end
+
+	-- Add the filter for specific chat message events
+	ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_EMOTE", MyChatFilter)
 end
-_G.SLASH_KKUI_HELP1 = "/khelp"

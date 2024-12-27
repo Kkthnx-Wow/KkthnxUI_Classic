@@ -1,11 +1,8 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Auras")
 
-local _G = _G
-local unpack = _G.unpack
-
-local CreateFrame = _G.CreateFrame
-local GetTotemInfo = _G.GetTotemInfo
+local CreateFrame = CreateFrame
+local GetTotemInfo = GetTotemInfo
 
 local totems = {}
 function Module:TotemBar_Init()
@@ -17,12 +14,12 @@ function Module:TotemBar_Init()
 
 	local totemBar = _G["KKUI_TotemBar"]
 	if not totemBar then
-		totemBar = CreateFrame("Frame", "KKUI_TotemBar", K.PetBattleHider)
+		totemBar = CreateFrame("Frame", "KKUI_TotemBar", K.PetBattleFrameHider)
 	end
 	totemBar:SetSize(width, height)
 
 	if not totemBar.mover then
-		totemBar.mover = K.Mover(totemBar, "Totembar", "Totems", {"BOTTOMRIGHT", UIParent, "BOTTOM", -450, 20})
+		totemBar.mover = K.Mover(totemBar, "Totembar", "Totems", { "BOTTOM", UIParent, "BOTTOM", 0, 378 })
 	end
 	totemBar.mover:SetSize(width, height)
 
@@ -37,17 +34,11 @@ function Module:TotemBar_Init()
 
 			totem.Icon = totem:CreateTexture(nil, "ARTWORK")
 			totem.Icon:SetAllPoints()
-			totem.Icon:SetTexCoord(unpack(K.TexCoords))
+			totem.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
 			totem:CreateBorder()
 			totem:SetAlpha(0)
 			totems[i] = totem
-
-			local blizzTotem = _G["TotemFrameTotem"..i]
-			blizzTotem:SetParent(totem)
-			blizzTotem:SetAllPoints()
-			blizzTotem:SetAlpha(0)
-			totem.__owner = blizzTotem
 		end
 
 		totem:SetSize(iconSize, iconSize)
@@ -55,20 +46,20 @@ function Module:TotemBar_Init()
 		if i == 1 then
 			totem:SetPoint("BOTTOMLEFT", margin, margin)
 		elseif vertical then
-			totem:SetPoint("BOTTOM", totems[i-1], "TOP", 0, margin)
+			totem:SetPoint("BOTTOM", totems[i - 1], "TOP", 0, margin)
 		else
-			totem:SetPoint("LEFT", totems[i-1], "RIGHT", margin, 0)
+			totem:SetPoint("LEFT", totems[i - 1], "RIGHT", margin, 0)
 		end
 	end
 end
 
 function Module:TotemBar_Update()
-	for i = 1, 4 do
-		local totem = totems[i]
-		local defaultTotem = totem.__owner
-		local slot = defaultTotem.slot
+	local activeTotems = 0
+	for button in _G.TotemFrame.totemPool:EnumerateActive() do
+		activeTotems = activeTotems + 1
 
-		local haveTotem, _, start, dur, icon = GetTotemInfo(slot)
+		local haveTotem, _, start, dur, icon = GetTotemInfo(button.slot)
+		local totem = totems[activeTotems]
 		if haveTotem and dur > 0 then
 			totem.Icon:SetTexture(icon)
 			totem.CD:SetCooldown(start, dur)
@@ -79,6 +70,19 @@ function Module:TotemBar_Update()
 			totem.CD:Hide()
 			totem:SetAlpha(0)
 		end
+
+		button:ClearAllPoints()
+		button:SetParent(totem)
+		button:SetAllPoints(totem)
+		button:SetAlpha(0)
+		button:SetFrameLevel(totem:GetFrameLevel() + 1)
+	end
+
+	for i = activeTotems + 1, 4 do
+		local totem = totems[i]
+		totem.Icon:SetTexture("")
+		totem.CD:Hide()
+		totem:SetAlpha(0)
 	end
 end
 
@@ -88,6 +92,5 @@ function Module:CreateTotems()
 	end
 
 	Module:TotemBar_Init()
-	K:RegisterEvent("PLAYER_ENTERING_WORLD", Module.TotemBar_Update)
-	K:RegisterEvent("PLAYER_TOTEM_UPDATE", Module.TotemBar_Update)
+	hooksecurefunc(TotemFrame, "Update", Module.TotemBar_Update)
 end

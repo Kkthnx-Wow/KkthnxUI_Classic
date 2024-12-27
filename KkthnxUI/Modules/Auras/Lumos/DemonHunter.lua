@@ -1,16 +1,9 @@
-local K = unpack(select(2, ...))
+local K = KkthnxUI[1]
 local Module = K:GetModule("Auras")
 
 if K.Class ~= "DEMONHUNTER" then
 	return
 end
-
-local _G = _G
-
-local GetSpecialization = _G.GetSpecialization
-local GetSpellCount = _G.GetSpellCount
-local GetSpellTexture = _G.GetSpellTexture
-local IsUsableSpell = _G.IsUsableSpell
 
 local function UpdateCooldown(button, spellID, texture)
 	return Module:UpdateCooldown(button, spellID, texture)
@@ -25,8 +18,8 @@ local function UpdateDebuff(button, spellID, auraID, cooldown, glow)
 end
 
 local function UpdateSpellStatus(button, spellID)
-	button.Icon:SetTexture(GetSpellTexture(spellID))
-	if IsUsableSpell(spellID) then
+	button.Icon:SetTexture(C_Spell.GetSpellTexture(spellID))
+	if C_Spell.IsSpellUsable(spellID) then
 		button.Icon:SetDesaturated(false)
 	else
 		button.Icon:SetDesaturated(true)
@@ -45,7 +38,7 @@ function Module:ChantLumos(self)
 		do
 			local button, spellID = self.lumos[1], 228477
 			UpdateSpellStatus(button, spellID)
-			button.Count:SetText(GetSpellCount(spellID))
+			button.Count:SetText(C_Spell.GetSpellCastCount(spellID))
 		end
 
 		UpdateBuff(self.lumos[2], 258920, 258920, true)

@@ -1,12 +1,12 @@
-local _, ns = ...
-local oUF = ns.oUF or oUF
-assert(oUF, 'oUF not loaded')
+local K = KkthnxUI[1]
+local oUF = K.oUF
+assert(oUF, "oUF not loaded")
 
 local Update = function(self, event, ...)
 	local _, instanceType = IsInInstance()
 
-	if instanceType ~= 'arena' then
-		self.Trinket.Icon:SetTexture("Interface\\Icons\\Ability_pvp_gladiatormedallion")
+	if instanceType ~= "arena" then
+		self.Trinket.Icon:SetTexture(select(2, UnitFactionGroup("player")) == "Horde" and "Interface\\Icons\\inv_jewelry_trinketpvp_01" or "Interface\\Icons\\inv_jewelry_trinketpvp_02")
 		self.Trinket:Hide()
 
 		return
@@ -14,7 +14,9 @@ local Update = function(self, event, ...)
 		self.Trinket:Show()
 	end
 
-	if(self.Trinket.PreUpdate) then self.Trinket:PreUpdate(event, ...) end
+	if self.Trinket.PreUpdate then
+		self.Trinket:PreUpdate(event, ...)
+	end
 
 	if event == "ARENA_COOLDOWNS_UPDATE" then
 		local unit = ...
@@ -37,11 +39,13 @@ local Update = function(self, event, ...)
 
 			self.Trinket.Icon:SetTexture(spellTexture)
 		end
-	elseif event == 'PLAYER_ENTERING_WORLD' then
+	elseif event == "PLAYER_ENTERING_WORLD" then
 		CooldownFrame_Set(self.Trinket.cooldownFrame, 1, 1, 1)
 	end
 
-	if(self.Trinket.PostUpdate) then self.Trinket:PostUpdate(event, ...) end
+	if self.Trinket.PostUpdate then
+		self.Trinket:PostUpdate(event, ...)
+	end
 end
 
 local Enable = function(self)
@@ -59,7 +63,7 @@ local Enable = function(self)
 			self.Trinket.Icon = self.Trinket:CreateTexture(nil, "BORDER")
 			self.Trinket.Icon:SetAllPoints(self.Trinket)
 			self.Trinket.Icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-			self.Trinket.Icon:SetTexture("Interface\\Icons\\Ability_pvp_gladiatormedallion")
+			self.Trinket.Icon:SetTexture(select(2, UnitFactionGroup("player")) == "Horde" and "Interface\\Icons\\inv_jewelry_trinketpvp_01" or "Interface\\Icons\\inv_jewelry_trinketpvp_02")
 		end
 
 		return true
@@ -75,4 +79,4 @@ local Disable = function(self)
 	end
 end
 
-oUF:AddElement('Trinket', Update, Enable, Disable)
+oUF:AddElement("Trinket", Update, Enable, Disable)

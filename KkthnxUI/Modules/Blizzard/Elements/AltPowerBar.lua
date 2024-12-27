@@ -1,42 +1,45 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Blizzard")
 
+-- Cache globals
 local _G = _G
-local floor = _G.floor
-local format = _G.format
-local CreateFrame = _G.CreateFrame
-local UnitPowerMax = _G.UnitPowerMax
-local UnitPower = _G.UnitPower
-local GetUnitPowerBarInfo = _G.GetUnitPowerBarInfo
-local GetUnitPowerBarStrings = _G.GetUnitPowerBarStrings
+local math_floor = math.floor
+local string_format = string.format
+local CreateFrame = CreateFrame
+local UnitPowerMax = UnitPowerMax
+local UnitPower = UnitPower
+local GetUnitPowerBarInfo = GetUnitPowerBarInfo
+local GetUnitPowerBarStrings = GetUnitPowerBarStrings
+local GameTooltip = GameTooltip
+local UIParent = UIParent
 
 local AltPowerWidth = 250
 local AltPowerHeight = 20
 
 local function updateTooltip(self)
-	if _G.GameTooltip:IsForbidden() then
+	if GameTooltip:IsForbidden() then
 		return
 	end
 
 	if self.powerName and self.powerTooltip then
-		_G.GameTooltip:SetText(self.powerName, 1, 1, 1)
-		_G.GameTooltip:AddLine(self.powerTooltip, nil, nil, nil, 1)
-		_G.GameTooltip:Show()
+		GameTooltip:SetText(self.powerName, 1, 1, 1)
+		GameTooltip:AddLine(self.powerTooltip, nil, nil, nil, true)
+		GameTooltip:Show()
 	end
 end
 
 local function onEnter(self)
-	if (not self:IsVisible()) or _G.GameTooltip:IsForbidden() then
+	if not self:IsVisible() or GameTooltip:IsForbidden() then
 		return
 	end
 
-	_G.GameTooltip:ClearAllPoints()
-	_G.GameTooltip_SetDefaultAnchor(_G.GameTooltip, self)
+	GameTooltip:ClearAllPoints()
+	_G.GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	updateTooltip(self)
 end
 
 local function onLeave()
-	_G.GameTooltip:Hide()
+	GameTooltip:Hide()
 end
 
 function Module:SetAltPowerBarText(text, name, value, max, percent)
@@ -44,53 +47,51 @@ function Module:SetAltPowerBarText(text, name, value, max, percent)
 	if textFormat == "NONE" or not textFormat then
 		text:SetText("")
 	elseif textFormat == "NAME" then
-		text:SetText(format("%s", name))
+		text:SetText(string_format("%s", name))
 	elseif textFormat == "NAMEPERC" then
-		text:SetText(format("%s: %s%%", name, percent))
+		text:SetText(string_format("%s: %s%%", name, percent))
 	elseif textFormat == "NAMECURMAX" then
-		text:SetText(format("%s: %s / %s", name, value, max))
+		text:SetText(string_format("%s: %s / %s", name, value, max))
 	elseif textFormat == "NAMECURMAXPERC" then
-		text:SetText(format("%s: %s / %s - %s%%", name, value, max, percent))
+		text:SetText(string_format("%s: %s / %s - %s%%", name, value, max, percent))
 	elseif textFormat == "PERCENT" then
-		text:SetText(format("%s%%", percent))
+		text:SetText(string_format("%s%%", percent))
 	elseif textFormat == "CURMAX" then
-		text:SetText(format("%s / %s", value, max))
+		text:SetText(string_format("%s / %s", value, max))
 	elseif textFormat == "CURMAXPERC" then
-		text:SetText(format("%s / %s - %s%%", value, max, percent))
+		text:SetText(string_format("%s / %s - %s%%", value, max, percent))
 	end
 end
 
 function Module:PositionAltPowerBar()
 	local holder = CreateFrame("Frame", "AltPowerBarHolder", UIParent)
-	holder:SetPoint("TOP", UIParent, "TOP", -1, -60)
+	holder:SetPoint("TOP", UIParent, "TOP", -1, -108)
 	holder:SetSize(128, 50)
 
-	_G.PlayerPowerBarAlt:ClearAllPoints()
-	_G.PlayerPowerBarAlt:SetPoint("CENTER", holder, "CENTER")
-	_G.PlayerPowerBarAlt:SetParent(holder)
-	_G.PlayerPowerBarAlt:SetMovable(true)
-	_G.PlayerPowerBarAlt:SetUserPlaced(true)
-	_G.UIPARENT_MANAGED_FRAME_POSITIONS.PlayerPowerBarAlt = nil
+	local PlayerPowerBarAlt = _G.PlayerPowerBarAlt
+	PlayerPowerBarAlt:ClearAllPoints()
+	PlayerPowerBarAlt:SetPoint("CENTER", holder, "CENTER")
+	PlayerPowerBarAlt:SetParent(holder)
+	PlayerPowerBarAlt:SetMovable(true)
+	PlayerPowerBarAlt:SetUserPlaced(true)
+	PlayerPowerBarAlt.ignoreFramePositionManager = true
 
-	K.Mover(holder, "PlayerPowerBarAlt", "Alternative Power", {"TOP", UIParent, "TOP", -1, -60}, AltPowerWidth or 250, AltPowerHeight or 20)
+	K.Mover(holder, "PlayerPowerBarAlt", "Alternative Power", { "TOP", UIParent, "TOP", -1, -108 }, AltPowerWidth, AltPowerHeight)
 end
 
 function Module:UpdateAltPowerBarColors()
-	local bar = _G.KKUI_AltPowerBar
-
-	local color = {r = 0.2, g = 0.4, b = 0.8}
+	local bar = KKUI_AltPowerBar
+	local color = { r = 0.2, g = 0.4, b = 0.8 }
 	bar:SetStatusBarColor(color.r, color.g, color.b)
 end
 
 function Module:UpdateAltPowerBarSettings()
-	local bar = _G.KKUI_AltPowerBar
-
-	bar:SetSize(AltPowerWidth or 250, AltPowerHeight or 20)
-	bar:SetStatusBarTexture(C["Media"].Statusbars.KkthnxUIStatusbar)
-	bar.text:FontTemplate()
+	local bar = KKUI_AltPowerBar
+	bar:SetSize(AltPowerWidth, AltPowerHeight)
+	bar:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
+	bar.text:SetFontObject(K.UIFont)
 
 	_G.AltPowerBarHolder:SetSize(bar:GetSize())
-
 	K:SmoothBar(bar)
 
 	Module:SetAltPowerBarText(bar.text, bar.powerName or "", bar.powerValue or 0, bar.powerMaxValue or 0, bar.powerPercent or 0)
@@ -105,7 +106,7 @@ function Module:UpdateAltPowerBar()
 	if barInfo then
 		local power = UnitPower("player", _G.ALTERNATE_POWER_INDEX)
 		local maxPower = UnitPowerMax("player", _G.ALTERNATE_POWER_INDEX) or 0
-		local perc = (maxPower > 0 and floor(power / maxPower * 100)) or 0
+		local perc = maxPower > 0 and math_floor(power / maxPower * 100) or 0
 
 		self.powerMaxValue = maxPower
 		self.powerName = powerName
@@ -154,9 +155,8 @@ function Module:SkinAltPowerBar()
 	powerbar:SetScript("OnEvent", Module.UpdateAltPowerBar)
 end
 
-
 function Module:CreateAltPowerbar()
-	if IsAddOnLoaded("SimplePowerBar") then
+	if C_AddOns.IsAddOnLoaded("SimplePowerBar") then
 		return
 	end
 

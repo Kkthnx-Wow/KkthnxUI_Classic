@@ -1,20 +1,18 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Minimap")
 
 -- Sourced: NDui (Siweia)
 -- Edited: KkthnxUI (Kkthnx)
 
-local _G = _G
-local string_find = _G.string.find
-local string_match = _G.string.match
-local string_upper = _G.string.upper
-local table_insert = _G.table.insert
+local string_find = string.find
+local string_match = string.match
+local string_upper = string.upper
+local table_insert = table.insert
 
-local C_Timer_After = _G.C_Timer.After
-local CreateFrame = _G.CreateFrame
-local Minimap = _G.Minimap
-local PlaySound = _G.PlaySound
-local UIParent = _G.UIParent
+local CreateFrame = CreateFrame
+local Minimap = Minimap
+local PlaySound = PlaySound
+local UIParent = UIParent
 
 function Module:CreateRecycleBin()
 	if not C["Minimap"].ShowRecycleBin then
@@ -22,19 +20,18 @@ function Module:CreateRecycleBin()
 	end
 
 	local blackList = {
-		["GameTimeFrame"] = true,
-		["MiniMapLFGFrame"] = true,
 		["BattlefieldMinimap"] = true,
-		["MinimapBackdrop"] = true,
-		["TimeManagerClockButton"] = true,
 		["FeedbackUIButton"] = true,
-		["HelpOpenTicketButton"] = true,
-		["MiniMapBattlefieldFrame"] = true,
-		["QueueStatusMinimapButton"] = true,
+		["GameTimeFrame"] = true,
 		["GarrisonLandingPageMinimapButton"] = true,
+		["MiniMapBattlefieldFrame"] = true,
+		["MiniMapLFGFrame"] = true,
+		["MinimapBackdrop"] = true,
 		["MinimapZoneTextButton"] = true,
+		["QueueStatusMinimapButton"] = true,
 		["RecycleBinFrame"] = true,
 		["RecycleBinToggleButton"] = true,
+		["TimeManagerClockButton"] = true,
 	}
 
 	local bu = CreateFrame("Button", "RecycleBinToggleButton", Minimap)
@@ -71,18 +68,18 @@ function Module:CreateRecycleBin()
 		bin:SetPoint("BOTTOMRIGHT", bu, "BOTTOMLEFT", -3, 7)
 	end
 	bin:SetSize(width, height)
-	bin:CreateBorder()
-	bin:SetFrameStrata("HIGH")
 	bin:Hide()
 
 	local function hideBinButton()
 		bin:Hide()
 	end
 
-	local function clickFunc()
-		PlaySound(825)
-		UIFrameFadeOut(bin, 0.5, 1, 0)
-		C_Timer_After(0.5, hideBinButton)
+	local function clickFunc(force)
+		if force == 1 then
+			PlaySound(825)
+			UIFrameFadeOut(bin, 0.5, bin:GetAlpha(), 0)
+			K.Delay(0.5, hideBinButton)
+		end
 	end
 
 	local ignoredButtons = {
@@ -90,6 +87,7 @@ function Module:CreateRecycleBin()
 		["HandyNotes.-Pin"] = true,
 		["Guidelime"] = true,
 		["QuestieFrame"] = true,
+		["TTMinimapButton"] = true,
 	}
 
 	local function isButtonIgnored(name)
@@ -100,8 +98,13 @@ function Module:CreateRecycleBin()
 		end
 	end
 
-	local isGoodLookingIcon = {}
+	local isGoodLookingIcon = {
+		["Narci_MinimapButton"] = true,
+		["ZygorGuidesViewerMapIcon"] = true,
+	}
 
+	local iconsPerRow = 6
+	local rowMult = iconsPerRow / 2 - 1
 	local currentIndex, pendingTime, timeThreshold = 0, 5, 12
 	local buttons, numMinimapChildren = {}, 0
 	local removedTextures = {
@@ -116,11 +119,14 @@ function Module:CreateRecycleBin()
 				local texture = region:GetTexture() or ""
 				if removedTextures[texture] or string_find(texture, "Interface\\CharacterFrame") or string_find(texture, "Interface\\Minimap") then
 					region:SetTexture(nil)
+					region:Hide() -- hide CircleMask
 				end
-				region:ClearAllPoints()
-				region:SetAllPoints()
+				if not region.__ignored then
+					region:ClearAllPoints()
+					region:SetAllPoints()
+				end
 				if not isGoodLookingIcon[name] then
-					region:SetTexCoord(unpack(K.TexCoords))
+					region:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 				end
 			end
 			child:SetSize(22, 22)
@@ -153,7 +159,7 @@ function Module:CreateRecycleBin()
 					child.highlight = child:CreateTexture(nil, "HIGHLIGHT")
 					child.highlight:SetPoint("TOPLEFT", child, "TOPLEFT", 2, -2)
 					child.highlight:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT", -2, 2)
-					child.highlight:SetColorTexture(1, 1, 1, .25)
+					child.highlight:SetColorTexture(1, 1, 1, 0.25)
 				end
 
 				-- Naughty Addons
@@ -163,6 +169,10 @@ function Module:CreateRecycleBin()
 					child:SetScript("OnMouseUp", nil)
 				elseif name == "BagSync_MinimapButton" then
 					child:HookScript("OnMouseUp", clickFunc)
+				elseif name == "WIM3MinimapButton" then
+					child.SetParent = K.Noop
+					child:SetFrameStrata("DIALOG")
+					child.SetFrameStrata = K.Noop
 				end
 
 				child.styled = true
@@ -173,12 +183,13 @@ function Module:CreateRecycleBin()
 	local function CollectRubbish()
 		local numChildren = Minimap:GetNumChildren()
 		if numChildren ~= numMinimapChildren then
+			-- examine new children
 			for i = 1, numChildren do
 				local child = select(i, Minimap:GetChildren())
 				local name = child and child.GetName and child:GetName()
 				if name and not child.isExamed and not blackList[name] then
 					if (child:IsObjectType("Button") or string_match(string_upper(name), "BUTTON")) and not isButtonIgnored(name) then
-						ReskinMinimapButton(child)
+						ReskinMinimapButton(child, name)
 					end
 					child.isExamed = true
 				end
@@ -191,36 +202,48 @@ function Module:CreateRecycleBin()
 
 		currentIndex = currentIndex + 1
 		if currentIndex < timeThreshold then
-			C_Timer_After(pendingTime, CollectRubbish)
+			-- schedule another call if within time threshold
+			K.Delay(pendingTime, CollectRubbish)
 		end
 	end
 
+	local shownButtons = {}
 	local function SortRubbish()
 		if #buttons == 0 then
 			return
 		end
 
-		local lastbutton
+		table.wipe(shownButtons)
 		for _, button in pairs(buttons) do
 			if next(button) and button:IsShown() then -- fix for fuxking AHDB
-				button:ClearAllPoints()
-				if not lastbutton then
-					button:SetPoint("RIGHT", bin, -4, 0)
-				else
-					button:SetPoint("RIGHT", lastbutton, "LEFT", -5, 0)
-				end
-				lastbutton = button
+				table_insert(shownButtons, button)
+			end
+		end
+
+		local numShown = #shownButtons
+		local row = numShown == 0 and 1 or K.Round((numShown + rowMult) / iconsPerRow)
+		local newHeight = row * 37 + 3
+		bin:SetHeight(newHeight)
+
+		for index, button in pairs(shownButtons) do
+			button:ClearAllPoints()
+			if index == 1 then
+				button:SetPoint("BOTTOMRIGHT", bin, -6, 6)
+			elseif row > 1 and mod(index, row) == 1 or row == 1 then
+				button:SetPoint("RIGHT", shownButtons[index - row], "LEFT", -6, 0)
+			else
+				button:SetPoint("BOTTOM", shownButtons[index - 1], "TOP", 0, 6)
 			end
 		end
 	end
 
 	bu:SetScript("OnClick", function()
-		SortRubbish()
 		if bin:IsShown() then
-			clickFunc()
+			clickFunc(1)
 		else
 			PlaySound(825)
-			UIFrameFadeIn(bin, 0.5, 0, 1)
+			SortRubbish()
+			UIFrameFadeIn(bin, 0.5, bin:GetAlpha(), 1)
 		end
 	end)
 

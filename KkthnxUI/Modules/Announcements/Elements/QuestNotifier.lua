@@ -1,183 +1,213 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Announcements")
 
-local _G = _G
-local pairs = _G.pairs
+-- Cache Lua functions and constants
+local floor = math.floor
+local mod = mod
+local pairs = pairs
+local find = string.find
+local format = string.format
+local gsub = string.gsub
+local match = string.match
+local wipe = table.wipe
+local tonumber = tonumber
 
-local GetQuestLink = _G.GetQuestLink
-local IsInGroup = _G.IsInGroup
-local IsPartyLFG = _G.IsPartyLFG
-local SendChatMessage = _G.SendChatMessage
-local GetNumQuestLeaderBoards = _G.GetNumQuestLeaderBoards
-local GetQuestLogLeaderBoard = _G.GetQuestLogLeaderBoard
-local C_QuestLog_GetQuestTagInfo = _G.C_QuestLog.GetQuestTagInfo
-local C_QuestLog_GetInfo = C_QuestLog.GetInfo
-local GetNumQuestLogEntries = _G.GetNumQuestLogEntries
+-- Cache WoW API functions and constants
+local COLLECTED = COLLECTED
+local GetQuestInfo = C_QuestLog.GetInfo
+local GetQuestLogIndexForQuestID = C_QuestLog.GetLogIndexForQuestID
+local GetNumQuestLogEntries = C_QuestLog.GetNumQuestLogEntries
+local GetQuestIDForLogIndex = C_QuestLog.GetQuestIDForLogIndex
+local GetQuestTagInfo = C_QuestLog.GetQuestTagInfo
+local GetTitleForQuestID = C_QuestLog.GetTitleForQuestID
+local IsQuestComplete = C_QuestLog.IsComplete
+local IsWorldQuest = C_QuestLog.IsWorldQuest
+local DAILY = DAILY
+local ERR_ADD_FOUND_SII = ERR_QUEST_ADD_FOUND_SII
+local ERR_ADD_ITEM_SII = ERR_QUEST_ADD_ITEM_SII
+local ERR_ADD_KILL_SII = ERR_QUEST_ADD_KILL_SII
+local ERR_ADD_PLAYER_KILL_SII = ERR_QUEST_ADD_PLAYER_KILL_SII
+local ERR_COMPLETE_S = ERR_QUEST_COMPLETE_S
+local ERR_FAILED_S = ERR_QUEST_FAILED_S
+local ERR_OBJECTIVE_COMPLETE_S = ERR_QUEST_OBJECTIVE_COMPLETE_S
+local GetQuestLink = GetQuestLink
+local IsInGroup = IsInGroup
+local IsInRaid = IsInRaid
+local IsPartyLFG = IsPartyLFG
+local QUEST_FREQUENCY_DAILY = Enum.QuestFrequency.Daily
+local QUEST_TAG_TYPE_PROFESSION = Enum.QuestTagType.Profession
+local PlaySound = PlaySound
+local SendChatMessage = SendChatMessage
 
-local lastList
+-- Sound Kit ID
+local questCompleteSoundID = 6199 -- https://wowhead.com/sound=6199/b-peonbuildingcomplete1
 
-local function sendQuestMsg(msg)
-	if IsPartyLFG() then
-		SendChatMessage(msg, "INSTANCE_CHAT")
+-- Flags and caches
+local debugMode = false -- Indicates if debug mode is enabled
+local worldQuestCache = {} -- Cache for world quest IDs
+local completedQuests = {} -- Cache for completed quest IDs
+local initialCheckComplete = false -- Indicates if initial quest check is complete
+
+-- Get the quest link or the quest name
+local function GetQuestLinkOrName(questID)
+	return GetQuestLink(questID) or GetTitleForQuestID(questID) or ""
+end
+
+-- Get the text for the quest acceptance message
+local function GetQuestAcceptText(questID, isDaily)
+	local questTitle = GetQuestLinkOrName(questID)
+	if isDaily then
+		return format("%s [%s]%s", "Accepted", DAILY, questTitle)
+	else
+		return format("%s %s", "Accepted", questTitle)
+	end
+end
+
+-- Get the text for the quest completion message
+local function GetQuestCompleteText(questID)
+	PlaySound(questCompleteSoundID, "Master")
+	return format("%s %s", "Completed", GetQuestLinkOrName(questID))
+end
+
+-- Send message to the appropriate channel
+local function SendQuestMessage(message)
+	if C["Announcements"].OnlyCompleteRing then
+		return
+	end
+
+	if debugMode and K.isDeveloper then
+		print(message)
+	elseif IsPartyLFG() then
+		SendChatMessage(message, "INSTANCE_CHAT")
+	elseif IsInRaid() then
+		SendChatMessage(message, "RAID")
 	elseif IsInGroup() then
-		SendChatMessage(msg, "PARTY")
+		SendChatMessage(message, "PARTY")
 	end
 end
 
-function K.CreateColorString(text, db)
-    local hex = db.r and db.g and db.b and K.RGBToHex(db.r, db.g, db.b) or "|cffffffff"
-    return hex..text.."|r"
+-- Get the pattern for a given quest match
+local function CreateQuestPattern(pattern)
+	pattern = gsub(pattern, "%(", "%%%1")
+	pattern = gsub(pattern, "%)", "%%%1")
+	pattern = gsub(pattern, "%%%d?$?.", "(.+)")
+	return format("^%s$", pattern)
 end
 
-local function GetQuests()
-	local quests = {}
+-- Table of quest match patterns
+local questMatchPatterns = {
+	["Found"] = CreateQuestPattern(ERR_ADD_FOUND_SII),
+	["Item"] = CreateQuestPattern(ERR_ADD_ITEM_SII),
+	["Kill"] = CreateQuestPattern(ERR_ADD_KILL_SII),
+	["PKill"] = CreateQuestPattern(ERR_ADD_PLAYER_KILL_SII),
+	["ObjectiveComplete"] = CreateQuestPattern(ERR_OBJECTIVE_COMPLETE_S),
+	["QuestComplete"] = CreateQuestPattern(ERR_COMPLETE_S),
+	["QuestFailed"] = CreateQuestPattern(ERR_FAILED_S),
+}
 
-	for questIndex = 1, GetNumQuestLogEntries() do
-		local title, level, suggestedGroup, isHeader, _, isComplete, frequency, questID, _, _, _, _, _, isBounty, _, isHidden = GetQuestLogTitle(questIndex)
-		local skip = isHeader or isBounty or isHidden
-
-		if not skip then
-			local _, tagName, worldQuestType = GetQuestTagInfo(questID)
-			quests[questID] = {
-				title = title,
-				questID = questID,
-				level = level,
-				suggestedGroup = suggestedGroup,
-				isComplete = isComplete,
-				frequency = frequency,
-				tag = tagName,
-				worldQuestType = worldQuestType,
-				link = GetQuestLink(questID)
-			}
-
-			for queryIndex = 1, GetNumQuestLeaderBoards(questIndex) do
-				local queryText = GetQuestLogLeaderBoard(queryIndex, questIndex)
-				local _, _, numItems, numNeeded, itemName = strfind(queryText, "(%d+)/(%d+) ?(.*)")
-				quests[questID][queryIndex] = {
-					item = itemName,
-					numItems = numItems,
-					numNeeded = numNeeded
-				}
-			end
-		end
-	end
-
-	return quests
-end
-
-function Module:SetupQuestNotifier()
-	local config = C["Announcements"]
-	if not config or not config.QuestNotifier then
+-- Find quest progress based on UI message
+function Module:FindQuestProgress(_, message)
+	-- Validate configurations and input
+	if not message then
 		return
 	end
 
-	local currentList = GetQuests()
-	if not lastList then
-		lastList = currentList
+	if not C["Announcements"].QuestProgress or C["Announcements"].OnlyCompleteRing then
 		return
 	end
 
-	for questID, questCache in pairs(currentList) do
-		local mainInfo = ""
-		local extraInfo = ""
-		local mainInfoColored = ""
-		local extraInfoColored = ""
-		local needAnnounce = false
-		local isDetailInfo = false
-
-		if questCache.frequency == 1 and config.Daily then
-			extraInfo = extraInfo.."[".._G.DAILY.."]"
-			extraInfoColored = extraInfoColored..K.CreateColorString("[".._G.DAILY.."]", {r = 1.000, g = 0.980, b = 0.396})
-		elseif questCache.frequency == 3 and config.Weekly then
-			extraInfo = extraInfo.."[".._G.WEEKLY.."]"
-			extraInfoColored = extraInfoColored..K.CreateColorString("[".._G.WEEKLY.."]", {r = 0.196, g = 1.000, b = 0.494})
-		end
-
-		if questCache.suggestedGroup > 1 and config.SuggestedGroup then
-			extraInfo = extraInfo.."["..questCache.suggestedGroup.."]"
-			extraInfoColored =
-				extraInfoColored..K.CreateColorString("["..questCache.suggestedGroup.."]", {r = 1.000, g = 0.220, b = 0.220})
-		end
-
-		if questCache.level and config.Level then
-			local expansionLevel = GetMaxLevelForExpansionLevel(LE_EXPANSION_BATTLE_FOR_AZEROTH)
-			if not config.LevelHideOnMax or questCache.level ~= expansionLevel then
-				extraInfo = extraInfo.."["..questCache.level.."]"
-				extraInfoColored = extraInfoColored..K.CreateColorString("["..questCache.level.."]", {r = 0.773, g = 0.424, b = 0.941})
-			end
-		end
-
-		if questCache.tag and config.Tag then
-			extraInfo = extraInfo.."["..questCache.tag.."]"
-			extraInfoColored = extraInfoColored..K.CreateColorString("["..questCache.tag.."]", {r = 0.490, g = 0.373, b = 1.000})
-		end
-
-		local questCacheOld = lastList[questID]
-		if questCacheOld then
-			if not questCacheOld.isComplete then
-				if questCache.isComplete then
-					mainInfo = questCache.title.." "..K.CreateColorString("Completed", {r = 0.5, g = 1, b = 0.5})
-					mainInfoColored = questCache.link.." "..K.CreateColorString("Completed", {r = 0.5, g = 1, b = 0.5})
-					needAnnounce = true
-				elseif #questCacheOld > 0 and #questCache > 0 then
-					for queryIndex = 1, #questCache do
-						if questCache[queryIndex] and questCacheOld[queryIndex] and questCache[queryIndex].numItems and questCacheOld[queryIndex].numItems and questCache[queryIndex].numItems > questCacheOld[queryIndex].numItems then
-							local progressColor = {
-								r = 1 - 0.5 * questCache[queryIndex].numItems / questCache[queryIndex].numNeeded,
-								g = 0.5 + 0.5 * questCache[queryIndex].numItems / questCache[queryIndex].numNeeded,
-								b = 0.5
-							}
-							local subGoalIsCompleted = questCache[queryIndex].numItems == questCache[queryIndex].numNeeded
-							if config.IncludeDetails or subGoalIsCompleted then
-								local progressInfo = questCache[queryIndex].numItems.."/"..questCache[queryIndex].numNeeded
-								local progressInfoColored = progressInfo
-								if subGoalIsCompleted then
-									local redayCheckIcon = "|TInterface/RaidFrame/ReadyCheck-Ready:15:15:-1:2:64:64:6:60:8:60|t"
-									progressInfoColored = progressInfoColored..redayCheckIcon
-								else
-									isDetailInfo = true
-								end
-
-								mainInfo = questCache.link.." "..questCache[queryIndex].item.." "
-								mainInfoColored = questCache.link.." "..questCache[queryIndex].item.." "
-
-								mainInfo = mainInfo..progressInfo
-								mainInfoColored = mainInfoColored..K.CreateColorString(progressInfoColored, progressColor)
-								needAnnounce = true
-							end
-						end
-					end
+	for _, pattern in pairs(questMatchPatterns) do
+		if match(message, pattern) then
+			local _, _, _, current, maximum = find(message, "(.*)[:]%s*([-%d]+)%s*/%s*([-%d]+)%s*$")
+			current, maximum = tonumber(current), tonumber(maximum)
+			if current and maximum then
+				if maximum >= 10 and mod(current, floor(maximum / 5)) == 0 then
+					SendQuestMessage(message)
+				elseif maximum < 10 then
+					SendQuestMessage(message)
 				end
 			end
-		else
-			if not questCache.worldQuestType then
-				mainInfo = questCache.link.." ".."Quest Accepted"
-				mainInfoColored = questCache.link.." "..K.CreateColorString("Quest Accepted", {r = 1.000, g = 0.980, b = 0.396})
-				needAnnounce = true
-			end
-		end
 
-		if needAnnounce then
-			local message = extraInfo..mainInfo
-			if not config.Paused then
-				sendQuestMsg(message)
-			end
-
-			if not isDetailInfo then
-				local messageColored = extraInfoColored..mainInfoColored
-				_G.UIErrorsFrame:AddMessage(messageColored)
-			end
+			break
 		end
 	end
-
-	lastList = currentList
 end
 
-function Module:CreateQuestNotifier()
-	local config = C["Announcements"]
-	if not config or not config.QuestNotifier then
+-- Handle quest acceptance
+function Module:HandleQuestAccept(questID)
+	if not questID then
+		return
+	end
+	if IsWorldQuest(questID) and worldQuestCache[questID] then
 		return
 	end
 
-    K:RegisterEvent("QUEST_LOG_UPDATE", Module.SetupQuestNotifier)
+	worldQuestCache[questID] = true
+	local questTagInfo = GetQuestTagInfo(questID)
+	if questTagInfo and questTagInfo.worldQuestType == QUEST_TAG_TYPE_PROFESSION then
+		return
+	end
+
+	local questLogIndex = GetQuestLogIndexForQuestID(questID)
+	if questLogIndex then
+		local questInfo = GetQuestInfo(questLogIndex)
+		if questInfo then
+			SendQuestMessage(GetQuestAcceptText(questID, questInfo.frequency == QUEST_FREQUENCY_DAILY))
+		end
+	end
+end
+
+-- Handle quest completion
+function Module:HandleQuestCompletion()
+	for i = 1, GetNumQuestLogEntries() do
+		local questID = GetQuestIDForLogIndex(i)
+		local isQuestComplete = questID and IsQuestComplete(questID)
+		if isQuestComplete and not completedQuests[questID] and not IsWorldQuest(questID) then
+			if initialCheckComplete then
+				SendQuestMessage(GetQuestCompleteText(questID))
+			end
+			completedQuests[questID] = true
+		end
+	end
+	initialCheckComplete = true
+end
+
+-- Handle world quest completion
+function Module:HandleWorldQuestCompletion(questID)
+	if IsWorldQuest(questID) and questID and not completedQuests[questID] then
+		SendQuestMessage(GetQuestCompleteText(questID))
+		completedQuests[questID] = true
+	end
+end
+
+-- Dragon glyph notification
+local dragonGlyphAchievements = {
+	[16575] = true, -- Awakened Coast
+	[16576] = true, -- Ounhara Plains
+	[16577] = true, -- Blueridge Woods
+	[16578] = true, -- Sodra Sulcus
+}
+
+function Module:HandleDragonGlyph(achievementID, criteriaString)
+	if dragonGlyphAchievements[achievementID] then
+		SendQuestMessage(criteriaString .. " " .. COLLECTED)
+	end
+end
+
+-- Create or destroy quest notifier based on settings
+function Module:CreateQuestNotifier()
+	if C["Announcements"].QuestNotifier and not K.CheckAddOnState("QuestNotifier") then
+		K:RegisterEvent("QUEST_ACCEPTED", Module.HandleQuestAccept)
+		K:RegisterEvent("QUEST_LOG_UPDATE", Module.HandleQuestCompletion)
+		K:RegisterEvent("QUEST_TURNED_IN", Module.HandleWorldQuestCompletion)
+		K:RegisterEvent("UI_INFO_MESSAGE", Module.FindQuestProgress)
+		K:RegisterEvent("CRITERIA_EARNED", Module.HandleDragonGlyph)
+	else
+		wipe(completedQuests)
+		K:UnregisterEvent("QUEST_ACCEPTED", Module.HandleQuestAccept)
+		K:UnregisterEvent("QUEST_LOG_UPDATE", Module.HandleQuestCompletion)
+		K:UnregisterEvent("QUEST_TURNED_IN", Module.HandleWorldQuestCompletion)
+		K:UnregisterEvent("UI_INFO_MESSAGE", Module.FindQuestProgress)
+		K:UnregisterEvent("CRITERIA_EARNED", Module.HandleDragonGlyph)
+	end
 end

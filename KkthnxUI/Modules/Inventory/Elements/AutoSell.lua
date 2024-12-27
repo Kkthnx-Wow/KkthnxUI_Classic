@@ -1,56 +1,41 @@
-local K, C, L = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Bags")
 
-local _G = _G
-local string_format = _G.string.format
-local table_wipe = _G.table.wipe
+local table_wipe = table.wipe
 
-local C_Timer_After = _G.C_Timer.After
-local GetContainerItemInfo = _G.GetContainerItemInfo
-local GetContainerItemLink = _G.GetContainerItemLink
-local GetContainerNumSlots = _G.GetContainerNumSlots
-local GetItemInfo = _G.GetItemInfo
-local IsShiftKeyDown = _G.IsShiftKeyDown
+local C_Container_GetContainerItemInfo = C_Container.GetContainerItemInfo
+local C_Container_GetContainerNumSlots = C_Container.GetContainerNumSlots
+local C_Container_UseContainerItem = C_Container.UseContainerItem
+local C_TransmogCollection_GetItemInfo = C_TransmogCollection.GetItemInfo
+local IsShiftKeyDown = IsShiftKeyDown
 
-local sellCount, stop, cache = 0, true, {}
-local errorText = _G.ERR_VENDOR_DOESNT_BUY
-
-local function stopSelling(tell)
-	stop = true
-	if sellCount > 0 and tell then
-		K.Print(string_format("%s%s", K.SystemColor..L["Vendored Items"], K.FormatMoney(sellCount)))
-	end
-	sellCount = 0
-end
+local autoSellStop = true -- Flag to stop the selling process
+local sellCache = {} -- Table to store items that have already been processed
+local errorText = ERR_VENDOR_DOESNT_BUY -- Error message for when the vendor doesn't buy certain items
 
 local function startSelling()
-	if stop then
+	if autoSellStop then
 		return
 	end
 
-	for bag = 0, 4 do
-		for slot = 1, GetContainerNumSlots(bag) do
-			if stop then
+	for bag = 0, 5 do
+		for slot = 1, C_Container_GetContainerNumSlots(bag) do
+			if autoSellStop then
 				return
 			end
 
-			local link = GetContainerItemLink(bag, slot)
-			if link then
-				local price = select(11, GetItemInfo(link))
-				local _, count, _, quality, _, _, _, _, _, itemID = GetContainerItemInfo(bag, slot)
-				if (quality == 0 or KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList[itemID]) and price and price > 0 and not cache["b"..bag.."s"..slot] then
-					sellCount = sellCount + price*count
-					cache["b"..bag.."s"..slot] = true
-					_G.UseContainerItem(bag, slot)
-					C_Timer_After(0.15, startSelling)
-					return
-				end
+			local info = C_Container_GetContainerItemInfo(bag, slot)
+			if info and not sellCache["b" .. bag .. "s" .. slot] and info.hyperlink and not info.hasNoValue and (info.quality == 0 or KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList[info.itemID]) and (not Module:IsPetTrashCurrency(info.itemID) or not K.IsUnknownTransmog(bag, slot)) then
+				sellCache["b" .. bag .. "s" .. slot] = true
+				C_Container_UseContainerItem(bag, slot)
+				K.Delay(0.15, startSelling)
+				return
 			end
 		end
 	end
 end
 
-local function updateSelling(event, ...)
+local function updateAutoSell(event, ...)
 	if not C["Inventory"].AutoSell then
 		return
 	end
@@ -61,18 +46,17 @@ local function updateSelling(event, ...)
 			return
 		end
 
-		stop = false
-		table_wipe(cache)
+		autoSellStop = false
+		table_wipe(sellCache)
 		startSelling()
-		K:RegisterEvent("UI_ERROR_MESSAGE", updateSelling)
-	elseif event == "UI_ERROR_MESSAGE" and arg == errorText then
-		stopSelling(false)
-	elseif event == "MERCHANT_CLOSED" then
-		stopSelling(true)
+		K:RegisterEvent("UI_ERROR_MESSAGE", updateAutoSell)
+	elseif (event == "UI_ERROR_MESSAGE" and arg == errorText) or event == "MERCHANT_CLOSED" then
+		autoSellStop = true
+		K:UnregisterEvent("UI_ERROR_MESSAGE")
 	end
 end
 
 function Module:CreateAutoSell()
-	K:RegisterEvent("MERCHANT_SHOW", updateSelling)
-	K:RegisterEvent("MERCHANT_CLOSED", updateSelling)
+	K:RegisterEvent("MERCHANT_SHOW", updateAutoSell)
+	K:RegisterEvent("MERCHANT_CLOSED", updateAutoSell)
 end

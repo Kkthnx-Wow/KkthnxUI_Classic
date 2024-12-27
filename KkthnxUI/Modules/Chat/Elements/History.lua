@@ -1,16 +1,22 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Chat")
-local History = CreateFrame("Frame")
 
-local LogMax
-local EntryEvent = 30
-local EntryTime = 31
-local Events = {
+local ChatFrame_MessageEventHandler = ChatFrame_MessageEventHandler
+local ChatFrame1 = ChatFrame1
+
+local entryEvent = 30
+local entryTime = 31
+local MAX_LOG_ENTRIES = C["Chat"].LogMax
+
+local chatHistory = {}
+local hasPrinted = false
+local isPrinting = false
+
+local EVENTS_TO_LOG = {
 	"CHAT_MSG_INSTANCE_CHAT",
 	"CHAT_MSG_INSTANCE_CHAT_LEADER",
 	"CHAT_MSG_EMOTE",
 	"CHAT_MSG_GUILD",
-	"CHAT_MSG_GUILD_ACHIEVEMENT",
 	"CHAT_MSG_OFFICER",
 	"CHAT_MSG_PARTY",
 	"CHAT_MSG_PARTY_LEADER",
@@ -21,68 +27,63 @@ local Events = {
 	"CHAT_MSG_WHISPER",
 	"CHAT_MSG_WHISPER_INFORM",
 	"CHAT_MSG_YELL",
-
-	-- Not sure if I should add this one, it's pretty much always just spam
-	-- "CHAT_MSG_CHANNEL",
 }
 
-function History:Print()
-	local Temp
-
-	History.IsPrinting = true
-
-	for i = #KkthnxUIDB.ChatHistory, 1, -1 do
-		Temp = KkthnxUIDB.ChatHistory[i]
-
-		ChatFrame_MessageEventHandler(ChatFrame1, Temp[EntryEvent], unpack(Temp))
+local function printChatHistory()
+	if isPrinting then
+		return
 	end
 
-	History.IsPrinting = false
-	History.HasPrinted = true
+	isPrinting = true
+
+	print("|cffbbbbbb    [Saved Chat History]|r")
+
+	for i = #chatHistory, 1, -1 do
+		local temp = chatHistory[i]
+		pcall(ChatFrame_MessageEventHandler, ChatFrame1, temp[entryEvent], unpack(temp))
+	end
+
+	print("|cffbbbbbb    [End of Saved Chat History]|r")
+
+	isPrinting = false
+	hasPrinted = true
 end
 
-function History:Save(event, ...)
-	local Temp = {...}
+local function saveChatHistory(event, ...)
+	local temp = { ... }
+	if not temp[1] then
+		return
+	end
 
-	if Temp[1] then
-		Temp[EntryEvent] = event
-		Temp[EntryTime] = time()
+	temp[entryEvent] = event
+	temp[entryTime] = time()
 
-		table.insert(KkthnxUIDB.ChatHistory, 1, Temp)
+	table.insert(chatHistory, 1, temp)
 
-		for i = LogMax, #KkthnxUIDB.ChatHistory do
-			table.remove(KkthnxUIDB.ChatHistory, LogMax)
-		end
+	while #chatHistory > MAX_LOG_ENTRIES do
+		table.remove(chatHistory, #chatHistory)
 	end
 end
 
-function History:OnEvent(event, ...)
+local function setupChatHistory(event, ...)
 	if event == "PLAYER_LOGIN" then
-		self:UnregisterEvent(event)
-		self:Print()
-	elseif self.HasPrinted then
-		self:Save(event, ...)
+		K:UnregisterEvent(event)
+		printChatHistory()
+	elseif hasPrinted then
+		saveChatHistory(event, ...)
 	end
 end
 
 function Module:CreateChatHistory()
-	-- Disable if we don't want any lines
-	if C["Chat"].LogMax == 0 then
+	if MAX_LOG_ENTRIES == 0 then
 		return
 	end
 
-	-- Max number of entries logged
-	LogMax = C["Chat"].LogMax
+	chatHistory = KkthnxUIDB.ChatHistory or {}
 
-	for i = 1, #Events do
-		History:RegisterEvent(Events[i])
+	for _, event in ipairs(EVENTS_TO_LOG) do
+		K:RegisterEvent(event, setupChatHistory)
 	end
 
-	if IsLoggedIn() then
-		History:OnEvent("PLAYER_LOGIN")
-	else
-		History:RegisterEvent("PLAYER_LOGIN")
-	end
-
-	History:SetScript("OnEvent", History.OnEvent)
+	printChatHistory()
 end

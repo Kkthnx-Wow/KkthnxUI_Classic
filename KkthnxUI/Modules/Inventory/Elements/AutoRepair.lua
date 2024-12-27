@@ -1,27 +1,29 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 local Module = K:GetModule("Bags")
 
-local _G = _G
-local string_format = _G.string.format
+local string_format = string.format
 
-local C_Timer_After = _G.C_Timer.After
-local CanGuildBankRepair = _G.CanGuildBankRepair
-local CanMerchantRepair = _G.CanMerchantRepair
-local GetGuildBankWithdrawMoney = _G.GetGuildBankWithdrawMoney
-local GetMoney = _G.GetMoney
-local GetRepairAllCost = _G.GetRepairAllCost
-local IsInGuild = _G.IsInGuild
-local IsShiftKeyDown = _G.IsShiftKeyDown
-local LE_GAME_ERR_GUILD_NOT_ENOUGH_MONEY = _G.LE_GAME_ERR_GUILD_NOT_ENOUGH_MONEY
+local CanGuildBankRepair = CanGuildBankRepair
+local CanMerchantRepair = CanMerchantRepair
+local GetGuildBankWithdrawMoney = GetGuildBankWithdrawMoney
+local GetMoney = GetMoney
+local GetRepairAllCost = GetRepairAllCost
+local IsInGuild = IsInGuild
+local IsShiftKeyDown = IsShiftKeyDown
+local LE_GAME_ERR_GUILD_NOT_ENOUGH_MONEY = LE_GAME_ERR_GUILD_NOT_ENOUGH_MONEY
 
 -- Auto repair
-local isShown, isBankEmpty, autoRepair, repairAllCost, canRepair
+local autoRepair
+local canRepair
+local isBankEmpty
+local isShown
+local repairAllCost
 
 local function delayFunc()
 	if isBankEmpty then
 		autoRepair(true)
 	else
-		K.Print(string_format("%s%s", K.SystemColor..L["Repaired Items Guild"], K.FormatMoney(repairAllCost)))
+		K.Print(string_format("%s%s", K.SystemColor .. L["Repaired Items Guild"], K.FormatMoney(repairAllCost)))
 	end
 end
 
@@ -29,6 +31,7 @@ function autoRepair(override)
 	if isShown and not override then
 		return
 	end
+
 	isShown = true
 	isBankEmpty = false
 
@@ -36,20 +39,19 @@ function autoRepair(override)
 	repairAllCost, canRepair = GetRepairAllCost()
 
 	if canRepair and repairAllCost > 0 then
-		if (not override) and C["Inventory"].AutoRepair.Value == 1 and IsInGuild() and CanGuildBankRepair() and GetGuildBankWithdrawMoney() >= repairAllCost then
+		if not override and C["Inventory"].AutoRepair.Value == 1 and IsInGuild() and CanGuildBankRepair() and GetGuildBankWithdrawMoney() >= repairAllCost then
 			_G.RepairAllItems(true)
 		else
 			if myMoney > repairAllCost then
 				_G.RepairAllItems()
-				K.Print(string_format("%s%s", K.SystemColor..L["Repaired Items"], K.FormatMoney(repairAllCost)))
+				K.Print(string_format("%s%s", K.SystemColor .. L["Repaired Items"], K.FormatMoney(repairAllCost)))
 				return
 			else
-				K.Print(K.SystemColor..L["Repaired Failed"]..K.Name)
+				K.Print(K.SystemColor .. L["Repaired Failed"] .. K.Name)
 				return
 			end
 		end
-
-		C_Timer_After(.5, delayFunc)
+		K.Delay(0.5, delayFunc)
 	end
 end
 

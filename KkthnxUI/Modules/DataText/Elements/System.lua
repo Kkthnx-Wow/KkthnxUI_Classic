@@ -1,81 +1,45 @@
-local K, C, L = unpack(select(2, ...))
-local Module = K:GetModule("Infobar")
+local K, C, L = unpack(KkthnxUI)
+local Module = K:GetModule("DataText")
 
-local _G = _G
-local ipairs = _G.ipairs
-local math_floor = _G.math.floor
-local math_max = _G.math.max
-local math_min = _G.math.min
-local string_format = _G.string.format
-local table_insert = _G.table.insert
-local table_sort = _G.table.sort
-local table_wipe = _G.table.wipe
+local string_format, table_insert, table_sort, table_wipe = string.format, table.insert, table.sort, table.wipe
+local GetAddOnCPUUsage, C_AddOns_GetAddOnInfo, GetAddOnMemoryUsage, GetCVarBool, GetFramerate, C_AddOns_GetNumAddOns, GetTime, C_AddOns_IsAddOnLoaded, IsShiftKeyDown = GetAddOnCPUUsage, C_AddOns.GetAddOnInfo, GetAddOnMemoryUsage, GetCVarBool, GetFramerate, C_AddOns.GetNumAddOns, GetTime, C_AddOns.IsAddOnLoaded, IsShiftKeyDown
+local ResetCPUUsage, SetCVar, UpdateAddOnCPUUsage, UpdateAddOnMemoryUsage = ResetCPUUsage, SetCVar, UpdateAddOnCPUUsage, UpdateAddOnMemoryUsage
+local collectgarbage, gcinfo = collectgarbage, gcinfo
 
-local GetAddOnCPUUsage = _G.GetAddOnCPUUsage
-local GetAddOnInfo = _G.GetAddOnInfo
-local GetAddOnMemoryUsage = _G.GetAddOnMemoryUsage
-local GetCVarBool = _G.GetCVarBool
-local GetFramerate = _G.GetFramerate
-local GetNumAddOns = _G.GetNumAddOns
-local GetTime = _G.GetTime
-local IsAddOnLoaded = _G.IsAddOnLoaded
-local IsShiftKeyDown = _G.IsShiftKeyDown
-local ResetCPUUsage = _G.ResetCPUUsage
-local SetCVar = _G.SetCVar
-local UpdateAddOnCPUUsage = _G.UpdateAddOnCPUUsage
-local UpdateAddOnMemoryUsage = _G.UpdateAddOnMemoryUsage
-local VIDEO_OPTIONS_DISABLED = _G.VIDEO_OPTIONS_DISABLED
-local VIDEO_OPTIONS_ENABLED = _G.VIDEO_OPTIONS_ENABLED
-local collectgarbage = _G.collectgarbage
-local gcinfo = _G.gcinfo
-
-local disableString = "|cffff5555"..VIDEO_OPTIONS_DISABLED
-local enableString = "|cff55ff55"..VIDEO_OPTIONS_ENABLED
+local disableString, enableString = "|cffff5555" .. VIDEO_OPTIONS_DISABLED, "|cff55ff55" .. VIDEO_OPTIONS_ENABLED
 local scriptProfileStatus = GetCVarBool("scriptProfile")
-local showMoreString = "%d %s (%s)"
-local usageColor = {0, 1, 0, 1, 1, 0, 1, 0, 0}
-local usageString = "%.3f ms"
+local showMoreString, usageColor, usageString = "%d %s (%s)", { 0, 1, 0, 1, 1, 0, 1, 0, 0 }, "%.3f ms"
+local maxAddOns, infoTable = 12, {}
 
-local maxAddOns = 12
-local infoTable = {}
-local entered
+local SystemDataText, SystemDataTextEntered
 
 local function formatMemory(value)
-	if value > 1024 then
-		return string_format("%.1f mb", value / 1024)
-	else
-		return string_format("%.0f kb", value)
-	end
+	return value > 1024 and string_format("%.1f mb", value / 1024) or string_format("%.0f kb", value)
 end
 
 local function sortByMemory(a, b)
-	if a and b then
-		return (a[3] == b[3] and a[2] < b[2]) or a[3] > b[3]
-	end
+	return (a and b and ((a[3] == b[3] and a[2] < b[2]) or a[3] > b[3])) or false
 end
 
 local function sortByCPU(a, b)
-	if a and b then
-		return (a[4] == b[4] and a[2] < b[2]) or a[4] > b[4]
-	end
+	return (a and b and ((a[4] == b[4] and a[2] < b[2]) or a[4] > b[4])) or false
 end
 
 local function smoothColor(cur, max)
-	local r, g, b = K.oUF:RGBColorGradient(cur, max, unpack(usageColor))
-	return r, g, b
+	return K.oUF:RGBColorGradient(cur, max, unpack(usageColor))
 end
 
 local function BuildAddonList()
-	local numAddons = GetNumAddOns()
+	local numAddons = C_AddOns_GetNumAddOns()
 	if numAddons == #infoTable then
 		return
 	end
 
 	table_wipe(infoTable)
 	for i = 1, numAddons do
-		local _, title, _, loadable = GetAddOnInfo(i)
+		local _, title, _, loadable = C_AddOns_GetAddOnInfo(i)
 		if loadable then
-			table_insert(infoTable, {i, title, 0, 0})
+			table_insert(infoTable, { i, title, 0, 0 })
 		end
 	end
 end
@@ -85,7 +49,7 @@ local function UpdateMemory()
 
 	local total = 0
 	for _, data in ipairs(infoTable) do
-		if IsAddOnLoaded(data[1]) then
+		if C_AddOns_IsAddOnLoaded(data[1]) then
 			local mem = GetAddOnMemoryUsage(data[1])
 			data[3] = mem
 			total = total + mem
@@ -101,7 +65,7 @@ local function UpdateCPU()
 
 	local total = 0
 	for _, data in ipairs(infoTable) do
-		if IsAddOnLoaded(data[1]) then
+		if C_AddOns.IsAddOnLoaded(data[1]) then
 			local addonCPU = GetAddOnCPUUsage(data[1])
 			data[4] = addonCPU
 			total = total + addonCPU
@@ -113,41 +77,37 @@ local function UpdateCPU()
 end
 
 local function colorFPS(fps)
-	if fps < 15 then
-		return "|cffD80909"..fps
-	elseif fps < 30 then
-		return "|cffE8DA0F"..fps
-	else
-		return "|cff0CD809"..fps
-	end
+	fps = fps and floor(fps) or 0
+	local color = fps < 15 and "|cffD80909" or (fps < 30 and "|cffE8DA0F" or "|cff0CD809")
+	return color .. fps
 end
 
 local function setFrameRate()
-	local fps = math_floor(GetFramerate())
-	Module.SystemDataTextFrame.Text:SetText(L["FPS"]..":"..colorFPS(fps))
+	local fps = floor(GetFramerate())
+	SystemDataText.Text:SetText(format("%s: %s", L["FPS"], colorFPS(fps)))
 end
 
 local function OnEnter()
-	entered = true
+	SystemDataTextEntered = true
 
 	if not next(infoTable) then
 		BuildAddonList()
 	end
 	local isShiftKeyDown = IsShiftKeyDown()
-	local maxShown = isShiftKeyDown and #infoTable or math_min(maxAddOns, #infoTable)
+	local maxShown = isShiftKeyDown and #infoTable or math.min(maxAddOns, #infoTable)
 
-	GameTooltip:SetOwner(Module.SystemDataTextFrame, "ANCHOR_NONE")
-	GameTooltip:SetPoint(K.GetAnchors(Module.SystemDataTextFrame))
+	GameTooltip:SetOwner(SystemDataText, "ANCHOR_NONE")
+	GameTooltip:SetPoint(K.GetAnchors(SystemDataText))
 	GameTooltip:ClearLines()
 
 	if Module.ShowMemory or not scriptProfileStatus then
 		local totalMemory = UpdateMemory()
-		GameTooltip:AddDoubleLine("System", formatMemory(totalMemory), 0, 0.6, 1, 0.6, 0.8, 1)
+		GameTooltip:AddDoubleLine("System", formatMemory(totalMemory), 0.4, 0.6, 1, 0.5, 0.7, 1)
 		GameTooltip:AddLine(" ")
 
 		local numEnabled = 0
 		for _, data in ipairs(infoTable) do
-			if IsAddOnLoaded(data[1]) then
+			if C_AddOns.IsAddOnLoaded(data[1]) then
 				numEnabled = numEnabled + 1
 				if numEnabled <= maxShown then
 					local r, g, b = smoothColor(data[3], totalMemory)
@@ -161,17 +121,17 @@ local function OnEnter()
 			for i = (maxAddOns + 1), numEnabled do
 				hiddenMemory = hiddenMemory + infoTable[i][3]
 			end
-			GameTooltip:AddDoubleLine(string_format(showMoreString, numEnabled - maxAddOns, L["Hidden"], L["Hold Shift"]), formatMemory(hiddenMemory), 0.6, 0.8, 1, 0.6, 0.8, 1)
+			GameTooltip:AddDoubleLine(string_format(showMoreString, numEnabled - maxAddOns, L["Hidden"], L["Hold Shift"]), formatMemory(hiddenMemory), 0.5, 0.7, 1, 0.5, 0.7, 1)
 		end
 	else
 		local totalCPU = UpdateCPU()
-		local passedTime = math_max(1, GetTime() - Module.CheckLoginTime)
-		GameTooltip:AddDoubleLine(L["System"], string_format(usageString, totalCPU / passedTime, 0, 0.6, 1, 0.6, 0.8, 1))
+		local passedTime = math.max(1, GetTime() - Module.CheckLoginTime)
+		GameTooltip:AddDoubleLine(L["System"], string_format(usageString, totalCPU / passedTime, 0.4, 0.6, 1, 0.5, 0.7, 1))
 		GameTooltip:AddLine(" ")
 
 		local numEnabled = 0
 		for _, data in ipairs(infoTable) do
-			if IsAddOnLoaded(data[1]) then
+			if C_AddOns.IsAddOnLoaded(data[1]) then
 				numEnabled = numEnabled + 1
 				if numEnabled <= maxShown then
 					local r, g, b = smoothColor(data[4], totalCPU)
@@ -185,16 +145,16 @@ local function OnEnter()
 			for i = (maxAddOns + 1), numEnabled do
 				hiddenUsage = hiddenUsage + infoTable[i][4]
 			end
-			GameTooltip:AddDoubleLine(string_format(showMoreString, numEnabled - maxAddOns, L["Hidden"], L["Hold Shift"]), string_format(usageString, hiddenUsage / passedTime), 0.6, 0.8, 1, 0.6, 0.8, 1)
+			GameTooltip:AddDoubleLine(string_format(showMoreString, numEnabled - maxAddOns, L["Hidden"], L["Hold Shift"]), string_format(usageString, hiddenUsage / passedTime), 0.5, 0.7, 1, 0.5, 0.7, 1)
 		end
 	end
 
 	GameTooltip:AddLine(" ")
-	GameTooltip:AddDoubleLine(" ", "|TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:12:10:0:-1:512:512:12:66:230:307|t "..L["Collect Memory"].." ", 1, 1, 1, 0.6, 0.8, 1)
+	GameTooltip:AddDoubleLine(" ", "|TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:12:10:0:-1:512:512:12:66:230:307|t " .. L["Collect Memory"] .. " ", 1, 1, 1, 0.5, 0.7, 1)
 	if scriptProfileStatus then
-		GameTooltip:AddDoubleLine(" ", "|TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:12:10:0:-1:512:512:12:66:333:411|t "..L["SwitchMode"].." ", 1, 1, 1, 0.6, 0.8, 1)
+		GameTooltip:AddDoubleLine(" ", "|TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:12:10:0:-1:512:512:12:66:333:411|t " .. L["SwitchMode"] .. " ", 1, 1, 1, 0.5, 0.7, 1)
 	end
-	GameTooltip:AddDoubleLine(" ", "|TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:127:204|t "..L["CPU Usage"]..": "..(GetCVarBool("scriptProfile") and enableString or disableString).." ", 1, 1, 1, 0.6, 0.8, 1)
+	GameTooltip:AddDoubleLine(" ", "|TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:127:204|t " .. L["CPU Usage"] .. ": " .. (GetCVarBool("scriptProfile") and enableString or disableString) .. " ", 1, 1, 1, 0.5, 0.7, 1)
 	GameTooltip:Show()
 end
 
@@ -202,7 +162,7 @@ local function OnUpdate(self, elapsed)
 	self.timer = (self.timer or 0) + elapsed
 	if self.timer > 1 then
 		setFrameRate()
-		if entered then
+		if SystemDataTextEntered then
 			OnEnter()
 		end
 
@@ -211,7 +171,7 @@ local function OnUpdate(self, elapsed)
 end
 
 local function OnLeave()
-	entered = false
+	SystemDataTextEntered = false
 	GameTooltip:Hide()
 end
 
@@ -225,15 +185,28 @@ StaticPopupDialogs["CPUUSAGE"] = {
 	whileDead = 1,
 }
 
+-- Cooldown variables
+local lastClickTime = 0
+local clickCooldown = 60 -- Cooldown in seconds
+
 local function OnMouseUp(_, btn)
+	local currentTime = GetTime()
+
 	if btn == "LeftButton" then
 		if scriptProfileStatus then
 			ResetCPUUsage()
 			Module.CheckLoginTime = GetTime()
 		end
+
+		if currentTime - lastClickTime < clickCooldown then
+			return
+		end
+
+		lastClickTime = currentTime
 		local before = gcinfo()
 		collectgarbage("collect")
-		K.Print(string_format("|cff66C6FF%s:|r %s", L["Memory Collected"], formatMemory(before - gcinfo())))
+		K.Print(string_format(K.InfoColorTint .. "%s:|r %s", L["Memory Collected"], formatMemory(before - gcinfo())))
+
 		OnEnter()
 	elseif btn == "RightButton" and scriptProfileStatus then
 		Module.ShowMemory = not Module.ShowMemory
@@ -260,18 +233,25 @@ function Module:CreateSystemDataText()
 		return
 	end
 
-	Module.CheckLoginTime = GetTime()
+	SystemDataText = CreateFrame("Frame", "KKUI_SystemDataText", UIParent)
+	SystemDataText:SetHitRectInsets(-16, 0, -10, -10)
 
-	Module.SystemDataTextFrame = CreateFrame("Frame", "KKUI_SystemDataText", UIParent)
+	SystemDataText.Text = K.CreateFontString(SystemDataText, 12)
+	SystemDataText.Text:ClearAllPoints()
+	SystemDataText.Text:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 24, -6)
 
-	Module.SystemDataTextFrame.Text = Module.SystemDataTextFrame:CreateFontString("OVERLAY")
-	Module.SystemDataTextFrame.Text:SetFontObject(K.GetFont(C["UIFonts"].DataTextFonts))
-	Module.SystemDataTextFrame.Text:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 4, -4)
+	SystemDataText.Texture = SystemDataText:CreateTexture(nil, "ARTWORK")
+	SystemDataText.Texture:SetPoint("RIGHT", SystemDataText.Text, "LEFT", -4, 2)
+	SystemDataText.Texture:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\DataText\\fps.blp")
+	SystemDataText.Texture:SetSize(15, 15)
+	SystemDataText.Texture:SetVertexColor(unpack(C["DataText"].IconColor))
 
-	Module.SystemDataTextFrame:SetAllPoints(Module.SystemDataTextFrame.Text)
+	SystemDataText:SetAllPoints(SystemDataText.Text)
 
-	Module.SystemDataTextFrame:SetScript("OnUpdate", OnUpdate)
-	Module.SystemDataTextFrame:SetScript("OnEnter", OnEnter)
-	Module.SystemDataTextFrame:SetScript("OnLeave", OnLeave)
-	Module.SystemDataTextFrame:SetScript("OnMouseUp", OnMouseUp)
+	SystemDataText:SetScript("OnEnter", OnEnter)
+	SystemDataText:SetScript("OnLeave", OnLeave)
+	SystemDataText:SetScript("OnMouseUp", OnMouseUp)
+	SystemDataText:SetScript("OnUpdate", OnUpdate)
 end
+
+K.SystemDataText = SystemDataText

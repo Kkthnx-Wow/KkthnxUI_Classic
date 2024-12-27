@@ -1,42 +1,37 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Automation")
 
-local _G = _G
+local C_DeathInfo_GetSelfResurrectOptions = C_DeathInfo.GetSelfResurrectOptions
+local IsInInstance = IsInInstance
+local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
+local RepopMe = RepopMe
 
-local IsInInstance = _G.IsInInstance
-local C_DeathInfo_GetSelfResurrectOptions = _G.C_DeathInfo.GetSelfResurrectOptions
-local C_Map_GetBestMapForUnit = _G.C_Map.GetBestMapForUnit
+-- List of PvP areas by their map IDs
+local pvpAreas = {
+	[123] = true, -- Wintergrasp
+	[244] = true, -- Tol Barad (PvP)
+	[588] = true, -- Ashran
+	[622] = true, -- Stormshield
+	[624] = true, -- Warspear
+}
 
 local function PLAYER_DEAD()
-	-- If player has ability to self-resurrect (soulstone, reincarnation, etc), do nothing and quit
+	-- Check if self-resurrection options exist (soulstone, reincarnation, etc.)
 	if C_DeathInfo_GetSelfResurrectOptions() and #C_DeathInfo_GetSelfResurrectOptions() > 0 then
-		return
+		return -- Player can self-resurrect, do nothing
 	end
 
-	-- Resurrect if player is in a battleground
-	local InstStat, InstType = IsInInstance()
-	if InstStat and InstType == "pvp" then
-		RepopMe()
-		return
-	end
+	local isInstance, instanceType = IsInInstance()
+	local areaID = C_Map_GetBestMapForUnit("player")
 
-	-- Resurrect if playuer is in a PvP location
-	local areaID = C_Map_GetBestMapForUnit("player") or 0
-	if areaID == 123 -- Wintergrasp
-	or areaID == 244 -- Tol Barad (PvP)
-	or areaID == 588 -- Ashran
-	or areaID == 622 -- Stormshield
-	or areaID == 624 -- Warspear
-	then
+	-- Automatically release if in a PvP location or battleground
+	if (isInstance and instanceType == "pvp") or (areaID and pvpAreas[areaID]) then
 		RepopMe()
-		return
 	end
-	return
 end
 
-
 function Module:CreateAutoRelease()
-	if C["Automation"].AutoRelease == true then
+	if C["Automation"].AutoRelease then
 		K:RegisterEvent("PLAYER_DEAD", PLAYER_DEAD)
 	else
 		K:UnregisterEvent("PLAYER_DEAD", PLAYER_DEAD)

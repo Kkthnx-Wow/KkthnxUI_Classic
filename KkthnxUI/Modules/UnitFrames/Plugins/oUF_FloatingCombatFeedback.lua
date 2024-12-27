@@ -1,27 +1,23 @@
-local K = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
+local oUF = K.oUF
 
-local _G = _G
-local select, tremove, tinsert, wipe = _G.select, _G.table.remove, _G.table.insert, _G.table.wipe
-local m_cos, m_sin, m_pi, m_random = _G.math.cos, _G.math.sin, _G.math.pi, _G.math.random
+local select, tremove, tinsert, wipe = select, _G.table.remove, _G.table.insert, _G.table.wipe
+local m_cos, m_sin, m_pi, m_random = math.cos, _G.math.sin, _G.math.pi, _G.math.random
 
-local BreakUpLargeNumbers = _G.BreakUpLargeNumbers
-local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo
-local ENTERING_COMBAT = _G.ENTERING_COMBAT
-local GetSpellTexture = _G.GetSpellTexture
-local LEAVING_COMBAT = _G.LEAVING_COMBAT
-local PET_ATTACK_TEXTURE = _G.PET_ATTACK_TEXTURE
-local SCHOOL_MASK_ARCANE = _G.SCHOOL_MASK_ARCANE or 0x40
-local SCHOOL_MASK_FIRE = _G.SCHOOL_MASK_FIRE or 0x04
-local SCHOOL_MASK_FROST = _G.SCHOOL_MASK_FROST or 0x10
-local SCHOOL_MASK_HOLY = _G.SCHOOL_MASK_HOLY or 0x02
-local SCHOOL_MASK_NATURE = _G.SCHOOL_MASK_NATURE or 0x08
-local SCHOOL_MASK_NONE = _G.SCHOOL_MASK_NONE or 0x00
-local SCHOOL_MASK_PHYSICAL = _G.SCHOOL_MASK_PHYSICAL or 0x01
-local SCHOOL_MASK_SHADOW = _G.SCHOOL_MASK_SHADOW or 0x20
-local UnitGUID = _G.UnitGUID
-
-local iconCache = {}
-local missCache = {}
+local UnitGUID = UnitGUID
+local GetSpellTexture = C_Spell.GetSpellTexture
+local BreakUpLargeNumbers = BreakUpLargeNumbers
+local ENTERING_COMBAT = ENTERING_COMBAT
+local LEAVING_COMBAT = LEAVING_COMBAT
+local PET_ATTACK_TEXTURE = PET_ATTACK_TEXTURE
+local SCHOOL_MASK_NONE = SCHOOL_MASK_NONE or 0x00
+local SCHOOL_MASK_PHYSICAL = SCHOOL_MASK_PHYSICAL or 0x01
+local SCHOOL_MASK_HOLY = SCHOOL_MASK_HOLY or 0x02
+local SCHOOL_MASK_FIRE = SCHOOL_MASK_FIRE or 0x04
+local SCHOOL_MASK_NATURE = SCHOOL_MASK_NATURE or 0x08
+local SCHOOL_MASK_FROST = SCHOOL_MASK_FROST or 0x10
+local SCHOOL_MASK_SHADOW = SCHOOL_MASK_SHADOW or 0x20
+local SCHOOL_MASK_ARCANE = SCHOOL_MASK_ARCANE or 0x40
 
 local function clamp(v)
 	if v > 1 then
@@ -34,36 +30,36 @@ local function clamp(v)
 end
 
 local colors = {
-	ABSORB = {r = 1.00, g = 1.00, b = 1.00},
-	BLOCK = {r = 1.00, g = 1.00, b = 1.00},
-	DEFLECT = {r = 1.00, g = 1.00, b = 1.00},
-	DODGE = {r = 1.00, g = 1.00, b = 1.00},
-	ENERGIZE = {r = 0.41, g = 0.80, b = 0.94},
-	EVADE = {r = 1.00, g = 1.00, b = 1.00},
-	HEAL = {r = 0.10, g = 0.80, b = 0.10},
-	IMMUNE = {r = 1.00, g = 1.00, b = 1.00},
-	INTERRUPT = {r = 1.00, g = 1.00, b = 1.00},
-	MISS = {r = 1.00, g = 1.00, b = 1.00},
-	PARRY = {r = 1.00, g = 1.00, b = 1.00},
-	REFLECT = {r = 1.00, g = 1.00, b = 1.00},
-	RESIST = {r = 1.00, g = 1.00, b = 1.00},
-	WOUND = {r = 0.80, g = 0.10, b = 0.10},
+	ABSORB = { r = 1.00, g = 1.00, b = 1.00 },
+	BLOCK = { r = 1.00, g = 1.00, b = 1.00 },
+	DEFLECT = { r = 1.00, g = 1.00, b = 1.00 },
+	DODGE = { r = 1.00, g = 1.00, b = 1.00 },
+	ENERGIZE = { r = 0.41, g = 0.80, b = 0.94 },
+	EVADE = { r = 1.00, g = 1.00, b = 1.00 },
+	HEAL = { r = 0.10, g = 0.80, b = 0.10 },
+	IMMUNE = { r = 1.00, g = 1.00, b = 1.00 },
+	INTERRUPT = { r = 1.00, g = 1.00, b = 1.00 },
+	MISS = { r = 1.00, g = 1.00, b = 1.00 },
+	PARRY = { r = 1.00, g = 1.00, b = 1.00 },
+	REFLECT = { r = 1.00, g = 1.00, b = 1.00 },
+	RESIST = { r = 1.00, g = 1.00, b = 1.00 },
+	WOUND = { r = 0.80, g = 0.10, b = 0.10 },
 }
 
 local schoolColors = {
-	[SCHOOL_MASK_NONE] = {r = 1.00, g = 1.00, b = 1.00}, -- 0x00 or 0
-	[SCHOOL_MASK_PHYSICAL] = {r = 1.00, g = 1.00, b = 0.00}, -- 0x01 or 1
-	[SCHOOL_MASK_HOLY] = {r = 1.00, g = 0.90, b = 0.50}, -- 0x02 or 2
-	[SCHOOL_MASK_FIRE] = {r = 1.00, g = 0.50, b = 0.00}, -- 0x04 or 4
-	[SCHOOL_MASK_NATURE] = {r = 0.30, g = 1.00, b = 0.30}, -- 0x08 or 8
-	[SCHOOL_MASK_FROST] = {r = 0.50, g = 1.00, b = 1.00}, -- 0x10 or 16
-	[SCHOOL_MASK_SHADOW] = {r = 0.50, g = 0.50, b = 1.00}, -- 0x20 or 32
-	[SCHOOL_MASK_ARCANE] = {r = 1.00, g = 0.50, b = 1.00}, -- 0x40 or 64
+	[SCHOOL_MASK_NONE] = { r = 1.00, g = 1.00, b = 1.00 }, -- 0x00 or 0
+	[SCHOOL_MASK_PHYSICAL] = { r = 1.00, g = 1.00, b = 0.00 }, -- 0x01 or 1
+	[SCHOOL_MASK_HOLY] = { r = 1.00, g = 0.90, b = 0.50 }, -- 0x02 or 2
+	[SCHOOL_MASK_FIRE] = { r = 1.00, g = 0.50, b = 0.00 }, -- 0x04 or 4
+	[SCHOOL_MASK_NATURE] = { r = 0.30, g = 1.00, b = 0.30 }, -- 0x08 or 8
+	[SCHOOL_MASK_FROST] = { r = 0.50, g = 1.00, b = 1.00 }, -- 0x10 or 16
+	[SCHOOL_MASK_SHADOW] = { r = 0.50, g = 0.50, b = 1.00 }, -- 0x20 or 32
+	[SCHOOL_MASK_ARCANE] = { r = 1.00, g = 0.50, b = 1.00 }, -- 0x40 or 64
 }
 
 local function removeString(self, i, string)
 	tremove(self.FeedbackToAnimate, i)
-	string:SetText(nil)
+	string:SetText("")
 	string:SetAlpha(0)
 	string:Hide()
 
@@ -82,27 +78,20 @@ end
 
 local animations = {
 	["fountain"] = function(self)
-		return self.x + self.xDirection * self.radius * (1 - m_cos(m_pi / 2 * self.progress)),
-		self.y + self.yDirection * self.radius * m_sin(m_pi / 2 * self.progress)
+		return self.x + self.xDirection * self.radius * (1 - m_cos(m_pi / 2 * self.progress)), self.y + self.yDirection * self.radius * m_sin(m_pi / 2 * self.progress)
 	end,
-
 	["vertical"] = function(self)
 		return self.x, self.y + self.yDirection * self.radius * self.progress
 	end,
-
 	["horizontal"] = function(self)
 		return self.x + self.xDirection * self.radius * self.progress, self.y
 	end,
-
 	["diagonal"] = function(self)
-		return self.x + self.xDirection * self.radius * self.progress,
-		self.y + self.yDirection * self.radius * self.progress
+		return self.x + self.xDirection * self.radius * self.progress, self.y + self.yDirection * self.radius * self.progress
 	end,
-
 	["static"] = function(self)
 		return self.x, self.y
 	end,
-
 	["random"] = function(self)
 		if self.elapsed == 0 then
 			self.x, self.y = m_random(-self.radius * 0.66, self.radius * 0.66), m_random(-self.radius * 0.66, self.radius * 0.66)
@@ -152,29 +141,29 @@ local function flush(self)
 	wipe(self.FeedbackToAnimate)
 
 	for i = 1, #self do
-		self[i]:SetText(nil)
+		self[i]:SetText("")
 		self[i]:SetAlpha(0)
 		self[i]:Hide()
 	end
 end
 
 local eventFilter = {
-	["SWING_DAMAGE"] = {suffix = "DAMAGE", index = 12, iconType = "swing", autoAttack = true},
-	["RANGE_DAMAGE"] = {suffix = "DAMAGE", index = 15, iconType = "range", autoAttack = true},
-	["SPELL_DAMAGE"] = {suffix = "DAMAGE", index = 15, iconType = "spell"},
-	["SPELL_PERIODIC_DAMAGE"] = {suffix = "DAMAGE", index = 15, iconType = "spell", isPeriod = true},
-	["SPELL_BUILDING_DAMAGE"] = {suffix = "DAMAGE", index = 15, iconType = "spell"},
+	["SWING_DAMAGE"] = { suffix = "DAMAGE", index = 10, iconType = "swing", autoAttack = true },
+	["RANGE_DAMAGE"] = { suffix = "DAMAGE", index = 13, iconType = "range", autoAttack = true },
+	["SPELL_DAMAGE"] = { suffix = "DAMAGE", index = 13, iconType = "spell" },
+	["SPELL_PERIODIC_DAMAGE"] = { suffix = "DAMAGE", index = 13, iconType = "spell", isPeriod = true },
+	["SPELL_BUILDING_DAMAGE"] = { suffix = "DAMAGE", index = 13, iconType = "spell" },
 
-	["SPELL_HEAL"] = {suffix = "HEAL", index = 15, iconType = "spell"},
-	["SPELL_PERIODIC_HEAL"] = {suffix = "HEAL", index = 15, iconType = "spell", isPeriod = true},
-	["SPELL_BUILDING_HEAL"] = {suffix = "HEAL", index = 15, iconType = "spell"},
+	["SPELL_HEAL"] = { suffix = "HEAL", index = 13, iconType = "spell" },
+	["SPELL_PERIODIC_HEAL"] = { suffix = "HEAL", index = 13, iconType = "spell", isPeriod = true },
+	["SPELL_BUILDING_HEAL"] = { suffix = "HEAL", index = 13, iconType = "spell" },
 
-	["SWING_MISSED"] = {suffix = "MISS", index = 12, iconType = "swing", autoAttack = true},
-	["RANGE_MISSED"] = {suffix = "MISS", index = 15, iconType = "range", autoAttack = true},
-	["SPELL_MISSED"] = {suffix = "MISS", index = 15, iconType = "spell"},
-	["SPELL_PERIODIC_MISSED"] = {suffix = "MISS", index = 15, iconType = "spell", isPeriod = true},
+	["SWING_MISSED"] = { suffix = "MISS", index = 10, iconType = "swing", autoAttack = true },
+	["RANGE_MISSED"] = { suffix = "MISS", index = 13, iconType = "range", autoAttack = true },
+	["SPELL_MISSED"] = { suffix = "MISS", index = 13, iconType = "spell" },
+	["SPELL_PERIODIC_MISSED"] = { suffix = "MISS", index = 13, iconType = "spell", isPeriod = true },
 
-	["ENVIRONMENTAL_DAMAGE"] = {suffix = "ENVIRONMENT", index = 12, iconType = "env"},
+	["ENVIRONMENTAL_DAMAGE"] = { suffix = "ENVIRONMENT", index = 10, iconType = "env" },
 }
 
 local envTexture = {
@@ -186,6 +175,7 @@ local envTexture = {
 	["Slime"] = "inv_misc_slime_02",
 }
 
+local iconCache = {}
 local function getTexture(spellID)
 	if spellID and not iconCache[spellID] then
 		local texture = GetSpellTexture(spellID)
@@ -208,21 +198,23 @@ local function getFloatingIconTexture(iconType, spellID, isPet)
 		texture = getTexture(75)
 	elseif iconType == "env" then
 		texture = envTexture[spellID] or "ability_creature_cursed_05"
-		texture = "Interface\\Icons\\"..texture
+		texture = "Interface\\Icons\\" .. texture
 	end
 
 	return texture
 end
 
+local missCache = {}
 local function getMissText(missType)
 	if missType and not missCache[missType] then
-		missCache[missType] = _G["COMBAT_TEXT_"..missType]
+		missCache[missType] = _G["COMBAT_TEXT_" .. missType]
 	end
 	return missCache[missType]
 end
 
 local function formatNumber(self, amount)
 	local element = self.FloatingCombatFeedback
+
 	if element.abbreviateNumbers then
 		return K.ShortValue(amount)
 	else
@@ -230,8 +222,7 @@ local function formatNumber(self, amount)
 	end
 end
 
-local playerGUID = UnitGUID("player")
-local function onEvent(self, event, ...)
+local function Update(self, event, ...)
 	local element = self.FloatingCombatFeedback
 	local unit = self.unit
 
@@ -243,38 +234,36 @@ local function onEvent(self, event, ...)
 	local multiplier = 1
 	local text, color, texture, critMark
 
-	if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-		local _, eventType, _, sourceGUID, _, sourceFlags, _, destGUID, _, _, _, spellID, _, school = ...
-		local isPlayer = playerGUID == sourceGUID
-		local atTarget = UnitGUID("target") == destGUID
-		local atPlayer = playerGUID == destGUID
-		local isPet = element.showPets and K.IsMyPet(sourceFlags)
+	if eventFilter[event] then
+		local _, sourceGUID, _, sourceFlags, _, destGUID, _, _, _, spellID, _, school = ...
+		local isPlayer = K.GUID == sourceGUID
+		local isRightUnit = element.unitGUID == destGUID
+		local isPet = C["Unitframe"].PetCombatText and K.IsMyPet(sourceFlags)
 
-		if (unit == "target" and (isPlayer or isPet) and atTarget) or (unit == "player" and atPlayer) then
-			local value = eventFilter[eventType]
+		if isRightUnit and (unit == "target" and (isPlayer or isPet) or unit == "player") then
+			local value = eventFilter[event]
 			if not value then
 				return
 			end
 
 			if value.suffix == "DAMAGE" then
-				if value.autoAttack and not element.showAutoAttack then
+				if value.autoAttack and not C["Unitframe"].AutoAttack then
 					return
 				end
-
-				if value.isPeriod and not element.showHots then
+				if value.isPeriod and not C["Unitframe"].HotsDots then
 					return
 				end
 
 				local amount, _, _, _, _, _, critical, _, crushing = select(value.index, ...)
-				texture = getFloatingIconTexture(value.iconType, spellID, isPet)
-				text = "-"..formatNumber(self, amount)
+				texture = getFloatingIconTexture(value.iconType, spellID, (isPet and not isPlayer))
+				text = "-" .. formatNumber(self, amount)
 
 				if critical or crushing then
 					multiplier = 1.25
 					critMark = true
 				end
 			elseif value.suffix == "HEAL" then
-				if value.isPeriod and not element.showHots then
+				if value.isPeriod and not C["Unitframe"].HotsDots then
 					return
 				end
 
@@ -283,12 +272,12 @@ local function onEvent(self, event, ...)
 				local overhealText = ""
 				if overhealing > 0 then
 					amount = amount - overhealing
-					overhealText = " ("..formatNumber(self, overhealing)..")"
+					overhealText = " (" .. formatNumber(self, overhealing) .. ")"
 				end
-				if amount == 0 and not element.showOverHealing then
+				if amount == 0 and not C["Unitframe"].FCTOverHealing then
 					return
 				end
-				text = "+"..formatNumber(self, amount)..overhealText
+				text = "+" .. formatNumber(self, amount) .. overhealText
 
 				if critical then
 					multiplier = 1.25
@@ -301,7 +290,7 @@ local function onEvent(self, event, ...)
 			elseif value.suffix == "ENVIRONMENT" then
 				local envType, amount = select(value.index, ...)
 				texture = getFloatingIconTexture(value.iconType, envType)
-				text = "-"..formatNumber(self, amount)
+				text = "-" .. formatNumber(self, amount)
 			end
 
 			color = schoolColors[school] or schoolColors[0]
@@ -324,8 +313,8 @@ local function onEvent(self, event, ...)
 		local animation = element.defaultMode
 		local string = getAvailableString(element)
 
-		string:SetFont(element.font, element.fontHeight * multiplier, element.fontFlags)
-		string:SetFormattedText(element.format, texture, (critMark and "*" or "")..text)
+		string:SetFont(element.font, 18 * multiplier, element.fontFlags)
+		string:SetFormattedText(element.format, texture, (critMark and "*" or "") .. text)
 		string:SetTextColor(color.r, color.g, color.b)
 		string.elapsed = 0
 		string.GetXY = animations[animation]
@@ -347,16 +336,8 @@ local function onEvent(self, event, ...)
 	end
 end
 
-local function Update(self, event, ...)
-	if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-		onEvent(self, event, CombatLogGetCurrentEventInfo())
-	else
-		onEvent(self, event, ...)
-	end
-end
-
 local function Path(self, ...)
-	return (self.FloatingCombatFeedback.Override or Update) (self, ...)
+	return (self.FloatingCombatFeedback.Override or Update)(self, ...)
 end
 
 local function ForceUpdate(element)
@@ -390,7 +371,10 @@ local function Enable(self, unit)
 	element:SetScript("OnHide", flush)
 	element:SetScript("OnShow", flush)
 
-	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", Path, true)
+	for event in pairs(eventFilter) do
+		self:RegisterCombatEvent(event, Path)
+	end
+
 	if unit == "player" then
 		element.xDirection = -1
 		self:RegisterEvent("PLAYER_REGEN_DISABLED", Path, true)
@@ -409,10 +393,12 @@ local function Disable(self)
 		element:SetScript("OnShow", nil)
 		element:SetScript("OnUpdate", nil)
 
-		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", Path)
+		for event in pairs(eventFilter) do
+			self:UnregisterCombatEvent(event, Path)
+		end
 		self:UnregisterEvent("PLAYER_REGEN_DISABLED", Path)
 		self:UnregisterEvent("PLAYER_REGEN_ENABLED", Path)
 	end
 end
 
-K.oUF:AddElement("FloatingCombatFeedback", Path, Enable, Disable)
+oUF:AddElement("FloatingCombatFeedback", Path, Enable, Disable)

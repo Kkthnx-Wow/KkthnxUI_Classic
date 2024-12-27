@@ -1,77 +1,92 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:NewModule("Skins")
 
-local _G = _G
-local table_wipe = _G.table.wipe
+local table_wipe = table.wipe
 
-local IsAddOnLoaded = _G.IsAddOnLoaded
+local C_AddOns_IsAddOnLoaded = C_AddOns.IsAddOnLoaded
 
+-- Tables to store default themes, registered themes and other skins
 C.defaultThemes = {}
 C.themes = {}
+C.otherSkins = {}
 
-function Module:LoadDefaultSkins()
-	if IsAddOnLoaded("AuroraClassic") or IsAddOnLoaded("Aurora") then
+-- Function to register a skin for an external addon
+function Module:RegisterSkin(addonName, skinFunction)
+	C.otherSkins[addonName] = skinFunction
+end
+
+-- Function to load skins from a given list
+function Module:LoadSkins(skinList)
+	if type(skinList) ~= "table" or not next(skinList) then
 		return
 	end
 
-	-- Reskin Blizzard UIs
-	for _, func in pairs(C.defaultThemes) do
-		func()
+	for addonName, skinFunction in pairs(skinList) do
+		local isLoaded, isFinished = C_AddOns_IsAddOnLoaded(addonName)
+		if isLoaded and isFinished then
+			if type(skinFunction) == "function" then
+				skinFunction()
+			end
+			skinList[addonName] = nil
+		end
+	end
+end
+
+-- Function to load default skins
+function Module:LoadDefaultSkins()
+	if C_AddOns_IsAddOnLoaded("AuroraClassic") or C_AddOns_IsAddOnLoaded("Aurora") then
+		return
+	end
+
+	for _, defaultSkinFunction in pairs(C.defaultThemes) do
+		defaultSkinFunction()
 	end
 	table_wipe(C.defaultThemes)
 
 	if not C["Skins"].BlizzardFrames then
-		return
+		table_wipe(C.themes)
 	end
 
-	for addonName, func in pairs(C.themes) do
-		local isLoaded, isFinished = IsAddOnLoaded(addonName)
-		if isLoaded and isFinished then
-			func()
-			C.themes[addonName] = nil
-		end
-	end
+	Module:LoadSkins(C.themes)
+	Module:LoadSkins(C.otherSkins)
 
 	K:RegisterEvent("ADDON_LOADED", function(_, addonName)
-		local func = C.themes[addonName]
-		if func then
-			func()
+		local blizzardSkinFunction = C.themes[addonName]
+		if blizzardSkinFunction then
+			blizzardSkinFunction()
 			C.themes[addonName] = nil
+		end
+
+		local otherSkinFunction = C.otherSkins[addonName]
+		if otherSkinFunction then
+			otherSkinFunction()
+			C.otherSkins[addonName] = nil
 		end
 	end)
 end
 
 function Module:OnEnable()
-	Module:LoadDefaultSkins()
+	local loadSkinModules = {
+		"LoadDefaultSkins",
 
-	-- Add Skins
-	self:CreateQuestTracker()
-	-- self:ReskinBartender4()
-	-- self:ReskinDeadlyBossMods()
-	-- self:ReskinDominos()
-	-- self:ReskinRareScanner()
-	-- self:ReskinSimulationcraft()
-	-- self:ReskinPawn()
-end
+		"ReskinBartender4",
+		"ReskinNekometer",
+		-- "ReskinBigWigs",
+		"ReskinButtonForge",
+		"ReskinChocolateBar",
+		"ReskinDeadlyBossMods",
+		"ReskinDominos",
+		"ReskinRareScanner",
+		"ReskinSimulationcraft",
+	}
 
-function Module:LoadWithAddOn(addonName, value, func)
-	local function loadFunc(event, addon)
-		if not C["Skins"][value] then
-			return
-		end
-
-		if event == "PLAYER_ENTERING_WORLD" then
-			K:UnregisterEvent(event, loadFunc)
-			if IsAddOnLoaded(addonName) then
-				func()
-				K:UnregisterEvent("ADDON_LOADED", loadFunc)
+	for _, funcName in ipairs(loadSkinModules) do
+		local func = self[funcName]
+		if type(func) == "function" then
+			local success, err = pcall(func, self)
+			if not success then
+				error("Error in function " .. funcName .. ": " .. tostring(err), 2)
 			end
-		elseif event == "ADDON_LOADED" and addon == addonName then
-			func()
-			K:UnregisterEvent(event, loadFunc)
 		end
 	end
-
-	K:RegisterEvent("PLAYER_ENTERING_WORLD", loadFunc)
-	K:RegisterEvent("ADDON_LOADED", loadFunc)
 end

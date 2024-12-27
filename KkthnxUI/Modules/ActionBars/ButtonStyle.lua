@@ -1,233 +1,62 @@
-local K, C = unpack(select(2, ...))
+local K = KkthnxUI[1]
 local Module = K:GetModule("ActionBar")
 
-local _G = _G
-local next = _G.next
-local string_gsub = _G.string.gsub
-local unpack = _G.unpack
+local keyButton = gsub(KEY_BUTTON4, "%d", "")
+local keyNumpad = gsub(KEY_NUMPAD1, "%d", "")
 
-local GetBindingKey = _G.GetBindingKey
-local hooksecurefunc = _G.hooksecurefunc
-
-local function CallButtonFunctionByName(button, func, ...)
-	if button and func and button[func] then
-		button[func](button, ...)
-	end
-end
-
-local function ResetNormalTexture(self, file)
-	if not self.__normalTextureFile then
-		return
-	end
-
-	if file == self.__normalTextureFile then
-		return
-	end
-
-	self:SetNormalTexture(self.__normalTextureFile)
-end
-
-local function ResetTexture(self, file)
-	if not self.__textureFile then
-		return
-	end
-
-	if file == self.__textureFile then
-		return
-	end
-
-	self:SetTexture(self.__textureFile)
-end
-
-local function ResetVertexColor(self, r, g, b, a)
-	if not self.__vertexColor then
-		return
-	end
-
-	local r2, g2, b2, a2 = unpack(self.__vertexColor)
-	if not a2 then
-		a2 = 1
-	end
-
-	if r ~= r2 or g ~= g2 or b ~= b2 or a ~= a2 then
-		self:SetVertexColor(r2, g2, b2, a2)
-	end
-end
-
-local function ApplyPoints(self, points)
-	if not points then
-		return
-	end
-
-	self:ClearAllPoints()
-	for _, point in next, points do
-		self:SetPoint(unpack(point))
-	end
-end
-
-local function ApplyTexCoord(texture, texCoord)
-	if texture.__lockdown or not texCoord then
-		return
-	end
-
-	texture:SetTexCoord(unpack(texCoord))
-end
-
-local function ApplyVertexColor(texture, color)
-	if not color then
-		return
-	end
-
-	texture.__vertexColor = color
-	texture:SetVertexColor(unpack(color))
-	hooksecurefunc(texture, "SetVertexColor", ResetVertexColor)
-end
-
-local function ApplyAlpha(region, alpha)
-	if not alpha then
-		return
-	end
-
-	region:SetAlpha(alpha)
-end
-
-local function ApplyFont(fontString, font)
-	if not font then
-		return
-	end
-
-	fontString:SetFontObject(font)
-end
-
-local function ApplyHorizontalAlign(fontString, align)
-	if not align then
-		return
-	end
-
-	fontString:SetJustifyH(align)
-end
-
-local function ApplyVerticalAlign(fontString, align)
-	if not align then
-		return
-	end
-
-	fontString:SetJustifyV(align)
-end
-
-local function ApplyTexture(texture, file)
-	if not file then
-		return
-	end
-
-	texture.__textureFile = file
-	texture:SetTexture(file)
-	hooksecurefunc(texture, "SetTexture", ResetTexture)
-end
-
-local function ApplyNormalTexture(button, file)
-	if not file then
-		return
-	end
-
-	button.__normalTextureFile = file
-	button:SetNormalTexture(file)
-	hooksecurefunc(button, "SetNormalTexture", ResetNormalTexture)
-end
-
-local function SetupTexture(texture, cfg, func, button)
-	if not texture or not cfg then
-		return
-	end
-
-	ApplyTexCoord(texture, cfg.texCoord)
-	ApplyPoints(texture, cfg.points)
-	ApplyVertexColor(texture, cfg.color)
-	ApplyAlpha(texture, cfg.alpha)
-
-	if func == "SetTexture" then
-		ApplyTexture(texture, cfg.file)
-	elseif func == "SetNormalTexture" then
-		ApplyNormalTexture(button, cfg.file)
-	elseif cfg.file then
-		CallButtonFunctionByName(button, func, cfg.file)
-	end
-end
-
-local function SetupFontString(fontString, cfg)
-	if not fontString or not cfg then
-		return
-	end
-
-	ApplyPoints(fontString, cfg.points)
-	ApplyFont(fontString, cfg.font)
-	ApplyAlpha(fontString, cfg.alpha)
-	ApplyHorizontalAlign(fontString, cfg.halign)
-	ApplyVerticalAlign(fontString, cfg.valign)
-end
-
-local function SetupCooldown(cooldown, cfg)
-	if not cooldown or not cfg then
-		return
-	end
-
-	ApplyPoints(cooldown, cfg.points)
-end
-
-local keyButton = string_gsub(KEY_BUTTON4, "%d", "")
-local keyNumpad = string_gsub(KEY_NUMPAD1, "%d", "")
 local replaces = {
-	{"("..keyButton..")", "M"},
-	{"("..keyNumpad..")", "N"},
-	{"(a%-)", "a"},
-	{"(c%-)", "c"},
-	{"(s%-)", "s"},
-	{KEY_BUTTON3, "M3"},
-	{KEY_MOUSEWHEELUP, "MU"},
-	{KEY_MOUSEWHEELDOWN, "MD"},
-	{KEY_SPACE, "Sp"},
-	{CAPSLOCK_KEY_TEXT, "CL"},
-	{"BUTTON", "M"},
-	{"NUMPAD", "N"},
-	{"(ALT%-)", "a"},
-	{"(CTRL%-)", "c"},
-	{"(SHIFT%-)", "s"},
-	{"MOUSEWHEELUP", "MU"},
-	{"MOUSEWHEELDOWN", "MD"},
-	{"SPACE", "Sp"},
+	{ "(" .. keyButton .. ")", "M" },
+	{ "(" .. keyNumpad .. ")", "N" },
+	{ "(a%-)", "a" },
+	{ "(c%-)", "c" },
+	{ "(s%-)", "s" },
+	{ KEY_BUTTON3, "M3" },
+	{ KEY_MOUSEWHEELUP, "MU" },
+	{ KEY_MOUSEWHEELDOWN, "MD" },
+	{ KEY_SPACE, "Sp" },
+	{ "CAPSLOCK", "CL" },
+	{ "Capslock", "CL" },
+	{ "BUTTON", "M" },
+	{ "NUMPAD", "N" },
+	{ "(META%-)", "m" },
+	{ "(Meta%-)", "m" },
+	{ "(ALT%-)", "a" },
+	{ "(CTRL%-)", "c" },
+	{ "(SHIFT%-)", "s" },
+	{ "MOUSEWHEELUP", "MU" },
+	{ "MOUSEWHEELDOWN", "MD" },
+	{ "SPACE", "Sp" },
 }
 
 function Module:UpdateHotKey()
-	local hotkey = _G[self:GetName().."HotKey"]
-	if hotkey and hotkey:IsShown() and not C["ActionBar"].Hotkey then
-		hotkey:Hide()
-		return
-	end
-
-	local text = hotkey:GetText()
+	local text = self:GetText()
 	if not text then
 		return
 	end
 
-	for _, value in pairs(replaces) do
-		text = string_gsub(text, value[1], value[2])
-	end
-
 	if text == RANGE_INDICATOR then
-		hotkey:SetText("")
+		text = ""
 	else
-		hotkey:SetText(text)
+		for _, value in pairs(replaces) do
+			text = gsub(text, value[1], value[2])
+		end
+	end
+	self:SetFormattedText("%s", text)
+end
+
+function Module:UpdateBarBorderColor(button)
+	if not button.__bg then
+		return
+	end
+
+	if button.Border:IsShown() then
+		button.__bg.KKUI_Border:SetVertexColor(0, 0.7, 0.1)
+	else
+		K.SetBorderColor(button.__bg.KKUI_Border)
 	end
 end
 
-function Module:HookHotKey(button)
-	Module.UpdateHotKey(button)
-	if button.UpdateHotkeys then
-		hooksecurefunc(button, "UpdateHotkeys", Module.UpdateHotKey)
-	end
-end
-
-function Module:StyleActionButton(button, cfg)
+function Module:StyleActionButton(button)
 	if not button then
 		return
 	end
@@ -237,271 +66,155 @@ function Module:StyleActionButton(button, cfg)
 	end
 
 	local buttonName = button:GetName()
-	local icon = _G[buttonName.."Icon"]
-	local flash = _G[buttonName.."Flash"]
-	local flyoutBorder = _G[buttonName.."FlyoutBorder"]
-	local flyoutBorderShadow = _G[buttonName.."FlyoutBorderShadow"]
-	local hotkey = _G[buttonName.."HotKey"]
-	local count = _G[buttonName.."Count"]
-	local name = _G[buttonName.."Name"]
-	local border = _G[buttonName.."Border"]
-	local NewActionTexture = button.NewActionTexture
-	local cooldown = _G[buttonName.."Cooldown"]
-	local normalTexture = button:GetNormalTexture()
-	local pushedTexture = button:GetPushedTexture()
-	local highlightTexture = button:GetHighlightTexture()
+	local icon = button.icon
+	local cooldown = button.cooldown
+	local hotkey = button.HotKey
+	local count = button.Count
+	local name = button.Name
+	local flash = button.Flash
+	local border = button.Border
+	local normal = button.NormalTexture
+	local normal2 = button:GetNormalTexture()
+	local slotbg = button.SlotBackground
+	local pushed = button.PushedTexture
+	local checked = button.CheckedTexture
+	local highlight = button.HighlightTexture
+	local newActionTexture = button.NewActionTexture
+	local spellHighlight = button.SpellHighlightTexture
+	local iconMask = button.IconMask
+	local petShine = _G[buttonName .. "Shine"]
+	local autoCastable = button.AutoCastable
 
-	-- Normal buttons do not have a checked texture, but checkbuttons do and normal actionbuttons are checkbuttons
-	local checkedTexture = nil
-	if button.GetCheckedTexture then
-		checkedTexture = button:GetCheckedTexture()
+	if normal then
+		normal:SetAlpha(0)
 	end
 
-	-- Hide stuff
-	local floatingBG = _G[buttonName.."FloatingBG"]
-	if floatingBG then
-		floatingBG:Hide()
+	if normal2 then
+		normal2:SetAlpha(0)
 	end
 
-	if NewActionTexture then
-		NewActionTexture:SetTexture(nil)
+	if flash then
+		flash:SetTexture(nil)
 	end
 
-	-- Backdrop
-	button:CreateBorder()
-	button:StyleButton()
+	if newActionTexture then
+		newActionTexture:SetTexture(nil)
+	end
 
-	-- Textures
-	SetupTexture(icon, cfg.icon, "SetTexture", icon)
-	SetupTexture(flash, cfg.flash, "SetTexture", flash)
-	SetupTexture(flyoutBorder, cfg.flyoutBorder, "SetTexture", flyoutBorder)
-	SetupTexture(flyoutBorderShadow, cfg.flyoutBorderShadow, "SetTexture", flyoutBorderShadow)
-	SetupTexture(border, cfg.border, "SetTexture", border)
-	SetupTexture(normalTexture, cfg.normalTexture, "SetNormalTexture", button)
-	SetupTexture(pushedTexture, cfg.pushedTexture, "SetPushedTexture", button)
-	SetupTexture(highlightTexture, cfg.highlightTexture, "SetHighlightTexture", button)
-	SetupTexture(checkedTexture, cfg.checkedTexture, "SetCheckedTexture", button)
+	if border then
+		border:SetTexture(nil)
+	end
 
-	-- Cooldown
-	SetupCooldown(cooldown, cfg.cooldown)
+	if slotbg then
+		slotbg:Hide()
+	end
 
-	-- No clue why but blizzard created count and duration on background layer, need to fix that
-	local overlay = CreateFrame("Frame", nil, button)
-	overlay:SetAllPoints()
+	if iconMask then
+		iconMask:Hide()
+	end
 
-	if count then
-		if C["ActionBar"].Count then
-			count:SetParent(overlay)
-			SetupFontString(count, cfg.count)
-		else
-			count:Hide()
+	if button.style then
+		button.style:SetAlpha(0)
+	end
+
+	if petShine then
+		petShine:SetAllPoints()
+	end
+
+	if autoCastable then
+		autoCastable:SetTexCoord(0.217, 0.765, 0.217, 0.765)
+		autoCastable:SetDrawLayer("OVERLAY", 3)
+		autoCastable:SetAllPoints()
+	end
+
+	if icon then
+		icon:SetAllPoints()
+		if not icon.__lockdown then
+			icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 		end
+
+		if not button.__bg then
+			button.__bg = CreateFrame("Frame", nil, button, "BackdropTemplate")
+			button.__bg:SetAllPoints(button)
+			button.__bg:SetFrameLevel(button:GetFrameLevel())
+			button.__bg:CreateBorder(nil, nil, nil, nil, nil, nil, K.MediaFolder .. "Skins\\UI-Slot-Background", nil, nil, nil, { 1, 1, 1 })
+		end
+	end
+
+	if cooldown then
+		cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+		cooldown:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+	end
+
+	if pushed then
+		pushed:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
+		pushed:SetDesaturated(true)
+		pushed:SetVertexColor(246 / 255, 196 / 255, 66 / 255)
+		pushed:SetPoint("TOPLEFT", button, "TOPLEFT", 0, -0)
+		pushed:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -0, 0)
+		pushed:SetBlendMode("ADD")
+	end
+
+	if checked then
+		checked:SetTexture("Interface\\Buttons\\CheckButtonHilight")
+		checked:SetPoint("TOPLEFT", button, "TOPLEFT", 0, -0)
+		checked:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -0, 0)
+		checked:SetBlendMode("ADD")
+	end
+
+	if highlight then
+		highlight:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
+		highlight:SetPoint("TOPLEFT", button, "TOPLEFT", 0, -0)
+		highlight:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -0, 0)
+		highlight:SetBlendMode("ADD")
+	end
+
+	if spellHighlight then
+		spellHighlight:SetAllPoints()
 	end
 
 	if hotkey then
-		hotkey:SetParent(overlay)
-		Module:HookHotKey(button)
-		SetupFontString(hotkey, cfg.hotkey)
+		Module.UpdateHotKey(hotkey)
+		hooksecurefunc(hotkey, "SetText", Module.UpdateHotKey)
 	end
 
-	if name then
-		if C["ActionBar"].Macro then
-			name:SetParent(overlay)
-			SetupFontString(name, cfg.name)
-		else
-			name:Hide()
+	button.__styled = true
+end
+
+function Module:ReskinBars()
+	for i = 1, 8 do
+		for j = 1, 12 do
+			Module:StyleActionButton(_G["KKUI_ActionBar" .. i .. "Button" .. j])
 		end
 	end
 
-	button.__styled = true
-end
-
-function Module:StyleExtraActionButton(cfg)
-	local button = ExtraActionButton1
-	if button.__styled then
-		return
-	end
-
-	local buttonName = button:GetName()
-	local icon = _G[buttonName.."Icon"]
-	local hotkey = _G[buttonName.."HotKey"]
-	local count = _G[buttonName.."Count"]
-	local buttonstyle = button.style -- Artwork around the button
-	local cooldown = _G[buttonName.."Cooldown"]
-
-	local normalTexture = button:GetNormalTexture()
-	local pushedTexture = button:GetPushedTexture()
-	local highlightTexture = button:GetHighlightTexture()
-	local checkedTexture = button:GetCheckedTexture()
-
-	-- Border
-	button:CreateBorder()
-	button:StyleButton()
-
-	-- Textures
-	SetupTexture(icon, cfg.icon, "SetTexture", icon)
-	SetupTexture(buttonstyle, cfg.buttonstyle, "SetTexture", buttonstyle)
-	SetupTexture(normalTexture, cfg.normalTexture, "SetNormalTexture", button)
-	SetupTexture(pushedTexture, cfg.pushedTexture, "SetPushedTexture", button)
-	SetupTexture(highlightTexture, cfg.highlightTexture, "SetHighlightTexture", button)
-	SetupTexture(checkedTexture, cfg.checkedTexture, "SetCheckedTexture", button)
-
-	-- Cooldown
-	SetupCooldown(cooldown, cfg.cooldown)
-
-	-- Hotkey & Count
-	local overlay = CreateFrame("Frame", nil, button)
-	overlay:SetAllPoints()
-
-	local hotcountFont = K.GetFont(C["UIFonts"].ActionBarsFonts)
-	hotkey:SetParent(overlay)
-	Module:HookHotKey(button)
-	cfg.hotkey.font = hotcountFont
-	SetupFontString(hotkey, cfg.hotkey)
-
-	if C["ActionBar"].Count then
-		count:SetParent(overlay)
-		cfg.count.font = hotcountFont
-		SetupFontString(count, cfg.count)
-	else
-		count:Hide()
-	end
-	
-	button.__styled = true
-end
-
-function Module:UpdateStanceHotKey()
-	for i = 1, NUM_STANCE_SLOTS do
-		_G["StanceButton"..i.."HotKey"]:SetText(GetBindingKey("SHAPESHIFTBUTTON"..i))
-		Module:HookHotKey(_G["StanceButton"..i])
-	end
-end
-
-function Module:StyleAllActionButtons(cfg)
-	for i = 1, NUM_ACTIONBAR_BUTTONS do
-		Module:StyleActionButton(_G["ActionButton"..i], cfg)
-		Module:StyleActionButton(_G["MultiBarBottomLeftButton"..i], cfg)
-		Module:StyleActionButton(_G["MultiBarBottomRightButton"..i], cfg)
-		Module:StyleActionButton(_G["MultiBarRightButton"..i], cfg)
-		Module:StyleActionButton(_G["MultiBarLeftButton"..i], cfg)
-		Module:StyleActionButton(_G["KKUI_CustomBarButton"..i], cfg)
-	end
-
-	for i = 1, 6 do
-		Module:StyleActionButton(_G["OverrideActionBarButton"..i], cfg)
-	end
-
-	-- Petbar buttons
+	-- petbar buttons
 	for i = 1, NUM_PET_ACTION_SLOTS do
-		Module:StyleActionButton(_G["PetActionButton"..i], cfg)
+		Module:StyleActionButton(_G["PetActionButton" .. i])
 	end
 
-	-- Stancebar buttons
-	for i = 1, NUM_STANCE_SLOTS do
-		Module:StyleActionButton(_G["StanceButton"..i], cfg)
+	-- stancebar buttons
+	for i = 1, 10 do
+		Module:StyleActionButton(_G["StanceButton" .. i])
 	end
 
-	-- Leave Vehicle
-	Module:StyleActionButton(_G["KKUI_LeaveVehicleButton"], cfg)
+	-- leave vehicle
+	Module:StyleActionButton(_G["KKUI_LeaveVehicleButton"])
 
-	-- Extra action button
-	-- Module:StyleExtraActionButton(cfg)
+	-- extra action button
+	Module:StyleActionButton(ExtraActionButton1)
 
-	-- Spell flyout
-	-- SpellFlyoutBackgroundEnd:SetTexture(nil)
-	-- SpellFlyoutHorizontalBackground:SetTexture(nil)
-	-- SpellFlyoutVerticalBackground:SetTexture(nil)
+	-- -- spell flyout
+	-- SpellFlyout.Background:SetAlpha(0)
+	-- local numFlyouts = 1
 	-- local function checkForFlyoutButtons()
-	-- 	local i = 1
-	-- 	local button = _G["SpellFlyoutButton"..i]
-	-- 	while button and button:IsShown() do
-	-- 		Module:StyleActionButton(button, cfg)
-	-- 		i = i + 1
-	-- 		button = _G["SpellFlyoutButton"..i]
+	-- 	local button = _G["SpellFlyoutButton" .. numFlyouts]
+	-- 	while button do
+	-- 		Module:StyleActionButton(button)
+	-- 		numFlyouts = numFlyouts + 1
+	-- 		button = _G["SpellFlyoutButton" .. numFlyouts]
 	-- 	end
 	-- end
-
 	-- SpellFlyout:HookScript("OnShow", checkForFlyoutButtons)
-end
-
-function Module:CreateBarSkin()
-	local cfgFont = K.GetFont(C["UIFonts"].ActionBarsFonts)
-	local cfg = {
-		icon = {
-			texCoord = K.TexCoords,
-		},
-
-		flyoutBorder = {
-			file = ""
-		},
-
-		flyoutBorderShadow = {
-			file = ""
-		},
-
-		border = {
-			file = ""
-		},
-
-		normalTexture = {
-			file = "",
-		},
-
-		flash = {
-			file = ""
-		},
-
-		pushedTexture = {
-			-- file = ""
-		},
-
-		checkedTexture = {
-			-- file = ""
-		},
-
-		highlightTexture = {
-			-- file = ""
-		},
-
-		cooldown = {
-			points = {
-				{"TOPLEFT", 1, -1},
-				{"BOTTOMRIGHT", -1, 1},
-			},
-		},
-
-		name = {
-			font = cfgFont,
-			points = {
-				{"BOTTOMLEFT", 0, 0},
-				{"BOTTOMRIGHT", 0, 0},
-			},
-		},
-
-		hotkey = {
-			font = cfgFont,
-			points = {
-				{"TOPRIGHT", 0, -3},
-				{"TOPLEFT", 0, -3},
-			},
-		},
-
-		count = {
-			font = cfgFont,
-			points = {
-				{"BOTTOMRIGHT", 2, 0},
-			},
-		},
-
-		buttonstyle = {
-			file = ""
-		},
-	}
-
-	Module:StyleAllActionButtons(cfg)
-
-	-- Update hotkeys
-	hooksecurefunc("PetActionButton_SetHotkeys", Module.UpdateHotKey)
-	Module:UpdateStanceHotKey()
-	K:RegisterEvent("UPDATE_BINDINGS", Module.UpdateStanceHotKey)
+	-- SpellFlyout:HookScript("OnHide", checkForFlyoutButtons)
 end

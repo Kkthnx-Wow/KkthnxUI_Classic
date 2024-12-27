@@ -1,62 +1,55 @@
-local K, C = unpack(select(2, ...))
+local K = KkthnxUI[1]
 local Module = K:GetModule("ActionBar")
-local FilterConfig = C.ActionBars.extraBar
 
+-- Cache global references
 local _G = _G
-local table_insert = _G.table.insert
-
 local CreateFrame = _G.CreateFrame
-local hooksecurefunc = _G.hooksecurefunc
-local RegisterStateDriver = _G.RegisterStateDriver
 local UIParent = _G.UIParent
+local tinsert = _G.table.insert
+local RegisterStateDriver = _G.RegisterStateDriver
+local hooksecurefunc = _G.hooksecurefunc
+local IsUsableAction = _G.IsUsableAction
 
-local padding = C.ActionBars.padding
+local padding = 0
 
 function Module:CreateExtrabar()
 	local buttonList = {}
-	local size = FilterConfig.size
+	local size = 52
 
-	-- Create The Frame To Hold The Buttons
-	local frame = CreateFrame("Frame", "KKUI_ExtraActionBar", UIParent, "SecureHandlerStateTemplate")
+	-- ExtraActionButton
+	local frame = CreateFrame("Frame", "KKUI_ActionBarExtra", UIParent, "SecureHandlerStateTemplate")
 	frame:SetWidth(size + 2 * padding)
 	frame:SetHeight(size + 2 * padding)
-	frame.Pos = {"BOTTOM", UIParent, "BOTTOM", 270, 42}
-	frame.mover = K.Mover(frame, "Extrabar", "Extrabar", frame.Pos)
+	frame.mover = K.Mover(frame, "Extrabar", "Extrabar", { "BOTTOM", UIParent, "BOTTOM", 294, 100 })
 
 	ExtraActionBarFrame:EnableMouse(false)
-	ExtraAbilityContainer:SetParent(frame)
-	ExtraAbilityContainer:ClearAllPoints()
-	ExtraAbilityContainer:SetPoint("CENTER", frame, 0, 2 * padding)
-	ExtraAbilityContainer.ignoreFramePositionManager = true
+	ExtraActionBarFrame:ClearAllPoints()
+	ExtraActionBarFrame:SetPoint("CENTER", frame)
+	ExtraActionBarFrame.ignoreFramePositionManager = true
+
+	hooksecurefunc(ExtraActionBarFrame, "SetParent", function(self, parent)
+		if parent == ExtraAbilityContainer then
+			self:SetParent(frame)
+		end
+	end)
 
 	local button = ExtraActionButton1
-	table_insert(buttonList, button)
-	table_insert(Module.buttons, button)
+	tinsert(buttonList, button)
+	tinsert(Module.buttons, button)
 	button:SetSize(size, size)
 
-	-- Show/hide The Frame On A Given State Driver
 	frame.frameVisibility = "[extrabar] show; hide"
 	RegisterStateDriver(frame, "visibility", frame.frameVisibility)
-
-	-- create the mouseover functionality
-	if FilterConfig.fader then
-		K.CreateButtonFrameFader(frame, buttonList, FilterConfig.fader)
-	end
 
 	-- ZoneAbility
 	local zoneFrame = CreateFrame("Frame", "KKUI_ActionBarZone", UIParent)
 	zoneFrame:SetWidth(size + 2 * padding)
 	zoneFrame:SetHeight(size + 2 * padding)
-	zoneFrame.Pos = {"BOTTOM", UIParent, "BOTTOM", -270, 42}
-	zoneFrame.mover = K.Mover(zoneFrame, "Zone Ability", "Zone Ability", zoneFrame.Pos)
+	zoneFrame.mover = K.Mover(zoneFrame, "Zone Ability", "ZoneAbility", { "BOTTOM", UIParent, "BOTTOM", -294, 100 })
 
 	ZoneAbilityFrame:SetParent(zoneFrame)
 	ZoneAbilityFrame:ClearAllPoints()
-	if buttonList == nil then
-		ZoneAbilityFrame:SetPoint("CENTER", zoneFrame)
-	else
-		ZoneAbilityFrame:SetPoint("BOTTOM", zoneFrame, "BOTTOM", 0, size / 2)
-	end
+	ZoneAbilityFrame:SetPoint("CENTER", zoneFrame)
 	ZoneAbilityFrame.ignoreFramePositionManager = true
 	ZoneAbilityFrame.Style:SetAlpha(0)
 
@@ -64,12 +57,16 @@ function Module:CreateExtrabar()
 		for spellButton in self.SpellButtonContainer:EnumerateActive() do
 			if spellButton and not spellButton.styled then
 				spellButton.NormalTexture:SetAlpha(0)
-				spellButton:StyleButton()
+				spellButton:SetPushedTexture(0)
+				spellButton:GetHighlightTexture():SetColorTexture(1, 1, 1, 0.25)
+				spellButton:GetHighlightTexture():SetAllPoints()
+				spellButton.Icon:SetAllPoints()
 				spellButton.Icon:SetTexCoord(unpack(K.TexCoords))
-				local bg = CreateFrame("Frame", nil, spellButton)
-				bg:SetAllPoints(spellButton.Icon)
+
+				local bg = CreateFrame("Frame", nil, spellButton, "BackdropTemplate")
+				bg:SetAllPoints(spellButton)
 				bg:SetFrameLevel(spellButton:GetFrameLevel())
-				bg:CreateBorder()
+				bg:CreateBorder(nil, nil, nil, nil, nil, nil, K.MediaFolder .. "Skins\\UI-Slot-Background", nil, nil, nil, { 1, 1, 1 })
 
 				spellButton.styled = true
 			end
@@ -80,6 +77,26 @@ function Module:CreateExtrabar()
 	hooksecurefunc(ZoneAbilityFrame, "SetParent", function(self, parent)
 		if parent == ExtraAbilityContainer then
 			self:SetParent(zoneFrame)
+		end
+	end)
+
+	-- Extra button range, needs review
+	hooksecurefunc("ActionButton_UpdateRangeIndicator", function(self, checksRange, inRange)
+		if not self.action then
+			return
+		end
+
+		if checksRange and not inRange then
+			self.icon:SetVertexColor(0.8, 0.1, 0.1)
+		else
+			local isUsable, notEnoughMana = IsUsableAction(self.action)
+			if isUsable then
+				self.icon:SetVertexColor(1, 1, 1)
+			elseif notEnoughMana then
+				self.icon:SetVertexColor(0.5, 0.5, 1)
+			else
+				self.icon:SetVertexColor(0.4, 0.4, 0.4)
+			end
 		end
 	end)
 end

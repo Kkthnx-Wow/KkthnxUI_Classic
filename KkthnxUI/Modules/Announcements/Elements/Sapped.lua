@@ -1,25 +1,26 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 local Module = K:GetModule("Announcements")
 
-local _G = _G
+-- Cache WoW API functions
+local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
+local SendChatMessage = SendChatMessage
+local UNKNOWN = UNKNOWN
 
-local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo
-local SendChatMessage = _G.SendChatMessage
-local UNKNOWN = _G.UNKNOWN
+-- Function to handle sap events
+local function HandleSapEvent()
+	local _, eventType, _, _, sourceName, _, _, _, destName, spellID = CombatLogGetCurrentEventInfo()
 
-function Module:SetupSaySapped()
-	local _, event, _, _, sourceName, _, _, _, destName, _, _, spellID = CombatLogGetCurrentEventInfo()
-
-	if ((spellID == 6770) and (destName == K.Name) and (event == "SPELL_AURA_APPLIED" or event == "SPELL_AURA_REFRESH")) then
+	if spellID == 6770 and destName == K.Name and (eventType == "SPELL_AURA_APPLIED" or eventType == "SPELL_AURA_REFRESH") then
 		SendChatMessage(L["Sapped"], "SAY")
-		K.Print(L["SappedBy"]..(sourceName or UNKNOWN))
+		K.Print(L["SappedBy"] .. (sourceName or UNKNOWN))
 	end
 end
 
-function Module:CreateSaySappedAnnounce()
+-- Function to toggle sap announcement
+function Module:ToggleSapAnnounce()
 	if C["Announcements"].SaySapped then
-		K:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", Module.SetupSaySapped)
+		K:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", HandleSapEvent)
 	else
-		K:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", Module.SetupSaySapped)
+		K:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", HandleSapEvent)
 	end
 end

@@ -1,11 +1,9 @@
-local K, _, L = unpack(select(2, ...))
+local K, L = KkthnxUI[1], KkthnxUI[3]
 
-local _G = _G
-
-local ACCEPT = _G.ACCEPT
-local CANCEL = _G.CANCEL
-local ReloadUI = _G.ReloadUI
-local StaticPopupDialogs = _G.StaticPopupDialogs
+local ACCEPT = ACCEPT
+local CANCEL = CANCEL
+local ReloadUI = ReloadUI
+local StaticPopupDialogs = StaticPopupDialogs
 
 StaticPopupDialogs["KKUI_RESET_DATA"] = {
 	text = "Are you sure you want to reset all KkthnxUI Data?",
@@ -38,16 +36,16 @@ StaticPopupDialogs["KKUI_RESET_CHAT"] = {
 	end,
 }
 
-StaticPopupDialogs["QUEST_CHECK_ID"] = {
+StaticPopupDialogs["KKUI_QUEST_CHECK_ID"] = {
 	text = "Check Quest ID",
-	button1 = "Check",
+	button1 = "Scan",
 
 	OnAccept = function(self)
 		if not tonumber(self.editBox:GetText()) then
 			return
 		end
 
-		SlashCmdList["KKUI_CHECKQUESTSTATUS"](self.editBox:GetText())
+		self:GetParent():Hide()
 	end,
 
 	OnShow = function(self)
@@ -71,7 +69,7 @@ StaticPopupDialogs["QUEST_CHECK_ID"] = {
 }
 
 StaticPopupDialogs["KKUI_POPUP_LINK"] = {
-	text = format("|cff669dff%s |r", "KkthnxUI Popup"),
+	text = format("|cff5C8BCF%s |r", "KkthnxUI Popup"),
 	button1 = OKAY,
 	hasEditBox = 1,
 	OnShow = function(self, data)
@@ -96,7 +94,7 @@ StaticPopupDialogs["KKUI_POPUP_LINK"] = {
 		self:GetParent():Hide()
 	end,
 	EditBoxOnTextChanged = function(self)
-		if(self:GetText() ~= self.temptxt) then
+		if self:GetText() ~= self.temptxt then
 			self:SetText(self.temptxt)
 		end
 		self:HighlightText()
@@ -118,26 +116,5 @@ StaticPopupDialogs["KKUI_CHANGES_RELOAD"] = {
 	end,
 	hideOnEscape = false,
 	whileDead = 1,
-	preferredIndex = 3
-}
-
-StaticPopupDialogs["CONFIRM_LOOT_DISTRIBUTION"] = {
-	text = CONFIRM_LOOT_DISTRIBUTION,
-	button1 = YES,
-	button2 = NO,
-	timeout = 0,
-	hideOnEscape = 1,
-	preferredIndex = 3,
-}
-
-StaticPopupDialogs["KKUI_ABANDON_QUESTS"] = {
-	text = "|cFFFF0000STOP!!!|r|n|nYou are about to abandon all your quests in your questlog!|n|n Are you sure you want to continue?",
-	button1 = YES,
-	button2 = NO,
-	OnAccept = function()
-		SlashCmdList["KKUI_ABANDONQUESTS"]()
-	end,
-	timeout = 0,
-	hideOnEscape = 1,
 	preferredIndex = 3,
 }

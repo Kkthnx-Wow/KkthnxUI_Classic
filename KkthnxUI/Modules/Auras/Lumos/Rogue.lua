@@ -1,23 +1,17 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 local Module = K:GetModule("Auras")
 
 if K.Class ~= "ROGUE" then
 	return
 end
 
-local _G = _G
-
-local CreateFrame = _G.CreateFrame
-local GetSpecialization = _G.GetSpecialization
-local IsPlayerSpell = _G.IsPlayerSpell
-
 local diceSpells = {
-	[1] = {id = 193356, text = L["Combo"]},
-	[2] = {id = 193357, text = L["Crit"]},
-	[3] = {id = 193358, text = L["AttackSpeed"]},
-	[4] = {id = 193359, text = L["CD"]},
-	[5] = {id = 199603, text = L["Strike"]},
-	[6] = {id = 199600, text = L["Power"]},
+	[1] = { id = 193356, text = L["Combo"] },
+	[2] = { id = 193357, text = L["Crit"] },
+	[3] = { id = 193358, text = L["Attack Speed"] },
+	[4] = { id = 193359, text = L["CD"] },
+	[5] = { id = 199603, text = L["Strike"] },
+	[6] = { id = 199600, text = L["Power"] },
 }
 
 function Module:PostCreateLumos(self)
@@ -27,10 +21,12 @@ function Module:PostCreateLumos(self)
 
 	local iconSize = (self:GetWidth() - 10) / 6
 	local buttons = {}
-	local offset = C["Nameplate"].NameplateClassPower and 3 or (3 * 2 + C["Nameplate"].PPPHeight)
+	local parent = C["Nameplate"].NameplateClassPower and self.Health or self.ClassPowerBar
 	for i = 1, 6 do
 		local bu = CreateFrame("Frame", nil, self.Health)
 		bu:SetSize(iconSize, iconSize / 2)
+		bu:CreateShadow(true)
+
 		bu.Text = K.CreateFontString(bu, 12, diceSpells[i].text, "", false, "TOP", 1, 12)
 
 		bu.CD = CreateFrame("Cooldown", nil, bu, "CooldownFrameTemplate")
@@ -40,12 +36,10 @@ function Module:PostCreateLumos(self)
 		bu.Icon = bu:CreateTexture(nil, "ARTWORK")
 		bu.Icon:SetAllPoints()
 		bu.Icon:SetTexCoord(left, right, top, bottom)
-		bu:CreateShadow()
-
 		if i == 1 then
-			bu:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, offset)
+			bu:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 0, 6)
 		else
-			bu:SetPoint("LEFT", buttons[i-1], "RIGHT", 2, 0)
+			bu:SetPoint("LEFT", buttons[i - 1], "RIGHT", 2, 0)
 		end
 		buttons[i] = bu
 	end
@@ -72,50 +66,26 @@ function Module:ChantLumos(self)
 			self.dices[i]:Hide()
 		end
 
-		UpdateDebuff(self.lumos[1], 703, 703, true, "END")
-		UpdateDebuff(self.lumos[2], 1943, 1943, false, "END")
-
-		do
-			local button = self.lumos[3]
-			if IsPlayerSpell(111240) then
-				UpdateSpellStatus(button, 111240)
-			elseif IsPlayerSpell(193640) then
-				UpdateBuff(button, 193640, 193641, false, true)
-			else
-				UpdateSpellStatus(button, 1329)
-			end
-		end
+		UpdateDebuff(self.lumos[1], 703, 703, true)
+		UpdateDebuff(self.lumos[2], 1943, 1943)
+		UpdateBuff(self.lumos[3], 315496, 315496)
 
 		do
 			local button = self.lumos[4]
-			if IsPlayerSpell(200806) then
-				UpdateCooldown(button, 200806, true)
-			elseif IsPlayerSpell(245388) then
-				UpdateDebuff(button, 245388, 245389, true, true)
-			else
-				UpdateDebuff(button, 2818, 2818)
-			end
-		end
-
-		UpdateDebuff(self.lumos[5], 79140, 79140, true, true)
-	elseif spec == 2 then
-		UpdateBuff(self.lumos[1], 195627, 195627)
-		UpdateCooldown(self.lumos[2], 199804, true)
-
-		do
-			local button = self.lumos[3]
-			if IsPlayerSpell(5171) then
-				UpdateBuff(button, 5171, 5171)
-			elseif IsPlayerSpell(193539) then
+			if IsPlayerSpell(193539) then
 				UpdateBuff(button, 193539, 193538)
 			else
-				UpdateBuff(button, 31224, 31224, true, true)
+				UpdateDebuff(button, 5938, 5938)
 			end
 		end
 
+		UpdateCooldown(self.lumos[5], 381623, true)
+	elseif spec == 2 then
+		UpdateBuff(self.lumos[1], 315496, 315496)
+		UpdateCooldown(self.lumos[2], 315341, true)
+		UpdateCooldown(self.lumos[3], 315508, true)
 		UpdateBuff(self.lumos[4], 13750, 13750, true, true)
-		UpdateBuff(self.lumos[5], 13877, 13877, true, true)
-
+		UpdateBuff(self.lumos[5], 13877, 13877, true)
 
 		-- Dices
 		for i = 1, 6 do
@@ -129,19 +99,8 @@ function Module:ChantLumos(self)
 			self.dices[i]:Hide()
 		end
 
-		UpdateDebuff(self.lumos[1], 195452, 195452, true, "END")
-
-		do
-			local button = self.lumos[2]
-			if IsPlayerSpell(277925) then
-				UpdateBuff(button, 277925, 277925, true)
-			elseif IsPlayerSpell(280719) then
-				UpdateCooldown(button, 280719, true)
-			else
-				UpdateBuff(button, 196980, 196980)
-			end
-		end
-
+		UpdateBuff(self.lumos[1], 315496, 315496)
+		UpdateDebuff(self.lumos[2], 1943, 1943)
 		UpdateBuff(self.lumos[3], 185313, 185422, true, true)
 		UpdateBuff(self.lumos[4], 212283, 212283, true)
 		UpdateBuff(self.lumos[5], 121471, 121471, true, true)

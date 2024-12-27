@@ -1,30 +1,43 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 
-local _G = _G
-local select = _G.select
-local unpack = _G.unpack
+local select = select
 
-C.themes["Blizzard_DeathRecap"] = function()
-	local DeathRecapFrame = _G.DeathRecapFrame
-	DeathRecapFrame.CloseXButton:SkinCloseButton()
-	DeathRecapFrame:StripTextures()
+local function SkinDeathRecapFrame()
+	local DeathRecapFrame = DeathRecapFrame
+
+	-- Disable the border draw layer and hide unwanted elements
+	DeathRecapFrame:DisableDrawLayer("BORDER")
+	DeathRecapFrame.Background:Hide()
+	DeathRecapFrame.BackgroundInnerGlow:Hide()
+	DeathRecapFrame.Divider:Hide()
+
+	-- Create a new border for the frame
 	DeathRecapFrame:CreateBorder()
 
-	for i = 1, 5 do
-		local iconBorder = DeathRecapFrame["Recap"..i].SpellInfo.IconBorder
-		local icon = DeathRecapFrame["Recap"..i].SpellInfo.Icon
-
-		iconBorder:SetAlpha(0)
-		icon:SetTexCoord(unpack(K.TexCoords))
-		DeathRecapFrame["Recap"..i].SpellInfo:CreateBackdrop()
-		DeathRecapFrame["Recap"..i].SpellInfo.Backdrop:SetAllPoints(icon)
-		icon:SetParent(DeathRecapFrame["Recap"..i].SpellInfo.Backdrop)
+	-- Skin the bottom close button (without a parent key)
+	local closeButton = select(8, DeathRecapFrame:GetChildren())
+	if closeButton then
+		closeButton:SkinButton()
 	end
 
-	for i = 1, DeathRecapFrame:GetNumChildren() do
-		local child = select(i, DeathRecapFrame:GetChildren())
-		if (child:IsObjectType("Button") and child.GetText) and child:GetText() == CLOSE then
-			child:SkinButton()
-		end
+	-- Skin the close button at the top right corner
+	DeathRecapFrame.CloseXButton:SkinCloseButton()
+end
+
+local function SkinRecapEvents()
+	for i = 1, NUM_DEATH_RECAP_EVENTS do
+		local recap = DeathRecapFrame["Recap" .. i].SpellInfo
+		recap.IconBorder:Hide()
+		recap.Icon:SetTexCoord(unpack(K.TexCoords))
+		recap:CreateBorder()
 	end
+end
+
+C.themes["Blizzard_DeathRecap"] = function()
+	if not C["Skins"].BlizzardFrames then
+		return
+	end
+
+	SkinDeathRecapFrame()
+	SkinRecapEvents()
 end

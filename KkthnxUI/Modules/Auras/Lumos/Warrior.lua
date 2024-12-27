@@ -1,16 +1,9 @@
-local K = unpack(select(2, ...))
+local K = KkthnxUI[1]
 local Module = K:GetModule("Auras")
 
 if K.Class ~= "WARRIOR" then
 	return
 end
-
-local _G = _G
-
-local GetSpellTexture = _G.GetSpellTexture
-local IsUsableSpell = _G.IsUsableSpell
-local GetSpecialization = _G.GetSpecialization
-local IsPlayerSpell = _G.IsPlayerSpell
 
 local function GetUnitAura(unit, spell, filter)
 	return Module:GetUnitAura(unit, spell, filter)
@@ -29,8 +22,8 @@ local function UpdateDebuff(button, spellID, auraID, cooldown, glow)
 end
 
 local function UpdateSpellStatus(button, spellID)
-	button.Icon:SetTexture(GetSpellTexture(spellID))
-	if IsUsableSpell(spellID) then
+	button.Icon:SetTexture(C_Spell.GetSpellTexture(spellID))
+	if C_Spell.IsSpellUsable(spellID) then
 		button.Icon:SetDesaturated(false)
 	else
 		button.Icon:SetDesaturated(true)
@@ -44,12 +37,14 @@ function Module:ChantLumos(self)
 			local button = self.lumos[1]
 			local name, count, duration, expire = GetUnitAura("player", 7384, "HELPFUL")
 			if name then
-				if count == 0 then count = "" end
+				if count == 0 then
+					count = ""
+				end
 				button.Count:SetText(count)
-				button.CD:SetCooldown(expire-duration, duration)
+				button.CD:SetCooldown(expire - duration, duration)
 				button.CD:Show()
 				button.Icon:SetDesaturated(false)
-				button.Icon:SetTexture(GetSpellTexture(12294))
+				button.Icon:SetTexture(C_Spell.GetSpellTexture(12294))
 			else
 				UpdateCooldown(button, 7384, true)
 			end
@@ -58,7 +53,9 @@ function Module:ChantLumos(self)
 		do
 			local button = self.lumos[2]
 			UpdateCooldown(button, 163201)
-			if IsPlayerSpell(281001) then
+			if IsPlayerSpell(330325) then
+				UpdateSpellStatus(button, 330325)
+			elseif IsPlayerSpell(281001) then
 				UpdateSpellStatus(button, 281000)
 			else
 				UpdateSpellStatus(button, 163201)
@@ -90,10 +87,11 @@ function Module:ChantLumos(self)
 
 		do
 			local button = self.lumos[3]
-			UpdateCooldown(button, 5308)
 			if IsPlayerSpell(206315) then
+				UpdateCooldown(button, 280735)
 				UpdateSpellStatus(button, 280735)
 			else
+				UpdateCooldown(button, 5308)
 				UpdateSpellStatus(button, 5308)
 			end
 		end
@@ -108,7 +106,7 @@ function Module:ChantLumos(self)
 			local name, _, duration, expire = GetUnitAura("player", 132404, "HELPFUL")
 			if name then
 				button.Count:SetText("")
-				button.CD:SetCooldown(expire-duration, duration)
+				button.CD:SetCooldown(expire - duration, duration)
 				button.CD:Show()
 				button.Icon:SetDesaturated(false)
 			else
@@ -118,7 +116,7 @@ function Module:ChantLumos(self)
 		end
 
 		UpdateBuff(self.lumos[3], 12975, 12975, true, true)
-		UpdateBuff(self.lumos[4], 107574, 107574, true)
+		UpdateBuff(self.lumos[4], 401150, 401150, true)
 		UpdateBuff(self.lumos[5], 871, 871, true, true)
 	end
 end

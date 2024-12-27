@@ -1,22 +1,16 @@
-local K = unpack(select(2, ...))
+local K = KkthnxUI[1]
 local Module = K:GetModule("Auras")
 
 if K.Class ~= "DEATHKNIGHT" then
 	return
 end
 
-local _G = _G
-local math_floor = math.floor
-
-local GetSpecialization = _G.GetSpecialization
-local UnitPower = _G.UnitPower
-local GetSpellTexture = _G.GetSpellTexture
-local IsPlayerSpell = _G.IsPlayerSpell
+local floor = math.floor
 
 function Module:PostCreateLumos(self)
-	local shield = K.CreateFontString(self.Health, 18, "", "", "system")
+	local shield = K.CreateFontString(self.Health, 13, "", "", "system")
 	shield:ClearAllPoints()
-	shield:SetPoint("RIGHT", self.Health, "LEFT", -5, 0)
+	shield:SetPoint("RIGHT", self.Health, "LEFT", -6, 0)
 
 	self.shield = shield
 end
@@ -44,12 +38,11 @@ local function UpdateDebuff(button, spellID, auraID, cooldown)
 end
 
 local function UpdateBuffValue(button, spellID)
-	button.Icon:SetTexture(GetSpellTexture(spellID))
-
+	button.Icon:SetTexture(C_Spell.GetSpellTexture(spellID))
 	local name, _, duration, expire, _, _, value = GetUnitAura("player", spellID, "HELPFUL")
 	if name then
 		button.Count:SetText(K.ShortValue(value))
-		button.CD:SetCooldown(expire-duration, duration)
+		button.CD:SetCooldown(expire - duration, duration)
 		button.CD:Show()
 		button.Icon:SetDesaturated(false)
 	else
@@ -69,15 +62,13 @@ function Module:ChantLumos(self)
 			if hasBuff then
 				price = 40
 			end
-
-			local boneCount = math_floor(UnitPower("player") / price)
-			button.Icon:SetTexture(GetSpellTexture(49998))
+			local boneCount = floor(UnitPower("player") / price)
+			button.Icon:SetTexture(C_Spell.GetSpellTexture(49998))
 			button.Count:SetText(boneCount)
-
 			local name, _, dur, exp, _, _, value = GetUnitAura("player", 77535, "HELPFUL")
 			if name then
 				self.shield:SetText(K.ShortValue(value))
-				button.CD:SetCooldown(exp-dur, dur)
+				button.CD:SetCooldown(exp - dur, dur)
 				button.CD:Show()
 			else
 				self.shield:SetText("")
@@ -120,13 +111,13 @@ function Module:ChantLumos(self)
 			local button = self.lumos[1]
 			local name, _, duration, expire = GetUnitAura("player", 51460, "HELPFUL")
 			if name then
-				button.CD:SetCooldown(expire-duration, duration)
+				button.CD:SetCooldown(expire - duration, duration)
 				button.CD:Show()
 				button.Icon:SetDesaturated(false)
 				button.Count:SetText("")
-				button.Icon:SetTexture(GetSpellTexture(51460))
+				button.Icon:SetTexture(C_Spell.GetSpellTexture(51460))
 			else
-				local count = math_floor(UnitPower("player")/40)
+				local count = floor(UnitPower("player") / 40)
 				if count == 0 then
 					button.Icon:SetDesaturated(true)
 				else
@@ -134,7 +125,7 @@ function Module:ChantLumos(self)
 				end
 				button.CD:Hide()
 				button.Count:SetText(count)
-				button.Icon:SetTexture(GetSpellTexture(47541))
+				button.Icon:SetTexture(C_Spell.GetSpellTexture(47541))
 			end
 		end
 

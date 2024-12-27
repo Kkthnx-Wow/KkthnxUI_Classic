@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Skins")
 
 function Module:ReskinChocolateBar()
@@ -11,7 +11,7 @@ function Module:ReskinChocolateBar()
 	end
 
 	for i = 1, 20 do
-		local chocolateFrame = _G["ChocolateBar"..i]
+		local chocolateFrame = _G["ChocolateBar" .. i]
 		if chocolateFrame then
 			chocolateFrame:StripTextures()
 			chocolateFrame:CreateBorder()

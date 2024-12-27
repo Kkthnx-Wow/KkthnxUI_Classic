@@ -1,48 +1,102 @@
-local K, C = unpack(select(2, ...))
-local Module = K:GetModule("Infobar")
+local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
+local Module = K:GetModule("DataText")
 
-local _G = _G
-local string_format = _G.string.format
+local string_format = string.format
 
-local C_Map_GetBestMapForUnit = _G.C_Map.GetBestMapForUnit
-local C_Map_GetPlayerMapPosition = _G.C_Map.GetPlayerMapPosition
-local ERR_NOT_IN_COMBAT = _G.ERR_NOT_IN_COMBAT
-local InCombatLockdown = _G.InCombatLockdown
-local UIErrorsFrame = _G.UIErrorsFrame
-local WorldMapFrame = _G.WorldMapFrame
+local CoordsDataText
+local coordX, coordY = 0, 0
+local faction
+local pvpType
+local subzone
+local zone
 
-local function UpdateCoords(self, elapsed)
+local zoneInfo = {
+	arena = { FREE_FOR_ALL_TERRITORY, { 0.84, 0.03, 0.03 } },
+	combat = { COMBAT_ZONE, { 0.84, 0.03, 0.03 } },
+	contested = { CONTESTED_TERRITORY, { 0.9, 0.85, 0.05 } },
+	friendly = { FACTION_CONTROLLED_TERRITORY, { 0.05, 0.85, 0.03 } },
+	hostile = { FACTION_CONTROLLED_TERRITORY, { 0.84, 0.03, 0.03 } },
+	neutral = { string_format(FACTION_CONTROLLED_TERRITORY, FACTION_STANDING_LABEL4), { 0.9, 0.85, 0.05 } },
+	sanctuary = { SANCTUARY_TERRITORY, { 0.035, 0.58, 0.84 } },
+}
+
+local function formatCoords()
+	return string_format("%.1f, %.1f", coordX * 100, coordY * 100)
+end
+
+local function OnUpdate(self, elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed
 	if self.elapsed > 0.1 then
-		local UnitMap = C_Map_GetBestMapForUnit("player")
-		local coordX, coordY = 0, 0
-		if UnitMap then
-			local GetPlayerMapPosition = C_Map_GetPlayerMapPosition(UnitMap, "player")
-			if GetPlayerMapPosition then
-				coordX, coordY = C_Map_GetPlayerMapPosition(UnitMap, "player"):GetXY()
-			end
-		end
-
-		if coordX == 0 and coordY == 0 then
-			Module.CoordsDataTextFrame.Text:Hide()
-			Module.CoordsDataTextFrame.Texture:Hide()
-			Module.CoordsDataTextFrame.Text:SetText(string_format("--, --", coordX * 100, coordY * 100))
+		local x, y = K.GetPlayerMapPos(C_Map.GetBestMapForUnit("player"))
+		if x then
+			coordX, coordY = x, y
+			CoordsDataText.Text:SetText(formatCoords())
+			CoordsDataText:Show()
 		else
-			Module.CoordsDataTextFrame.Text:Show()
-			Module.CoordsDataTextFrame.Texture:Show()
-			Module.CoordsDataTextFrame.Text:SetText(string_format("%.1f, %.1f", coordX * 100, coordY * 100))
+			coordX, coordY = 0, 0
+			CoordsDataText:Hide()
 		end
-
 		self.elapsed = 0
 	end
 end
 
-local function OnMouseUp()
-	if InCombatLockdown() then
-		UIErrorsFrame:AddMessage(K.InfoColor..ERR_NOT_IN_COMBAT)
-		return
+local eventList = {
+	"ZONE_CHANGED",
+	"ZONE_CHANGED_INDOORS",
+	"ZONE_CHANGED_NEW_AREA",
+	"PLAYER_ENTERING_WORLD",
+}
+
+local function OnEvent(_, event, ...)
+	if tContains(eventList, event) then
+		subzone = GetSubZoneText()
+		zone = GetZoneText()
+		pvpType, _, faction = C_PvP.GetZonePVPInfo()
+		pvpType = pvpType or "neutral"
 	end
-	ToggleFrame(WorldMapFrame)
+end
+
+local function OnEnter()
+	GameTooltip:SetOwner(CoordsDataText, "ANCHOR_BOTTOM", 0, -15)
+	GameTooltip:ClearLines()
+
+	if pvpType and not IsInInstance() then
+		local r, g, b = unpack(zoneInfo[pvpType][2])
+		if zone and subzone and subzone ~= "" then
+			GameTooltip:AddLine(K.GreyColor .. ZONE .. ":|r " .. zone, r, g, b)
+			GameTooltip:AddLine(K.GreyColor .. "SubZone" .. ":|r " .. subzone, r, g, b)
+		else
+			GameTooltip:AddLine(K.GreyColor .. ZONE .. ":|r " .. zone, r, g, b)
+		end
+		GameTooltip:AddLine(string_format(K.GreyColor .. "PvPType" .. ":|r " .. zoneInfo[pvpType][1], faction or ""), r, g, b)
+	end
+
+	GameTooltip:AddLine(" ")
+	GameTooltip:AddLine(K.LeftButton .. "Toggle WorldMap", 0.6, 0.8, 1)
+	GameTooltip:AddLine(K.RightButton .. "Send My Position", 0.6, 0.8, 1)
+	GameTooltip:Show()
+end
+
+local function OnLeave()
+	GameTooltip:Hide()
+end
+
+local zoneString = "|cffffff00|Hworldmap:%d+:%d+:%d+|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a %s: %s (%s) %s]|h|r"
+local lastRightClick = 0
+local function OnMouseUp(_, btn)
+	if btn == "LeftButton" then
+		ToggleWorldMap()
+	elseif btn == "RightButton" then
+		if GetTime() - lastRightClick > 5 then
+			local mapID = C_Map.GetBestMapForUnit("player")
+			local hasUnit = UnitExists("target") and not UnitIsPlayer("target")
+			local unitName = hasUnit and UnitName("target") or ""
+			print(format(zoneString, mapID, coordX * 10000, coordY * 10000, "My Position", zone, formatCoords(), unitName))
+			lastRightClick = GetTime()
+		else
+			print("You can send your position again in " .. math.ceil(5 - (GetTime() - lastRightClick)) .. " seconds.")
+		end
+	end
 end
 
 function Module:CreateCoordsDataText()
@@ -50,21 +104,32 @@ function Module:CreateCoordsDataText()
 		return
 	end
 
-	Module.CoordsDataTextFrame = CreateFrame("Button", nil, UIParent)
-	Module.CoordsDataTextFrame:SetPoint("TOP", UIParent, "TOP", 0, -40)
-	Module.CoordsDataTextFrame:SetSize(32, 32)
+	CoordsDataText = CreateFrame("Frame", nil, UIParent)
+	CoordsDataText:SetHitRectInsets(0, 0, -10, -10)
 
-	Module.CoordsDataTextFrame.Texture = Module.CoordsDataTextFrame:CreateTexture(nil, "BACKGROUND")
-	Module.CoordsDataTextFrame.Texture:SetPoint("LEFT", Module.CoordsDataTextFrame, "LEFT", 0, 0)
-	Module.CoordsDataTextFrame.Texture:SetTexture("Interface\\HELPFRAME\\ReportLagIcon-Movement")
-	Module.CoordsDataTextFrame.Texture:SetSize(32, 32)
+	CoordsDataText.Text = K.CreateFontString(CoordsDataText, 12)
+	CoordsDataText.Text:ClearAllPoints()
+	CoordsDataText.Text:SetPoint("TOP", UIParent, "TOP", 0, -90)
 
-	Module.CoordsDataTextFrame.Text = Module.CoordsDataTextFrame:CreateFontString(nil, "ARTWORK")
-	Module.CoordsDataTextFrame.Text:SetFontObject(K.GetFont(C["UIFonts"].DataTextFonts))
-	Module.CoordsDataTextFrame.Text:SetPoint("CENTER", Module.CoordsDataTextFrame.Texture, "CENTER", 0, -6)
+	CoordsDataText.Texture = CoordsDataText:CreateTexture(nil, "ARTWORK")
+	CoordsDataText.Texture:SetPoint("BOTTOM", CoordsDataText, "TOP", 0, 0)
+	CoordsDataText.Texture:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\DataText\\coords.blp")
+	CoordsDataText.Texture:SetSize(24, 24)
+	CoordsDataText.Texture:SetVertexColor(unpack(C["DataText"].IconColor))
 
-	Module.CoordsDataTextFrame:SetScript("OnMouseUp", OnMouseUp)
-	Module.CoordsDataTextFrame:SetScript("OnUpdate", UpdateCoords)
+	CoordsDataText:SetAllPoints(CoordsDataText.Text)
 
-	K.Mover(Module.CoordsDataTextFrame, "CoordsDataText", "CoordsDataText", {"TOP", UIParent, "TOP", 0, -40})
+	local function _OnEvent(...)
+		OnEvent(...)
+	end
+
+	for _, event in pairs(eventList) do
+		CoordsDataText:RegisterEvent(event)
+	end
+
+	CoordsDataText:SetScript("OnEvent", _OnEvent)
+	CoordsDataText:SetScript("OnEnter", OnEnter)
+	CoordsDataText:SetScript("OnLeave", OnLeave)
+	CoordsDataText:SetScript("OnMouseUp", OnMouseUp)
+	CoordsDataText:SetScript("OnUpdate", OnUpdate)
 end

@@ -1,34 +1,59 @@
-local K = unpack(select(2, ...))
-local _, ns = ...
-local oUF = ns.oUF or K.oUF
+local K = KkthnxUI[1]
+local oUF = K.oUF
 
 local CanDispel = {
-	DRUID = {Magic = false, Curse = true, Poison = true},
-	MAGE = {Curse = true},
-	MONK = {Magic = false, Poison = true, Disease = true},
-	PALADIN = {Magic = false, Poison = true, Disease = true},
-	PRIEST = {Magic = false, Disease = true},
-	SHAMAN = {Magic = false, Curse = true}
+	["DRUID"] = {
+		["Magic"] = false,
+		["Curse"] = true,
+		["Poison"] = true,
+	},
+	["MONK"] = {
+		["Magic"] = true,
+		["Poison"] = true,
+		["Disease"] = true,
+	},
+	["PALADIN"] = {
+		["Magic"] = false,
+		["Poison"] = true,
+		["Disease"] = true,
+	},
+	["PRIEST"] = {
+		["Magic"] = true,
+		["Disease"] = true,
+	},
+	["SHAMAN"] = {
+		["Magic"] = false,
+		["Curse"] = true,
+	},
+	["MAGE"] = {
+		["Curse"] = true,
+	},
+	["EVOKER"] = {
+		["Magic"] = false,
+		["Poison"] = true,
+	},
 }
 
 local dispellist = CanDispel[K.Class] or {}
 local origColors = {}
-local origBorderColors = {}
 
-local function GetDebuffType(unit, filter)
-	if not UnitCanAssist("player", unit) then
+local function GetDebuffType(unitToken, filter)
+	-- Check if the unit is assistable
+	if not UnitCanAssist("player", unitToken) then
 		return nil
 	end
 
 	local i = 1
 	while true do
-		local _, texture, _, debufftype = UnitAura(unit, i, "HARMFUL")
-		if not texture then
+		-- Get aura data
+		local aura = C_UnitAuras.GetAuraDataByIndex(unitToken, i, "HARMFUL")
+		if not aura then
 			break
 		end
 
-		if debufftype and not filter or (filter and dispellist[debufftype]) then
-			return debufftype, texture
+		-- Check if this is a valid debuff
+		if aura.isHarmful and (not filter or (filter and dispellist[aura.dispelName])) then
+			return aura.dispelName, aura.icon
 		end
 
 		i = i + 1
@@ -36,38 +61,16 @@ local function GetDebuffType(unit, filter)
 end
 
 local function CheckSpec()
-	local spec = GetSpecialization()
-
 	if K.Class == "DRUID" then
-		if spec == 4 then
-			dispellist.Magic = true
-		else
-			dispellist.Magic = false
-		end
+		dispellist.Magic = GetSpecialization() == 4
 	elseif K.Class == "MONK" then
-		if spec == 2 then
-			dispellist.Magic = true
-		else
-			dispellist.Magic = false
-		end
+		dispellist.Magic = GetSpecialization() == 2
 	elseif K.Class == "PALADIN" then
-		if spec == 1 then
-			dispellist.Magic = true
-		else
-			dispellist.Magic = false
-		end
-	elseif K.Class == "PRIEST" then
-		if spec == 3 then
-			dispellist.Magic = false
-		else
-			dispellist.Magic = true
-		end
+		dispellist.Magic = GetSpecialization() == 1
 	elseif K.Class == "SHAMAN" then
-		if spec == 3 then
-			dispellist.Magic = true
-		else
-			dispellist.Magic = false
-		end
+		dispellist.Magic = GetSpecialization() == 3
+	elseif K.Class == "EVOKER" then
+		dispellist.Magic = GetSpecialization() == 2
 	end
 end
 
@@ -79,32 +82,13 @@ local function Update(object, _, unit)
 	local debuffType, texture = GetDebuffType(unit, object.DebuffHighlightFilter)
 	if debuffType then
 		local color = DebuffTypeColor[debuffType]
-		if object.DebuffHighlightBackdrop or object.DebuffHighlightBackdropBorder then
-			if object.DebuffHighlightBackdrop then
-				object:SetBackdropColor(color.r, color.g, color.b, object.DebuffHighlightAlpha or 1)
-			end
-
-			if object.DebuffHighlightBackdropBorder then
-				object:SetBackdropBorderColor(color.r, color.g, color.b, object.DebuffHighlightAlpha or 1)
-			end
-		elseif object.DebuffHighlightUseTexture then
+		if object.DebuffHighlightUseTexture then
 			object.DebuffHighlight:SetTexture(texture)
 		else
 			object.DebuffHighlight:SetVertexColor(color.r, color.g, color.b, object.DebuffHighlightAlpha or 0.5)
 		end
 	else
-		if object.DebuffHighlightBackdrop or object.DebuffHighlightBackdropBorder then
-			local color
-			if object.DebuffHighlightBackdrop then
-				color = origColors[object]
-				object:SetBackdropColor(color.r, color.g, color.b, color.a)
-			end
-
-			if object.DebuffHighlightBackdropBorder then
-				color = origBorderColors[object]
-				object:SetBackdropBorderColor(color.r, color.g, color.b, color.a)
-			end
-		elseif object.DebuffHighlightUseTexture then
+		if object.DebuffHighlightUseTexture then
 			object.DebuffHighlight:SetTexture(nil)
 		else
 			local color = origColors[object]
@@ -115,7 +99,7 @@ end
 
 local function Enable(object)
 	-- If we're not highlighting this unit return
-	if not object.DebuffHighlightBackdrop and not object.DebuffHighlightBackdropBorder and not object.DebuffHighlight then
+	if not object.DebuffHighlight then
 		return
 	end
 
@@ -125,27 +109,22 @@ local function Enable(object)
 	end
 
 	-- Make sure aura scanning is active for this object
-	object:RegisterEvent("CHARACTER_POINTS_CHANGED", Update)
-	object:RegisterEvent("CHARACTER_POINTS_CHANGED", CheckSpec, true)
+	object:RegisterEvent("UNIT_AURA", Update)
+	object:RegisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
 	CheckSpec()
 
-	if object.DebuffHighlightBackdrop or object.DebuffHighlightBackdropBorder then
-		local r, g, b, a = object:GetBackdropColor()
-		origColors[object] = {r = r, g = g, b = b, a = a}
-		r, g, b, a = object:GetBackdropBorderColor()
-		origBorderColors[object] = {r = r, g = g, b = b, a = a}
-	elseif not object.DebuffHighlightUseTexture then
+	if not object.DebuffHighlightUseTexture then
 		local r, g, b, a = object.DebuffHighlight:GetVertexColor()
-		origColors[object] = {r = r, g = g, b = b, a = a}
+		origColors[object] = { r = r, g = g, b = b, a = a }
 	end
 
 	return true
 end
 
 local function Disable(object)
-	if object.DebuffHighlightBackdrop or object.DebuffHighlightBackdropBorder or object.DebuffHighlight then
-		object:UnregisterEvent("CHARACTER_POINTS_CHANGED", Update)
-		object:UnregisterEvent("CHARACTER_POINTS_CHANGED", CheckSpec)
+	if object.DebuffHighlight then
+		object:UnregisterEvent("UNIT_AURA", Update)
+		object:UnregisterEvent("PLAYER_TALENT_UPDATE", CheckSpec)
 	end
 end
 

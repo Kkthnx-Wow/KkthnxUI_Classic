@@ -20,6 +20,9 @@
 local _, ns = ...
 local cargBags = ns.cargBags
 
+local GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots or GetContainerNumSlots
+local GetContainerItemInfo = C_Container and C_Container.GetContainerItemInfo or GetContainerItemInfo
+
 --[[!
 	@class Implementation
 		The Implementation-class serves as the basis for your cargBags-instance, handling
@@ -32,6 +35,8 @@ Implementation.itemKeys = {}
 local toBagSlot = cargBags.ToBagSlot
 local LE_ITEM_CLASS_MISCELLANEOUS = LE_ITEM_CLASS_MISCELLANEOUS or 15
 local LE_ITEM_MISCELLANEOUS_COMPANION_PET = LE_ITEM_MISCELLANEOUS_COMPANION_PET or 2
+local PET_CAGE = 82800
+local MYTHIC_KEYSTONE = 180653
 
 --[[!
 	Creates a new instance of the class
@@ -298,42 +303,37 @@ function Implementation:GetItemInfo(bagID, slotID, i)
 	i = i or defaultItem
 	for k in pairs(i) do i[k] = nil end
 
-	i.bagID = bagID
-	i.slotID = slotID
+	i.bagId = bagID
+	i.slotId = slotID
 
-	local clink = GetContainerItemLink(bagID, slotID)
+	local texture, count, locked, quality, itemLink, noValue, itemID
+	local info = C_Container.GetContainerItemInfo(bagID, slotID)
+	if info then
+		i.texture, i.count, i.locked, i.quality, i.link, i.id, i.hasPrice = info.iconFileID, info.stackCount, info.isLocked, (info.quality or 1), info.hyperlink, info.itemID, (not info.hasNoValue)
 
-	if(clink) then
-		i.texture, i.count, i.locked, i.quality = GetContainerItemInfo(bagID, slotID)
-		i.cdStart, i.cdFinish, i.cdEnable = GetContainerItemCooldown(bagID, slotID)
-		i.isQuestItem, i.questID, i.questActive = nil, nil, nil
-		i.isInSet, i.setName = nil, nil
-		i.id = GetContainerItemID(bagID, slotID)
+		--i.isInSet, i.setName = C_Container.GetContainerItemEquipmentSetInfo(bagID, slotID)
 
-		local texture
-		i.name, i.link, i.rarity, i.level, i.minLevel, i.type, i.subType, i.stackCount, i.equipLoc, texture, i.sellPrice, i.classID, i.subClassID = GetItemInfo(clink)
-		i.texture = i.texture or texture
-		i.rarity = i.rarity or i.quality
-		if i.classID == LE_ITEM_CLASS_QUESTITEM then i.isQuestItem = true end
+		i.cdStart, i.cdFinish, i.cdEnable = C_Container.GetContainerItemCooldown(bagID, slotID)
 
-		if clink:find("battlepet") then
-			local data, name = strmatch(clink, "|H(.-)|h(.-)|h")
-			local _, _, level, rarity, _, _, _, id = strmatch(data, "(%w+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+):(%d+)")
-			i.classID = LE_ITEM_CLASS_MISCELLANEOUS
-			i.subClassID = LE_ITEM_MISCELLANEOUS_COMPANION_PET
-			i.rarity = tonumber(rarity) or 0
-			i.id = tonumber(id) or 0
-			i.name = name
-			i.level = tonumber(level) or 0
-			i.link = clink
-		elseif clink:find("keystone") then
-			local data = strmatch(clink, "|H(.-)|h(.-)|h")
-			local level = strmatch(data, "%w+:%d+:%d+:(%d+)")
-			i.name, _, _, _, i.minLevel, i.type, i.subType, i.stackCount, i.equipLoc = GetItemInfo(i.id)
-			i.level = tonumber(level) or 0
-			i.link = clink
+		local questInfo = C_Container.GetContainerItemQuestInfo(bagID, slotID)
+		i.isQuestItem, i.questID, i.questActive = questInfo.isQuestItem, questInfo.questID, questInfo.isActive
+
+		i.name, _, _, i.level, _, i.type, i.subType, _, i.equipLoc, _, _, i.classID, i.subClassID = GetItemInfo(i.link)
+		i.equipLoc = _G[i.equipLoc] -- INVTYPE to localized string
+
+		if i.id == PET_CAGE then
+			local petID, petLevel, petName = strmatch(i.link, "|H%w+:(%d+):(%d+):.-|h%[(.-)%]|h")
+			i.name = petName
+			i.id = tonumber(petID) or 0
+			i.level = tonumber(petLevel) or 0
+			i.classID = Enum.ItemClass.Miscellaneous
+			i.subClassID = Enum.ItemMiscellaneousSubclass.CompanionPet
+		elseif itemID == MYTHIC_KEYSTONE then
+			i.level, i.name = strmatch(i.link, "|H%w+:%d+:%d+:(%d+):.-|h%[(.-)%]|h")
+			i.level = tonumber(i.level) or 0
 		end
 	end
+
 	return i
 end
 
@@ -441,7 +441,7 @@ function Implementation:BAG_UPDATE_COOLDOWN(_, bagID)
 	else
 		for _, container in pairs(self.contByID) do
 			for _, button in pairs(container.buttons) do
-				local item = self:GetItemInfo(button.bagID, button.slotID)
+				local item = self:GetItemInfo(button.bagId, button.slotId)
 				button:UpdateCooldown(item)
 			end
 		end
@@ -486,7 +486,7 @@ end
 function Implementation:UNIT_QUEST_LOG_CHANGED()
 	for _, container in pairs(self.contByID) do
 		for _, button in pairs(container.buttons) do
-			local item = self:GetItemInfo(button.bagID, button.slotID)
+			local item = self:GetItemInfo(button.bagId, button.slotId)
 			button:UpdateQuest(item)
 		end
 	end

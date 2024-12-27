@@ -1,129 +1,150 @@
-local K, C = unpack(select(2, ...))
+local K, C = KkthnxUI[1], KkthnxUI[2]
+local Module = {}
 
-local _G = _G
-local next = _G.next
-local type = _G.type
-local unpack = _G.unpack
+local type, unpack, setmetatable, pairs, error = type, unpack, setmetatable, pairs, error
 
-local objectToWidget = {}
-local border_proto = {}
-local sections = {
-	"TOPLEFT",
-	"TOPRIGHT",
-	"BOTTOMLEFT",
-	"BOTTOMRIGHT",
-	"TOP",
-	"BOTTOM",
-	"LEFT",
-	"RIGHT"
+local objectToWidgets = setmetatable({}, { __index = objectToWidgets })
+
+local borderSections = {
+	{ name = "TOPLEFT", coord = { 0.5, 0.625, 0, 1 } },
+	{ name = "TOPRIGHT", coord = { 0.625, 0.75, 0, 1 } },
+	{ name = "BOTTOMLEFT", coord = { 0.75, 0.875, 0, 1 } },
+	{ name = "BOTTOMRIGHT", coord = { 0.875, 1, 0, 1 } },
+	{ name = "TOP", coord = { 0.25, 0.375, 0, 1 } },
+	{ name = "BOTTOM", coord = { 0.375, 0.5, 0, 1 } },
+	{ name = "LEFT", coord = { 0, 0.125, 0, 1 } },
+	{ name = "RIGHT", coord = { 0.125, 0.25, 0, 1 } },
 }
 
-local function onSizeChanged(self, w, h)
-	local border = objectToWidget[self]
-	local updateSize
+local borderStyle = C["General"].BorderStyle.Value
+local borderSizeKkthnx = 12
+local borderSizeDefault = 10
+local getBorderSize = (borderStyle == "KkthnxUI") and borderSizeKkthnx or borderSizeDefault
 
-	if C["General"].BorderStyle.Value == "KkthnxUI" then
-		updateSize = 12
-	else
-		updateSize = 10
-	end
+local function getTile(border, w, h)
+	local borderSize = getBorderSize
+	return (w + 2 * border.__offset) / borderSize
+end
 
-	local tile = (w + 2 * border.__offset) / updateSize
+local function setTextureCoordinates(border, tile)
 	border.TOP:SetTexCoord(0.25, tile, 0.375, tile, 0.25, 0, 0.375, 0)
 	border.BOTTOM:SetTexCoord(0.375, tile, 0.5, tile, 0.375, 0, 0.5, 0)
-
-	tile = (h + 2 * border.__offset) / updateSize
 	border.LEFT:SetTexCoord(0, 0.125, 0, tile)
 	border.RIGHT:SetTexCoord(0.125, 0.25, 0, tile)
 end
 
-function border_proto:SetOffset(offset)
-	self.__offset = offset
-	self.TOPLEFT:SetPoint("BOTTOMRIGHT", self.__parent, "TOPLEFT", -offset, offset)
-	self.TOPRIGHT:SetPoint("BOTTOMLEFT", self.__parent, "TOPRIGHT", offset, offset)
-	self.BOTTOMLEFT:SetPoint("TOPRIGHT", self.__parent, "BOTTOMLEFT", -offset, -offset)
-	self.BOTTOMRIGHT:SetPoint("TOPLEFT", self.__parent, "BOTTOMRIGHT", offset, -offset)
+local function onSizeChanged(self, w, h)
+	local border = objectToWidgets[self]
+	if not border then
+		return
+	end
+
+	local tile = getTile(border, w, h)
+	setTextureCoordinates(border, tile)
 end
 
-function border_proto:SetTexture(texture)
+function Module:SetOffset(offset)
+	if offset and type(offset) == "number" then
+		self.__offset = offset
+		self.TOPLEFT:SetPoint("BOTTOMRIGHT", self.__parent, "TOPLEFT", -offset, offset)
+		self.TOPRIGHT:SetPoint("BOTTOMLEFT", self.__parent, "TOPRIGHT", offset, offset)
+		self.BOTTOMLEFT:SetPoint("TOPRIGHT", self.__parent, "BOTTOMLEFT", -offset, -offset)
+		self.BOTTOMRIGHT:SetPoint("TOPLEFT", self.__parent, "BOTTOMRIGHT", offset, -offset)
+	end
+end
+
+function Module:SetTexture(texture)
+	local len = #borderSections
 	if type(texture) == "table" then
-		for _, v in next, sections do
-			self[v]:SetColorTexture(unpack(texture))
+		for i = 1, len do
+			local v = borderSections[i]
+			self[v.name]:SetColorTexture(unpack(texture))
 		end
 	else
-		for i, v in next, sections do
+		for i = 1, len do
+			local v = borderSections[i]
 			if i > 4 then
-				self[v]:SetTexture(texture, "REPEAT", "REPEAT")
+				self[v.name]:SetTexture(texture, "REPEAT", "REPEAT")
 			else
-				self[v]:SetTexture(texture)
+				self[v.name]:SetTexture(texture)
 			end
 		end
 	end
 end
 
-function border_proto:SetSize(size)
+function Module:SetSize(size)
+	if type(size) ~= "number" then
+		error("Border:SetSize() - Size must be a number", 2)
+	end
+
 	self.__size = size
-	self.TOPLEFT:SetSize(size, size)
-	self.TOPRIGHT:SetSize(size, size)
-	self.BOTTOMLEFT:SetSize(size, size)
-	self.BOTTOMRIGHT:SetSize(size, size)
-	self.TOP:SetHeight(size)
-	self.BOTTOM:SetHeight(size)
-	self.LEFT:SetWidth(size)
-	self.RIGHT:SetWidth(size)
 
-	onSizeChanged(self.__parent, self.__parent:GetWidth(), self.__parent:GetHeight())
+	local len = #borderSections
+	for i = 1, len do
+		local v = borderSections[i]
+		if v.name == "TOP" or v.name == "BOTTOM" then
+			self[v.name]:SetHeight(size)
+		elseif v.name == "LEFT" or v.name == "RIGHT" then
+			self[v.name]:SetWidth(size)
+		else
+			self[v.name]:SetSize(size, size)
+		end
+	end
+
+	local parentWidth, parentHeight = self.__parent:GetWidth(), self.__parent:GetHeight()
+	onSizeChanged(self.__parent, parentWidth, parentHeight)
 end
 
-function border_proto:Hide()
-	for _, v in next, sections do
-		self[v]:Hide()
+function Module:Hide()
+	for _, section in ipairs(borderSections) do
+		self[section.name]:Hide()
 	end
 end
 
-function border_proto:Show()
-	for _, v in next, sections do
-		self[v]:Show()
+function Module:Show()
+	local len = #borderSections
+	for i = 1, len do
+		self[borderSections[i].name]:Show()
 	end
 end
 
-function border_proto:SetShown(isShown)
-	for _, v in next, sections do
-		self[v]:SetShown(isShown)
+function Module:SetShown(isShown)
+	local len = #borderSections
+	for i = 1, len do
+		self[borderSections[i].name]:SetShown(isShown)
 	end
 end
 
-function border_proto:GetVertexColor()
+function Module:GetVertexColor()
 	return self.TOPLEFT:GetVertexColor()
 end
 
-function border_proto:SetVertexColor(r, g, b, a)
-	for _, v in next, sections do
-		self[v]:SetVertexColor(r, g, b, a)
+function Module:SetVertexColor(r, g, b, a)
+	for _, section in ipairs(borderSections) do
+		self[section.name]:SetVertexColor(r, g, b, a)
 	end
 end
 
-function border_proto:SetAlpha(a)
-	for _, v in next, sections do
-		self[v]:SetAlpha(a)
+function Module:SetAlpha(a)
+	local len = #borderSections
+	for i = 1, len do
+		self[borderSections[i].name]:SetAlpha(a)
 	end
 end
 
-function border_proto:IsObjectType(_, t)
+function Module:IsObjectType(t)
 	return t == "Border"
 end
 
-function K.CreateBorder(parent, drawLayer, drawSubLevel)
-	local border = Mixin({__parent = parent}, border_proto)
+function K:CreateBorder(drawLayer, drawSubLevel)
+	local border = setmetatable({}, { __index = Module })
+	border.__parent = self
 
-	for _, v in next, sections do
-		border[v] = parent:CreateTexture(nil, drawLayer or "OVERLAY", nil, drawSubLevel or 1)
+	for i = 1, #borderSections do
+		local section = borderSections[i]
+		border[section.name] = self:CreateTexture(nil, drawLayer or "OVERLAY", nil, drawSubLevel or 1)
+		border[section.name]:SetTexCoord(unpack(section.coord))
 	end
-
-	border.TOPLEFT:SetTexCoord(0.5, 0.625, 0, 1)
-	border.TOPRIGHT:SetTexCoord(0.625, 0.75, 0, 1)
-	border.BOTTOMLEFT:SetTexCoord(0.75, 0.875, 0, 1)
-	border.BOTTOMRIGHT:SetTexCoord(0.875, 1, 0, 1)
 
 	border.TOP:SetPoint("TOPLEFT", border.TOPLEFT, "TOPRIGHT", 0, 0)
 	border.TOP:SetPoint("TOPRIGHT", border.TOPRIGHT, "TOPLEFT", 0, 0)
@@ -137,18 +158,12 @@ function K.CreateBorder(parent, drawLayer, drawSubLevel)
 	border.RIGHT:SetPoint("TOPRIGHT", border.TOPRIGHT, "BOTTOMRIGHT", 0, 0)
 	border.RIGHT:SetPoint("BOTTOMRIGHT", border.BOTTOMRIGHT, "TOPRIGHT", 0, 0)
 
-	parent:HookScript("OnSizeChanged", onSizeChanged)
-	objectToWidget[parent] = border
+	self:HookScript("OnSizeChanged", onSizeChanged)
 
-	local CreateBorderSize
-	if C["General"].BorderStyle.Value == "KkthnxUI" then
-		CreateBorderSize = 12
-	else
-		CreateBorderSize = 10
-	end
+	objectToWidgets[self] = border
 
 	border:SetOffset(-4)
-	border:SetSize(CreateBorderSize)
+	border:SetSize(getBorderSize)
 
 	return border
 end
