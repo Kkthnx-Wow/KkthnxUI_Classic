@@ -1,3 +1,5 @@
+## !!!THIS IS A WIP AND THERE WILL BE BUGS!!!
+
 ![h4fl1au](https://user-images.githubusercontent.com/1692977/31845157-13107948-b5cc-11e7-926d-67e669b8ca69.png)
 
 [![Support me on Patreon](https://i.imgur.com/FzTLsYV.png) ](https://www.patreon.com/kkthnx)[![Donate through Paypal](https://i.imgur.com/IkPCLeh.png)](https://www.paypal.me/kkthnx) [![Say Thanks](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/Kkthnx)
@@ -19,25 +21,13 @@ Bug reports and feature suggestions are all done through GitHub's Issue tracker 
 ## Join the community
 There are thousands of users, but most are content to simply download and use the interface without further ado. If you wish to get more involved though, have some questions you can't find answers to anywhere else or simply just wish to stop by and say hello, we have both a [discord](https://discordapp.com/) server and a facebook page.
 
-* [Discord](https://discord.gg/YUmxqQm)
-* [Facebook](https://www.facebook.com/kkthnxui)
-* [Twitter](https://twitter.com/KkthnxUI)
+* [Discord](https://discord.gg/Rc9wcK9cAB)
 
 ## Buy me a coffee!
 Donations are welcome, but not required to use the UI at all. Donations help me further my development and fuel my gaming! Donations will never be a requirement to use the UI! If you would like to donate, you can do so down below.
 
-* [PayPal](https://www.paypal.me/kkthnx)
+* [PayPal](https://www.paypal.me/kkthnxtv)
 * [Patreon](https://www.patreon.com/kkthnx)
-* [Steam Wishlist](https://www.curseforge.com/linkout?remoteUrl=http%253a%252f%252fstore.steampowered.com%252fwishlist%252fid%252fKkthnx)
-   
-## Suggested AddOns!
-* [Real Mob Health](https://www.curseforge.com/wow/addons/real-mob-health)   
-* [Questie](https://www.curseforge.com/wow/addons/questie)   
-* [ClassicLFG](https://www.curseforge.com/wow/addons/classiclfg)
 
 Regards
 Josh *"Kkthnx"* Russell   
-![aqOxINQ](https://user-images.githubusercontent.com/40672673/66349831-c46d3b00-e927-11e9-9b1e-525f4c47e66e.png)   
-![wHwVaFHE](https://user-images.githubusercontent.com/40672673/66349832-c46d3b00-e927-11e9-9596-eb951156e11d.png)   
-![azqaXk1](https://user-images.githubusercontent.com/40672673/66349678-6a6c7580-e927-11e9-9e4e-9a546a2ba148.png)   
-![S4CWn42](https://user-images.githubusercontent.com/40672673/66349963-11511180-e928-11e9-9fee-402b3f583435.png)
