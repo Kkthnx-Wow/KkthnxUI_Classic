@@ -502,11 +502,7 @@ function Module:CreateAFKCam()
 	AFKMode.top.wowlogo:SetFrameStrata("MEDIUM")
 	AFKMode.top.wowlogo:SetSize(300, 150)
 	AFKMode.top.wowlogo.tex = AFKMode.top.wowlogo:CreateTexture(nil, "OVERLAY")
-	local currentExpansionLevel = GetClampedCurrentExpansionLevel()
-	local expansionDisplayInfo = GetExpansionDisplayInfo(currentExpansionLevel)
-	if expansionDisplayInfo then
-		AFKMode.top.wowlogo.tex:SetTexture(expansionDisplayInfo.logo)
-	end
+	AFKMode.top.wowlogo.tex:SetTexture([[Interface\GLUES\COMMON\Glues-WoW-ClassicLogo]])
 	AFKMode.top.wowlogo.tex:SetAllPoints()
 
 	-- Date text

@@ -262,6 +262,21 @@ function Module:CreateCloseButton(f)
 	return closeButton
 end
 
+local function ToggleBackpacks(self)
+	local parent = self.__owner
+	K.TogglePanel(parent.BagBar)
+	if parent.BagBar:IsShown() then
+		self.KKUI_Border:SetVertexColor(1, 0.8, 0)
+		PlaySound(SOUNDKIT.IG_BACKPACK_OPEN)
+		if parent.keyring and parent.keyring:IsShown() then
+			parent.keyToggle:Click()
+		end
+	else
+		K.SetBorderColor(self.KKUI_Border)
+		PlaySound(SOUNDKIT.IG_BACKPACK_CLOSE)
+	end
+end
+
 function Module:CreateBagToggle(click)
 	local bagToggleButton = CreateFrame("Button", nil, self)
 	bagToggleButton:SetSize(18, 18)
@@ -1167,10 +1182,10 @@ function Module:OnEnable()
 
 	function MyButton:OnUpdateQuest(item)
 		if item.isQuestItem then
-			self:SetBackdropBorderColor(1, 0.82, 0.2)
+			self.KKUI_Border:SetVertexColor(1, 0.82, 0.2)
 		elseif item.quality and item.quality > -1 then
 			local color = K.QualityColors[item.quality]
-			self:SetBackdropBorderColor(color.r, color.g, color.b)
+			self.KKUI_Border:SetVertexColor(color.r, color.g, color.b)
 		else
 			K.SetBorderColor(self.KKUI_Border)
 		end
@@ -1358,9 +1373,9 @@ function Module:OnEnable()
 		end
 		local color = K.QualityColors[quality]
 		if not self.hidden and not self.notBought then
-			self:SetBackdropBorderColor(color.r, color.g, color.b)
+			self.KKUI_Border:SetVertexColor(color.r, color.g, color.b)
 		else
-			self:SetBackdropBorderColor(0, 0, 0)
+			K.SetBorderColor(self.KKUI_Border)
 		end
 
 		if classID == LE_ITEM_CLASS_CONTAINER then

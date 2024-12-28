@@ -26,11 +26,22 @@ local classification = {
 local npcIDstring = "%s " .. K.InfoColor .. "%s"
 local specPrefix = "|cffFFCC00" .. SPECIALIZATION .. ": " .. K.InfoColor
 
+function Module:GetMouseFocus()
+	if GetMouseFoci then
+		local frames = GetMouseFoci()
+		return frames and frames[1]
+	else
+		return GetMouseFocus()
+	end
+end
+
 function Module:GetUnit()
-	local data = self:GetTooltipData()
-	local guid = data and data.guid
-	local unit = guid and UnitTokenFromGUID(guid)
-	return unit, guid
+	local _, unit = self:GetUnit()
+	if not unit then
+		local mFocus = Module:GetMouseFocus()
+		unit = mFocus and (mFocus.unit or (mFocus.GetAttribute and mFocus:GetAttribute("unit")))
+	end
+	return unit
 end
 
 local FACTION_COLORS = {
@@ -120,7 +131,7 @@ function Module:OnTooltipCleared()
 	GameTooltip_ClearWidgetSet(self)
 
 	if self.StatusBar then
-		self.StatusBar:ClearWatch()
+		-- self.StatusBar:ClearWatch()
 	end
 end
 
@@ -272,25 +283,35 @@ function Module:OnTooltipSetUnit()
 		end
 	end
 
+	self.StatusBar:SetStatusBarColor(r, g, b)
+
 	if isPlayer then
-		Module.InspectUnitItemLevel(self, unit)
-		Module.ShowUnitMythicPlusScore(self, unit)
+		-- Module.InspectUnitItemLevel(self, unit)
+		-- Module.ShowUnitMythicPlusScore(self, unit)
 	end
-	Module.ScanTargets(self, unit)
+	-- Module.ScanTargets(self, unit)
 	-- Module.CreatePetInfo(self, unit)
 end
 
 function Module:RefreshStatusBar(value)
+	if self:IsForbidden() or not value then
+		return
+	end
+
+	local min, max = self:GetMinMaxValues()
+	if (value < min) or (value > max) then
+		return
+	end
+
 	if not self.text then
 		self.text = K.CreateFontString(self, 11, nil, "")
 	end
-	local unit = self.guid and UnitTokenFromGUID(self.guid)
-	local unitHealthMax = unit and UnitHealthMax(unit)
-	if unitHealthMax and unitHealthMax ~= 0 then
-		self.text:SetText(K.ShortValue(value * unitHealthMax) .. " - " .. K.ShortValue(unitHealthMax))
-		self:SetStatusBarColor(K.UnitColor(unit))
-	else
+
+	if value > 0 and max == 1 then
 		self.text:SetFormattedText("%d%%", value * 100)
+		self:SetStatusBarColor(0.6, 0.6, 0.6) -- Wintergrasp building
+	else
+		self.text:SetText(K.ShortValue(value) .. " - " .. K.ShortValue(max))
 	end
 end
 
@@ -408,11 +429,10 @@ function Module:ReskinTooltip()
 		return
 	end
 
-	local data = self.GetTooltipData and self:GetTooltipData()
-	if data then
-		local link = data.guid and C_Item.GetItemLinkByGUID(data.guid) or data.hyperlink
-		if link then
-			local quality = select(3, C_Item.GetItemInfo(link))
+	if self.GetItem then
+		local _, item = self:GetItem()
+		if item then
+			local quality = select(3, GetItemInfo(item))
 			local color = K.QualityColors[quality or 1]
 			if color then
 				self.bg.KKUI_Border:SetVertexColor(color.r, color.g, color.b)
@@ -437,7 +457,7 @@ end
 
 function Module:ResetUnit(btn)
 	if btn == "LSHIFT" and UnitExists("mouseover") then
-		GameTooltip:RefreshData()
+		GameTooltip:SetUnit("mouseover")
 	end
 end
 
@@ -482,34 +502,46 @@ function Module:AnchorShoppingTooltips(_, secondaryItemShown)
 end
 
 function Module:OnEnable()
-	GameTooltip:HookScript("OnTooltipCleared", Module.OnTooltipCleared)
-	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, Module.OnTooltipSetUnit)
-	hooksecurefunc(GameTooltip.StatusBar, "SetValue", Module.RefreshStatusBar)
-	TooltipDataProcessor.AddLinePreCall(Enum.TooltipDataLineType.None, Module.UpdateFactionLine)
-	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, Module.FixRecipeItemNameWidth)
+	-- GameTooltip:HookScript("OnTooltipCleared", Module.OnTooltipCleared)
+	-- TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, Module.OnTooltipSetUnit)
+	-- hooksecurefunc(GameTooltip.StatusBar, "SetValue", Module.RefreshStatusBar)
+	-- TooltipDataProcessor.AddLinePreCall(Enum.TooltipDataLineType.None, Module.UpdateFactionLine)
+	-- TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, Module.FixRecipeItemNameWidth)
 
+	-- hooksecurefunc("GameTooltip_ShowStatusBar", Module.GameTooltip_ShowStatusBar)
+	-- hooksecurefunc("GameTooltip_ShowProgressBar", Module.GameTooltip_ShowProgressBar)
+	-- hooksecurefunc("GameTooltip_SetDefaultAnchor", Module.GameTooltip_SetDefaultAnchor)
+	-- hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", Module.AnchorShoppingTooltips)
+	-- Module:FixStoneSoupError()
+
+	GameTooltip.StatusBar = GameTooltipStatusBar
+	GameTooltip:HookScript("OnTooltipCleared", Module.OnTooltipCleared)
+	GameTooltip:HookScript("OnTooltipSetUnit", Module.OnTooltipSetUnit)
+	GameTooltip.StatusBar:SetScript("OnValueChanged", Module.RefreshStatusBar)
 	hooksecurefunc("GameTooltip_ShowStatusBar", Module.GameTooltip_ShowStatusBar)
 	hooksecurefunc("GameTooltip_ShowProgressBar", Module.GameTooltip_ShowProgressBar)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", Module.GameTooltip_SetDefaultAnchor)
-	hooksecurefunc(TooltipComparisonManager, "AnchorShoppingTooltips", Module.AnchorShoppingTooltips)
-	Module:FixStoneSoupError()
 
-	-- Elements
-	local loadTooltipModules = {
-		"CreateTooltipIcons",
-		"CreateTooltipID",
-		"CreateMountSource",
-	}
+	GameTooltip:HookScript("OnTooltipSetItem", Module.FixRecipeItemNameWidth)
+	ItemRefTooltip:HookScript("OnTooltipSetItem", Module.FixRecipeItemNameWidth)
+	EmbeddedItemTooltip:HookScript("OnTooltipSetItem", Module.FixRecipeItemNameWidth)
 
-	for _, funcName in ipairs(loadTooltipModules) do
-		local func = self[funcName]
-		if type(func) == "function" then
-			local success, err = pcall(func, self)
-			if not success then
-				error("Error in function " .. funcName .. ": " .. tostring(err), 2)
-			end
-		end
-	end
+	-- -- Elements
+	-- local loadTooltipModules = {
+	-- 	"CreateTooltipIcons",
+	-- 	"CreateTooltipID",
+	-- 	"CreateMountSource",
+	-- }
+
+	-- for _, funcName in ipairs(loadTooltipModules) do
+	-- 	local func = self[funcName]
+	-- 	if type(func) == "function" then
+	-- 		local success, err = pcall(func, self)
+	-- 		if not success then
+	-- 			error("Error in function " .. funcName .. ": " .. tostring(err), 2)
+	-- 		end
+	-- 	end
+	-- end
 	K:RegisterEvent("MODIFIER_STATE_CHANGED", Module.ResetUnit)
 end
 

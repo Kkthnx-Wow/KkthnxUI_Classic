@@ -519,6 +519,15 @@ function Module:ReskinRegions()
 		K:UnregisterEvent("CALENDAR_UPDATE_PENDING_INVITES", updateInviteVisibility)
 		K:UnregisterEvent("PLAYER_ENTERING_WORLD", updateInviteVisibility)
 	end)
+
+	-- LFG Icon
+	C_Timer.After(1, function()
+		if LFGMinimapFrame then
+			LFGMinimapFrame:ClearAllPoints()
+			LFGMinimapFrame:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -0, 0)
+			LFGMinimapFrameBorder:Hide()
+		end
+	end)
 end
 
 function Module:CreatePing()

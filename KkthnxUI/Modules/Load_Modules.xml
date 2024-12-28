@@ -52,9 +52,9 @@
    <Script file="ActionBars\Cooldown.lua" />
    <Script file="ActionBars\Fader.lua" />
    <!-- Auras -->
-   <!-- <Include file="Auras\AuraTemplate.xml" />
+   <Include file="Auras\AuraTemplate.xml" />
    <Script file="Auras\Core.lua" />
-   <Script file="Auras\Elements\AuraWatch.lua" />
+   <!-- <Script file="Auras\Elements\AuraWatch.lua" />
    <Script file="Auras\Elements\Reminder.lua" />
    <Script file="Auras\Elements\Totems.lua" />
    <Include file="Auras\Lumos\Lumos.xml" /> -->
@@ -93,8 +93,8 @@
    <Include file="UnitFrames\Groups\MainTankTemplate.xml" />
    <Script file="UnitFrames\Groups\Raid.lua" />
    <!-- Tooltip -->
-   <!-- <Script file="Tooltip\Core.lua" />
-   <Script file="Tooltip\Elements\Hover.lua" />
+   <Script file="Tooltip\Core.lua" />
+   <!--  <Script file="Tooltip\Elements\Hover.lua" />
    <Script file="Tooltip\Elements\ID.lua" />
    <Script file="Tooltip\Elements\Icons.lua" />
    <Script file="Tooltip\Elements\MountSource.lua" />
@@ -104,6 +104,7 @@
    <!-- Miscellaneous -->
    <Script file="Miscellaneous\Core.lua" />
    <Script file="Miscellaneous\Elements\ExpRep.lua" />
+   <Script file="Miscellaneous\Elements\AFKCam.lua" />
    <!-- <Script file="Miscellaneous\Core.lua" />
    <Script file="Miscellaneous\Elements\AFKCam.lua" />
    <Script file="Miscellaneous\Elements\AlreadyKnown.lua" />
