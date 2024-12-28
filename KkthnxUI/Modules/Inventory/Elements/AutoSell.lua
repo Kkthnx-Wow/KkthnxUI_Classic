@@ -25,7 +25,7 @@ local function startSelling()
 			end
 
 			local info = C_Container_GetContainerItemInfo(bag, slot)
-			if info and not sellCache["b" .. bag .. "s" .. slot] and info.hyperlink and not info.hasNoValue and (info.quality == 0 or KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList[info.itemID]) and (not Module:IsPetTrashCurrency(info.itemID) or not K.IsUnknownTransmog(bag, slot)) then
+			if info and not sellCache["b" .. bag .. "s" .. slot] and info.hyperlink and not info.hasNoValue and (info.quality == 0 or KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList[info.itemID] or not K.IsUnknownTransmog(bag, slot)) then
 				sellCache["b" .. bag .. "s" .. slot] = true
 				C_Container_UseContainerItem(bag, slot)
 				K.Delay(0.15, startSelling)
