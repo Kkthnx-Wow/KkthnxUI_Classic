@@ -287,65 +287,7 @@ function Module:CreateStyle()
 	end)
 end
 
-local function ToggleLandingPage(_, ...)
-	if not C_Garrison.HasGarrison(...) then
-		UIErrorsFrame:AddMessage(K.InfoColor .. CONTRIBUTION_TOOLTIP_UNLOCKED_WHEN_ACTIVE)
-		return
-	end
-	ShowGarrisonLandingPage(...)
-end
-
 function Module:ReskinRegions()
-	-- Garrison
-	local garrMinimapButton = ExpansionLandingPageMinimapButton
-	if garrMinimapButton then
-		local buttonTextureIcon = "ShipMissionIcon-Combat-Mission"
-		local function updateMinimapButtons(self)
-			self:ClearAllPoints()
-			self:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", 4, 4)
-			self:GetNormalTexture():SetAtlas(buttonTextureIcon)
-			self:GetPushedTexture():SetAtlas(buttonTextureIcon)
-			self:GetHighlightTexture():SetAtlas(buttonTextureIcon)
-			self:GetNormalTexture():SetVertexColor(1, 1, 1, 1)
-			self:GetPushedTexture():SetVertexColor(1, 1, 1, 1)
-			self:GetHighlightTexture():SetVertexColor(1, 1, 1, 1)
-
-			self.LoopingGlow:SetAtlas(buttonTextureIcon)
-			self.LoopingGlow:SetSize(26, 26)
-
-			self:SetHitRectInsets(0, 0, 0, 0)
-			self:SetSize(26, 26)
-		end
-		updateMinimapButtons(garrMinimapButton)
-		garrMinimapButton:HookScript("OnShow", updateMinimapButtons)
-		hooksecurefunc(garrMinimapButton, "UpdateIcon", updateMinimapButtons)
-
-		local menuList = {
-			{ text = _G.GARRISON_TYPE_9_0_LANDING_PAGE_TITLE, func = ToggleLandingPage, arg1 = Enum.GarrisonType.Type_9_0_Garrison, notCheckable = true },
-			{ text = _G.WAR_CAMPAIGN, func = ToggleLandingPage, arg1 = Enum.GarrisonType.Type_8_0_Garrison, notCheckable = true },
-			{ text = _G.ORDER_HALL_LANDING_PAGE_TITLE, func = ToggleLandingPage, arg1 = Enum.GarrisonType.Type_7_0_Garrison, notCheckable = true },
-			{ text = _G.GARRISON_LANDING_PAGE_TITLE, func = ToggleLandingPage, arg1 = Enum.GarrisonType.Type_6_0_Garrison, notCheckable = true },
-		}
-		garrMinimapButton:HookScript("OnMouseDown", function(self, btn)
-			if btn == "RightButton" then
-				if _G.GarrisonLandingPage and _G.GarrisonLandingPage:IsShown() then
-					HideUIPanel(_G.GarrisonLandingPage)
-				end
-				if _G.ExpansionLandingPage and _G.ExpansionLandingPage:IsShown() then
-					HideUIPanel(_G.ExpansionLandingPage)
-				end
-				K.LibEasyMenu.Create(menuList, K.EasyMenu, self, -80, 0, "MENU", 1)
-			end
-		end)
-		garrMinimapButton:SetScript("OnEnter", function(self)
-			GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-			GameTooltip:SetText(self.title, 1, 1, 1)
-			GameTooltip:AddLine(self.description, nil, nil, nil, true)
-			GameTooltip:AddLine("|nRight Click to switch Summaries", nil, nil, nil, true)
-			GameTooltip:Show()
-		end)
-	end
-
 	-- QueueStatus Button
 	if QueueStatusButton then
 		QueueStatusButton:SetParent(MinimapCluster)
@@ -438,40 +380,22 @@ function Module:ReskinRegions()
 		ReskinDifficultyFrame(instDifficulty.ChallengeMode)
 	end
 
-	local function updateMapAnchor(frame, _, _, newAnchor, _, _, force)
-		-- exit if the 'force' argument is passed in
-		if force then
-			return
+	-- Mail icon
+	if MiniMapMailFrame then
+		MiniMapMailFrame:ClearAllPoints()
+		if C["DataText"].Time then
+			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 6)
+		else
+			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 4)
 		end
-
-		-- check if the new position is different from the current position
-		local currentAnchor = { frame:GetPoint() }
-		if not (currentAnchor[1] == newAnchor and currentAnchor[2] == Minimap and currentAnchor[3] == "BOTTOM" and currentAnchor[4] == 0 and (C["DataText"].Time and currentAnchor[5] == 20 or currentAnchor[5] == 4)) then
-			-- reset the frame's position
-			frame:ClearAllPoints()
-
-			-- set the frame's position based on the value of C["DataText"].Time
-			if C["DataText"].Time then
-				frame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 20)
-			else
-				frame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 4)
-			end
-		end
+		MiniMapMailIcon:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Minimap\\Mail")
+		MiniMapMailIcon:SetSize(20, 13)
 	end
 
-	-- get the indicator frame from the MinimapCluster object
-	local indicatorFrame = MinimapCluster.IndicatorFrame
-	if indicatorFrame then
-		-- set the initial position of the frame
-		updateMapAnchor(indicatorFrame)
-
-		-- hook into the SetPoint function to update the frame's position if necessary
-		hooksecurefunc(indicatorFrame, "SetPoint", function(frame, ...)
-			updateMapAnchor(frame, ..., select(2, frame:GetPoint()))
-		end)
-
-		-- set the frame level to 11 to ensure it appears above other elements
-		indicatorFrame:SetFrameLevel(11)
+	if TimeManagerClockButton then
+		TimeManagerClockButton:ClearAllPoints()
+		TimeManagerClockButton:SetPoint("BOTTOM", K.UIFrameHider)
+		TimeManagerClockButton:Hide()
 	end
 
 	-- Invites Icon
