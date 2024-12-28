@@ -244,8 +244,7 @@ function Module:OnTooltipSetUnit()
 	end
 
 	local alive = not UnitIsDeadOrGhost(unit)
-	local level
-	level = UnitLevel(unit)
+	local level = UnitLevel(unit)
 
 	if level then
 		local boss

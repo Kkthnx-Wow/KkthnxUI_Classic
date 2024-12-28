@@ -1417,16 +1417,34 @@ function Module:OnEnable()
 	end
 	BankFrameItemButton_Update = K.Noop
 
-	-- Shift key alert
-	local function onUpdate(self, elapsed)
-		if IsShiftKeyDown() then
-			self.elapsed = (self.elapsed or 0) + elapsed
-			if self.elapsed > 5 then
-				UIErrorsFrame:AddMessage(K.InfoColor .. L["StupidShiftKey"])
-				self.elapsed = 0
-			end
+	-- -- Shift key alert
+	-- local function onUpdate(self, elapsed)
+	-- 	if IsShiftKeyDown() then
+	-- 		self.elapsed = (self.elapsed or 0) + elapsed
+	-- 		if self.elapsed > 5 then
+	-- 			UIErrorsFrame:AddMessage(K.InfoColor .. L["StupidShiftKey"])
+	-- 			self.elapsed = 0
+	-- 		end
+	-- 	end
+	-- end
+	-- local shiftUpdater = CreateFrame("Frame", nil, f.main)
+	-- shiftUpdater:SetScript("OnUpdate", onUpdate)
+
+	-- Delay updates for data jam
+	local updater = CreateFrame("Frame", nil, f.main)
+	updater:Hide()
+
+	updater:SetScript("OnUpdate", function(self, elapsed)
+		self.delay = self.delay - elapsed
+		if self.delay < 0 then
+			Module:UpdateAllBags()
+			self:Hide()
 		end
-	end
-	local shiftUpdater = CreateFrame("Frame", nil, f.main)
-	shiftUpdater:SetScript("OnUpdate", onUpdate)
+	end)
+
+	-- Event listener for GET_ITEM_INFO_RECEIVED
+	K:RegisterEvent("GET_ITEM_INFO_RECEIVED", function()
+		updater.delay = 1
+		updater:Show()
+	end)
 end

@@ -386,7 +386,7 @@ function Module:OnEnable()
 		"CreateBars",
 		-- "CreateExtrabar",
 		"CreateLeaveVehicle",
-		-- "CreatePetbar",
+		"CreatePetbar",
 		"CreateStancebar",
 		"ReskinBars",
 		"UpdateBarConfig",

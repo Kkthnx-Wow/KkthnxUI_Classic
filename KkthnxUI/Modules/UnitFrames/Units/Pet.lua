@@ -73,15 +73,15 @@ function Module:CreatePet()
 
 	if petPortraitStyle == "NoPortraits" or petPortraitStyle == "OverlayPortrait" then
 		if C["Unitframe"].HealthbarColor.Value == "Class" then
-			self:Tag(Name, "[name] [fulllevel]")
+			self:Tag(Name, "[name] [fulllevel] [pethappiness]")
 		else
-			self:Tag(Name, "[color][name] [fulllevel]")
+			self:Tag(Name, "[color][name] [fulllevel] [pethappiness]")
 		end
 	else
 		if C["Unitframe"].HealthbarColor.Value == "Class" then
-			self:Tag(Name, "[name]")
+			self:Tag(Name, "[name] [pethappiness]")
 		else
-			self:Tag(Name, "[color][name]")
+			self:Tag(Name, "[color][name] [pethappiness]")
 		end
 	end
 	Name:SetShown(not C["Unitframe"].HidePetName)

@@ -349,3 +349,19 @@ oUF.Tags.Methods["lfdrole"] = function(unit)
 	end
 end
 oUF.Tags.Events["lfdrole"] = "PLAYER_ROLES_ASSIGNED GROUP_ROSTER_UPDATE"
+
+local GetPetHappiness = GetPetHappiness
+
+local emotionsIcons = {
+	[[|TInterface\PetPaperDollFrame\UI-PetHappiness:16:16:0:0:128:64:48:72:0:23|t]],
+	[[|TInterface\PetPaperDollFrame\UI-PetHappiness:16:16:0:0:128:64:24:48:0:23|t]],
+	[[|TInterface\PetPaperDollFrame\UI-PetHappiness:16:16:0:0:128:64:0:24:0:23|t]],
+}
+
+oUF.Tags.Methods["pethappiness"] = function(unit)
+	local hasPetUI, isHunterPet = HasPetUI()
+	if hasPetUI and isHunterPet and UnitIsUnit("pet", unit) then
+		return emotionsIcons[GetPetHappiness()]
+	end
+end
+oUF.Tags.Events["pethappiness"] = "UNIT_HAPPINESS PET_UI_UPDATE"
