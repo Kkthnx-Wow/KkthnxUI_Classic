@@ -263,7 +263,7 @@ do
 	function K.UnitColor(unit)
 		local r, g, b = 1, 1, 1
 
-		if UnitIsPlayer(unit) or UnitInPartyIsAI(unit) then
+		if UnitIsPlayer(unit) then
 			local class = select(2, UnitClass(unit))
 			if class then
 				r, g, b = K.ColorClass(class)

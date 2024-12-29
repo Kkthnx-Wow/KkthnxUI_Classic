@@ -551,7 +551,7 @@ local function HelloWorld()
 	K.CreateMoverFrame(welcome)
 	welcome:CreateBorder()
 	K.CreateFontString(welcome, 30, K.Title, "", false, "TOPLEFT", 10, 28)
-	K.CreateFontString(welcome, 14, K.Version, "", true, "TOPLEFT", 154, 16)
+	K.CreateFontString(welcome, 14, K.Version, "", true, "TOPLEFT", 164, 16)
 	K.CreateFontString(welcome, 16, "Help Info", "", true, "TOP", 0, -10)
 
 	local welcomeLogo = welcome:CreateTexture(nil, "OVERLAY")
@@ -563,7 +563,8 @@ local function HelloWorld()
 
 	local welcomeBoss = welcome:CreateTexture(nil, "OVERLAY")
 	welcomeBoss:SetSize(128, 64)
-	welcomeBoss:SetTexture(5907274)
+	welcomeBoss:SetTexture("Interface\\Addons\\KkthnxUI\\Media\\Textures\\UI-EJ-BOSS-Ragnaros")
+
 	welcomeBoss:SetPoint("TOPRIGHT", welcome, "TOPRIGHT", 10, 64)
 
 	local ll = CreateFrame("Frame", nil, welcome)
@@ -636,7 +637,7 @@ local function HelloWorld()
 	goSkip.text = goSkip:CreateFontString(nil, "OVERLAY")
 	goSkip.text:SetFontObject(K.UIFont)
 	goSkip.text:SetPoint("CENTER", 0, -1)
-	goSkip.text:SetText(K.MyClassColor .. RENOWN_LEVEL_UP_SKIP_BUTTON .. "|r")
+	goSkip.text:SetText(K.MyClassColor .. "Skip" .. "|r")
 
 	goSkip:SetScript("OnClick", function()
 		Module:ForceDefaultCVars()

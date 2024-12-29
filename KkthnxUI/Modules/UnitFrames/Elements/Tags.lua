@@ -6,7 +6,6 @@ local ALTERNATE_POWER_INDEX = Enum.PowerType.Alternate or 10
 local DEAD = DEAD
 local DND = DND
 local GetCreatureDifficultyColor = GetCreatureDifficultyColor
-local GetNumArenaOpponentSpecs = GetNumArenaOpponentSpecs
 local LEVEL = LEVEL
 local PLAYER_OFFLINE = PLAYER_OFFLINE
 local UnitBattlePetLevel = UnitBattlePetLevel
@@ -129,7 +128,7 @@ oUF.Tags.Methods["DDG"] = function(unit)
 		return "|cffCFCFCF" .. DEAD .. "|r"
 	elseif UnitIsGhost(unit) then
 		return "|cffCFCFCF" .. L["Ghost"] .. "|r"
-	elseif not UnitIsConnected(unit) and GetNumArenaOpponentSpecs() == 0 then
+	elseif not UnitIsConnected(unit) then
 		return "|cffCFCFCF" .. PLAYER_OFFLINE .. "|r"
 	elseif UnitIsAFK(unit) then
 		return "|cffCFCFCF <" .. AFK .. ">|r"
