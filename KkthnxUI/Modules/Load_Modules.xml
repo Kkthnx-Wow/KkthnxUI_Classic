@@ -99,25 +99,20 @@
    <Script file="UnitFrames\Groups\Raid.lua" />
    <!-- Tooltip -->
    <Script file="Tooltip\Core.lua" />
-   <!--  <Script file="Tooltip\Elements\Hover.lua" />
-   <Script file="Tooltip\Elements\ID.lua" />
    <Script file="Tooltip\Elements\Icons.lua" />
-   <Script file="Tooltip\Elements\MountSource.lua" />
-   <Script file="Tooltip\Elements\Pet.lua" />
+   <Script file="Tooltip\Elements\ID.lua" />
+   <!--  <Script file="Tooltip\Elements\Hover.lua" />
    <Script file="Tooltip\Elements\SpecLevel.lua" />
    <Script file="Tooltip\Elements\Targeted.lua" /> -->
    <!-- Miscellaneous -->
    <Script file="Miscellaneous\Core.lua" />
    <Script file="Miscellaneous\Elements\ExpRep.lua" />
    <Script file="Miscellaneous\Elements\AFKCam.lua" />
-   <!-- <Script file="Miscellaneous\Core.lua" />
-   <Script file="Miscellaneous\Elements\AFKCam.lua" />
-   <Script file="Miscellaneous\Elements\AlreadyKnown.lua" />
-   <Script file="Miscellaneous\Elements\ExpRep.lua" />
+   <Script file="Miscellaneous\Elements\MovableFrames.lua" />
+   <!-- <Script file="Miscellaneous\Elements\AlreadyKnown.lua" />
    <Script file="Miscellaneous\Elements\ImprovedMail.lua" />
    <Script file="Miscellaneous\Elements\MDGuildBest.lua" />
    <Script file="Miscellaneous\Elements\MissingStats.lua" />
-   <Script file="Miscellaneous\Elements\MovableFrames.lua" />
    <Script file="Miscellaneous\Elements\MuteSounds.lua" />
    <Script file="Miscellaneous\Elements\ParagonRep.lua" />
    <Script file="Miscellaneous\Elements\QuestTool.lua" />
@@ -167,16 +162,16 @@
    <Script file="Loot\Elements\FasterLoot.lua" />
    <!-- Skins Blizzard -->
    <Include file="Skins\Core.lua" />
+   <Include file="Skins\Blizzard\InspectUI.lua" />
    <!-- <Include file="Skins\Blizzard\AchievementUI.lua" />
    <Include file="Skins\Blizzard\ArchaeologyUI.lua" />
    <Include file="Skins\Blizzard\Collections.lua" />
    <Include file="Skins\Blizzard\DeathRecap.lua" />
-   <Include file="Skins\Blizzard\InspectUI.lua" />
    <Include file="Skins\Blizzard\ProfessionsBook.lua" />
    <Include file="Skins\Blizzard\QuestNavigation.lua" />
    <Include file="Skins\Blizzard\TradeSkillUI.lua" /> -->
    <!-- Skins FrameXML -->
-   <!-- <Include file="Skins\Blizzard\FrameXML\CharacterFrame.lua" /> -->
+   <Include file="Skins\Blizzard\FrameXML\CharacterFrame.lua" />
    <Include file="Skins\Blizzard\FrameXML\ChatBubbles.lua" />
    <Include file="Skins\Blizzard\FrameXML\ChatFrame.lua" />
    <Include file="Skins\Blizzard\FrameXML\Fonts.lua" />

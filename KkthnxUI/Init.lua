@@ -20,7 +20,6 @@ local COMBATLOG_OBJECT_TYPE_PET = COMBATLOG_OBJECT_TYPE_PET
 local C_AddOns_GetAddOnMetadata = C_AddOns.GetAddOnMetadata
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
 local CreateFrame = CreateFrame
-local Enum = Enum
 local GetAddOnEnableState = C_AddOns.GetAddOnEnableState
 local GetAddOnInfo = C_AddOns.GetAddOnInfo
 local GetBuildInfo = GetBuildInfo
@@ -50,6 +49,22 @@ Engine[3] = {} -- L, Localization
 
 -- Assign the sub-tables to local variables K, C, and L for easier access
 local K, C, L = Engine[1], Engine[2], Engine[3]
+
+do -- Expansions
+	K.Classic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
+	local season = C_Seasons and C_Seasons.GetActiveSeason()
+	K.ClassicHC = season == 3 -- Hardcore
+	K.ClassicSOD = season == 2 -- Season of Discovery
+	K.ClassicAnniv = season == 11 -- Anniversary
+	K.ClassicAnnivHC = season == 12 -- Anniversary Hardcore
+
+	local IsHardcoreActive = C_GameRules and C_GameRules.IsHardcoreActive
+	K.IsHardcoreActive = IsHardcoreActive and IsHardcoreActive()
+
+	local IsEngravingEnabled = C_Engraving and C_Engraving.IsEngravingEnabled
+	K.IsEngravingEnabled = IsEngravingEnabled and IsEngravingEnabled()
+end
 
 -- Lib Info
 K.LibEasyMenu = LibStub("LibEasyMenu-1.0-KkthnxUI", true) or nil
@@ -122,8 +137,18 @@ K.AddOnVersion = {}
 
 -- Flags
 -- Constants
-K.PartyPetFlags = bit_bor(COMBATLOG_OBJECT_AFFILIATION_PARTY, COMBATLOG_OBJECT_REACTION_FRIENDLY, COMBATLOG_OBJECT_CONTROL_PLAYER, COMBATLOG_OBJECT_TYPE_PET)
-K.RaidPetFlags = bit_bor(COMBATLOG_OBJECT_AFFILIATION_RAID, COMBATLOG_OBJECT_REACTION_FRIENDLY, COMBATLOG_OBJECT_CONTROL_PLAYER, COMBATLOG_OBJECT_TYPE_PET)
+K.PartyPetFlags = bit_bor(
+	COMBATLOG_OBJECT_AFFILIATION_PARTY,
+	COMBATLOG_OBJECT_REACTION_FRIENDLY,
+	COMBATLOG_OBJECT_CONTROL_PLAYER,
+	COMBATLOG_OBJECT_TYPE_PET
+)
+K.RaidPetFlags = bit_bor(
+	COMBATLOG_OBJECT_AFFILIATION_RAID,
+	COMBATLOG_OBJECT_REACTION_FRIENDLY,
+	COMBATLOG_OBJECT_CONTROL_PLAYER,
+	COMBATLOG_OBJECT_TYPE_PET
+)
 
 -- Tables
 local eventsFrame = CreateFrame("Frame")

@@ -1,19 +1,27 @@
 local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 local Module = K:NewModule("Tooltip")
 
-local strfind, format, strupper, strlen, pairs, unpack = string.find, string.format, string.upper, string.len, pairs, unpack
+local strfind, format, strupper, strlen, pairs, unpack =
+	string.find, string.format, string.upper, string.len, pairs, unpack
 local ICON_LIST = ICON_LIST
 local PVP, LEVEL, FACTION_HORDE, FACTION_ALLIANCE = PVP, LEVEL, FACTION_HORDE, FACTION_ALLIANCE
 local YOU, TARGET, AFK, DND, DEAD, PLAYER_OFFLINE = YOU, TARGET, AFK, DND, DEAD, PLAYER_OFFLINE
 local FOREIGN_SERVER_LABEL, INTERACTIVE_SERVER_LABEL = FOREIGN_SERVER_LABEL, INTERACTIVE_SERVER_LABEL
 local LE_REALM_RELATION_COALESCED, LE_REALM_RELATION_VIRTUAL = LE_REALM_RELATION_COALESCED, LE_REALM_RELATION_VIRTUAL
-local UnitIsPVP, UnitFactionGroup, UnitRealmRelationship, UnitGUID = UnitIsPVP, UnitFactionGroup, UnitRealmRelationship, UnitGUID
-local UnitIsConnected, UnitIsDeadOrGhost, UnitIsAFK, UnitIsDND, UnitReaction = UnitIsConnected, UnitIsDeadOrGhost, UnitIsAFK, UnitIsDND, UnitReaction
-local InCombatLockdown, IsShiftKeyDown, GetMouseFocus, GetItemInfo = InCombatLockdown, IsShiftKeyDown, GetMouseFocus, GetItemInfo
-local GetCreatureDifficultyColor, UnitCreatureType, UnitClassification = GetCreatureDifficultyColor, UnitCreatureType, UnitClassification
-local UnitIsPlayer, UnitName, UnitPVPName, UnitClass, UnitRace, UnitLevel = UnitIsPlayer, UnitName, UnitPVPName, UnitClass, UnitRace, UnitLevel
-local GetRaidTargetIndex, UnitGroupRolesAssigned, GetGuildInfo, IsInGuild = GetRaidTargetIndex, UnitGroupRolesAssigned, GetGuildInfo, IsInGuild
-local GameTooltip_ClearMoney, GameTooltip_ClearStatusBars, GameTooltip_ClearProgressBars, GameTooltip_ClearWidgetSet = GameTooltip_ClearMoney, GameTooltip_ClearStatusBars, GameTooltip_ClearProgressBars, GameTooltip_ClearWidgetSet
+local UnitIsPVP, UnitFactionGroup, UnitRealmRelationship, UnitGUID =
+	UnitIsPVP, UnitFactionGroup, UnitRealmRelationship, UnitGUID
+local UnitIsConnected, UnitIsDeadOrGhost, UnitIsAFK, UnitIsDND, UnitReaction =
+	UnitIsConnected, UnitIsDeadOrGhost, UnitIsAFK, UnitIsDND, UnitReaction
+local InCombatLockdown, IsShiftKeyDown, GetMouseFocus, GetItemInfo =
+	InCombatLockdown, IsShiftKeyDown, GetMouseFocus, GetItemInfo
+local GetCreatureDifficultyColor, UnitCreatureType, UnitClassification =
+	GetCreatureDifficultyColor, UnitCreatureType, UnitClassification
+local UnitIsPlayer, UnitName, UnitPVPName, UnitClass, UnitRace, UnitLevel =
+	UnitIsPlayer, UnitName, UnitPVPName, UnitClass, UnitRace, UnitLevel
+local GetRaidTargetIndex, UnitGroupRolesAssigned, GetGuildInfo, IsInGuild =
+	GetRaidTargetIndex, UnitGroupRolesAssigned, GetGuildInfo, IsInGuild
+local GameTooltip_ClearMoney, GameTooltip_ClearStatusBars, GameTooltip_ClearProgressBars, GameTooltip_ClearWidgetSet =
+	GameTooltip_ClearMoney, GameTooltip_ClearStatusBars, GameTooltip_ClearProgressBars, GameTooltip_ClearWidgetSet
 
 local classification = {
 	worldboss = format("|cffAF5050 %s|r", BOSS),
@@ -163,7 +171,9 @@ function Module:OnTooltipSetUnit()
 			end
 		end
 
-		local status = (UnitIsAFK(unit) and AFK) or (UnitIsDND(unit) and DND) or (not UnitIsConnected(unit) and PLAYER_OFFLINE)
+		local status = (UnitIsAFK(unit) and AFK)
+			or (UnitIsDND(unit) and DND)
+			or (not UnitIsConnected(unit) and PLAYER_OFFLINE)
 		if status then
 			status = format(" |cffffcc00[%s]|r", status)
 		end
@@ -261,10 +271,15 @@ function Module:OnTooltipSetUnit()
 
 		local diff = GetCreatureDifficultyColor(level)
 		local classify = UnitClassification(unit)
-		local textLevel = format("%s%s%s|r", K.RGBToHex(diff), boss or format("%d", level), classification[classify] or "")
+		local textLevel =
+			format("%s%s%s|r", K.RGBToHex(diff), boss or format("%d", level), classification[classify] or "")
 		local pvpFlag = isPlayer and UnitIsPVP(unit) and format(" |cffff0000%s|r", PVP) or ""
-		local unitClass = isPlayer and format("%s %s", UnitRace(unit) or "", hexColor .. (UnitClass(unit) or "") .. "|r") or UnitCreatureType(unit) or ""
-		local levelString = format("%s%s %s %s", textLevel, pvpFlag, unitClass, (not alive and "|cffCCCCCC" .. DEAD .. "|r" or ""))
+		local unitClass = isPlayer
+				and format("%s %s", UnitRace(unit) or "", hexColor .. (UnitClass(unit) or "") .. "|r")
+			or UnitCreatureType(unit)
+			or ""
+		local levelString =
+			format("%s%s %s %s", textLevel, pvpFlag, unitClass, (not alive and "|cffCCCCCC" .. DEAD .. "|r" or ""))
 
 		local tiptextLevel = Module.GetLevelLine(self)
 		if tiptextLevel then
@@ -279,7 +294,8 @@ function Module:OnTooltipSetUnit()
 		if tarRicon and tarRicon > 8 then
 			tarRicon = nil
 		end
-		local tar = format("%s%s", (tarRicon and ICON_LIST[tarRicon] .. "10|t") or "", Module:GetTarget(unit .. "target"))
+		local tar =
+			format("%s%s", (tarRicon and ICON_LIST[tarRicon] .. "10|t") or "", Module:GetTarget(unit .. "target"))
 		self:AddLine(TARGET .. ": " .. tar)
 	end
 
@@ -394,7 +410,8 @@ function Module:GameTooltip_SetDefaultAnchor(parent)
 	self:SetOwner(parent, cursorIndex[mode])
 	if mode == 1 then
 		if not mover then
-			mover = K.Mover(self, "Tooltip", "GameTooltip", { "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -230, 38 }, 100, 100)
+			mover =
+				K.Mover(self, "Tooltip", "GameTooltip", { "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -230, 38 }, 100, 100)
 		end
 		self:ClearAllPoints()
 		self:SetPoint(anchorIndex[C["Tooltip"].TipAnchor.Value], mover)
@@ -533,22 +550,21 @@ function Module:OnEnable()
 	ItemRefTooltip:HookScript("OnTooltipSetItem", Module.FixRecipeItemNameWidth)
 	EmbeddedItemTooltip:HookScript("OnTooltipSetItem", Module.FixRecipeItemNameWidth)
 
-	-- -- Elements
-	-- local loadTooltipModules = {
-	-- 	"CreateTooltipIcons",
-	-- 	"CreateTooltipID",
-	-- 	"CreateMountSource",
-	-- }
+	-- Elements
+	local loadTooltipModules = {
+		"CreateTooltipIcons",
+		"CreateTooltipID",
+	}
 
-	-- for _, funcName in ipairs(loadTooltipModules) do
-	-- 	local func = self[funcName]
-	-- 	if type(func) == "function" then
-	-- 		local success, err = pcall(func, self)
-	-- 		if not success then
-	-- 			error("Error in function " .. funcName .. ": " .. tostring(err), 2)
-	-- 		end
-	-- 	end
-	-- end
+	for _, funcName in ipairs(loadTooltipModules) do
+		local func = self[funcName]
+		if type(func) == "function" then
+			local success, err = pcall(func, self)
+			if not success then
+				error("Error in function " .. funcName .. ": " .. tostring(err), 2)
+			end
+		end
+	end
 	K:RegisterEvent("MODIFIER_STATE_CHANGED", Module.ResetUnit)
 end
 
