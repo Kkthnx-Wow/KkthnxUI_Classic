@@ -147,8 +147,8 @@ function Module:CreateTarget()
 		Module:UpdateAuraContainer(targetWidth, Debuffs, Debuffs.num)
 
 		Debuffs.onlyShowPlayer = C["Unitframe"].OnlyShowPlayerDebuff
-		Debuffs.PostCreateButton = Module.PostCreateButton
-		Debuffs.PostUpdateButton = Module.PostUpdateButton
+		Debuffs.PostCreateIcon = Module.PostCreateIcon
+		Debuffs.PostUpdateIcon = Module.PostUpdateIcon
 
 		self.Debuffs = Debuffs
 	end
@@ -168,8 +168,8 @@ function Module:CreateTarget()
 		Module:UpdateAuraContainer(targetWidth, Buffs, Buffs.num)
 
 		Buffs.showStealableBuffs = true
-		Buffs.PostCreateButton = Module.PostCreateButton
-		Buffs.PostUpdateButton = Module.PostUpdateButton
+		Buffs.PostCreateIcon = Module.PostCreateIcon
+		Buffs.PostUpdateIcon = Module.PostUpdateIcon
 
 		self.Buffs = Buffs
 	end

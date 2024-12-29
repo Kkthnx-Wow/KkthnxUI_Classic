@@ -137,8 +137,8 @@ function Module:CreateFocusTarget()
 
 	Module:UpdateAuraContainer(focusTargetWidth, self.Debuffs, self.Debuffs.num)
 
-	self.Debuffs.PostCreateButton = Module.PostCreateButton
-	self.Debuffs.PostUpdateButton = Module.PostUpdateButton
+	self.Debuffs.PostCreateIcon = Module.PostCreateIcon
+	self.Debuffs.PostUpdateIcon = Module.PostUpdateIcon
 
 	self.RaidTargetIndicator = self.Overlay:CreateTexture(nil, "OVERLAY")
 	if focusTargetPortraitStyle ~= "NoPortraits" and focusTargetPortraitStyle ~= "OverlayPortrait" then

@@ -154,8 +154,8 @@ function Module:CreateParty()
 
 		Module:UpdateAuraContainer(partyWidth, Buffs, Buffs.num)
 
-		Buffs.PostCreateButton = Module.PostCreateButton
-		Buffs.PostUpdateButton = Module.PostUpdateButton
+		Buffs.PostCreateIcon = Module.PostCreateIcon
+		Buffs.PostUpdateIcon = Module.PostUpdateIcon
 
 		self.Buffs = Buffs
 	end
@@ -170,8 +170,8 @@ function Module:CreateParty()
 
 	Module:UpdateAuraContainer(partyWidth - 14, Debuffs, Debuffs.num)
 
-	Debuffs.PostCreateButton = Module.PostCreateButton
-	Debuffs.PostUpdateButton = Module.PostUpdateButton
+	Debuffs.PostCreateIcon = Module.PostCreateIcon
+	Debuffs.PostUpdateIcon = Module.PostUpdateIcon
 
 	if C["Party"].Castbars then
 		local Castbar = CreateFrame("StatusBar", "oUF_CastbarParty", self)

@@ -137,8 +137,8 @@ function Module:CreateTargetOfTarget()
 
 	Module:UpdateAuraContainer(targetOfTargetWidth, Debuffs, Debuffs.num)
 
-	Debuffs.PostCreateButton = Module.PostCreateButton
-	Debuffs.PostUpdateButton = Module.PostUpdateButton
+	Debuffs.PostCreateIcon = Module.PostCreateIcon
+	Debuffs.PostUpdateIcon = Module.PostUpdateIcon
 
 	local RaidTargetIndicator = Overlay:CreateTexture(nil, "OVERLAY")
 	if targetOfTargetPortraitStyle ~= "NoPortraits" and targetOfTargetPortraitStyle ~= "OverlayPortrait" then

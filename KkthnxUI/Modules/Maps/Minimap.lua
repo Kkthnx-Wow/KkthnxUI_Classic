@@ -4,215 +4,16 @@ local Module = K:NewModule("Minimap")
 local math_floor = math.floor
 local mod = mod
 local select = select
-local table_sort = table.sort
+-- local table_sort = table.sort
 
 local C_Calendar_GetNumPendingInvites = C_Calendar.GetNumPendingInvites
-local C_DateAndTime_GetCurrentCalendarTime = C_DateAndTime.GetCurrentCalendarTime
+-- local C_DateAndTime_GetCurrentCalendarTime = C_DateAndTime.GetCurrentCalendarTime
 local GetUnitName = GetUnitName
 local InCombatLockdown = InCombatLockdown
 local Minimap = Minimap
 local Minimap = Minimap
 local UnitClass = UnitClass
 local hooksecurefunc = hooksecurefunc
-
--- Create the minimap micro menu
-local menuList = {
-	{
-		text = _G.CHARACTER_BUTTON,
-		func = function()
-			_G.ToggleCharacter("PaperDollFrame")
-		end,
-		notCheckable = 1,
-		icon = 236415,
-	},
-	{
-		text = _G.SPELLBOOK,
-		func = function()
-			if PlayerSpellsUtil then
-				PlayerSpellsUtil.ToggleSpellBookFrame()
-			else
-				ToggleFrame(_G.SpellBookFrame)
-			end
-		end,
-		notCheckable = 1,
-		icon = 133741,
-	},
-	{
-		text = _G.TIMEMANAGER_TITLE,
-		func = function()
-			ToggleFrame(_G.TimeManagerFrame)
-		end,
-		notCheckable = 1,
-		icon = 237538,
-	},
-	{
-		text = _G.CHAT_CHANNELS,
-		func = function()
-			_G.ToggleChannelFrame()
-		end,
-		notCheckable = 1,
-		icon = 2056011,
-	},
-	{
-		text = _G.SOCIAL_BUTTON,
-		func = function()
-			_G.ToggleFriendsFrame()
-		end,
-		notCheckable = 1,
-		icon = 442272,
-	},
-	{
-		text = _G.TALENTS_BUTTON,
-		func = function()
-			if PlayerSpellsUtil then
-				PlayerSpellsUtil.ToggleClassTalentFrame()
-			else
-				_G.ToggleTalentFrame()
-			end
-		end,
-		notCheckable = 1,
-		icon = 3717418,
-	},
-	{
-		text = _G.GUILD,
-		func = function()
-			_G.ToggleGuildFrame()
-		end,
-		notCheckable = 1,
-		icon = 135026,
-	},
-	{
-		text = _G.COLLECTIONS,
-		func = function()
-			_G.ToggleCollectionsJournal()
-		end,
-		notCheckable = 1,
-		icon = 5321228,
-	},
-	{
-		text = _G.ACHIEVEMENT_BUTTON,
-		func = function()
-			_G.ToggleAchievementFrame()
-		end,
-		notCheckable = 1,
-		icon = 1033987,
-	},
-	{
-		text = _G.LFG_TITLE,
-		func = function()
-			_G.ToggleLFDParentFrame()
-		end,
-		notCheckable = 1,
-		icon = 134149,
-	},
-	{
-		text = "Calendar",
-		func = function()
-			_G.GameTimeFrame:Click()
-		end,
-		notCheckable = 1,
-		icon = 3007435,
-	},
-	{
-		text = _G.ENCOUNTER_JOURNAL,
-		microOffset = "EJMicroButton",
-		func = function()
-			if not C_AddOns.IsAddOnLoaded("Blizzard_EncounterJournal") then
-				UIParentLoadAddOn("Blizzard_EncounterJournal")
-			end
-			ToggleFrame(_G.EncounterJournal)
-		end,
-		notCheckable = 1,
-		icon = 236409,
-	},
-	{
-		text = _G.PROFESSIONS_BUTTON,
-		func = function()
-			_G.ToggleProfessionsBook()
-		end,
-		notCheckable = 1,
-		icon = 236574,
-	},
-	{
-		text = _G.GARRISON_TYPE_8_0_LANDING_PAGE_TITLE,
-		func = function()
-			_G.ExpansionLandingPageMinimapButton:ToggleLandingPage()
-		end,
-		notCheckable = 1,
-		icon = 1044996,
-	},
-	{
-		text = _G.QUESTLOG_BUTTON,
-		func = function()
-			_G.ToggleQuestLog()
-		end,
-		notCheckable = 1,
-		icon = 236669,
-	},
-}
-
-if K.Level == 80 then
-	tinsert(menuList, {
-		text = RATED_PVP_WEEKLY_VAULT,
-		func = function()
-			if not WeeklyRewardsFrame then
-				WeeklyRewards_LoadUI()
-			end
-			ToggleFrame(WeeklyRewardsFrame)
-		end,
-		notCheckable = 1,
-		icon = "greatVault-whole-normal",
-	})
-end
-
-if C_StorePublic.IsEnabled and C_StorePublic.IsEnabled() then
-	tinsert(menuList, {
-		text = _G.BLIZZARD_STORE,
-		func = function()
-			_G.StoreMicroButton:Click()
-		end,
-		notCheckable = 1,
-		icon = 939375,
-	})
-end
-
-sort(menuList, function(a, b)
-	if a and b and a.text and b.text then
-		return a.text < b.text
-	end
-end)
-
--- want these two on the bottom
-tinsert(menuList, {
-	text = _G.MAINMENU_BUTTON,
-	microOffset = "MainMenuMicroButton",
-	func = function()
-		if not _G.GameMenuFrame:IsShown() then
-			CloseMenus()
-			CloseAllWindows()
-			PlaySound(850) --IG_MAINMENU_OPEN
-			ShowUIPanel(_G.GameMenuFrame)
-		else
-			PlaySound(854) --IG_MAINMENU_QUIT
-			HideUIPanel(_G.GameMenuFrame)
-
-			MainMenuMicroButton:SetButtonState("NORMAL")
-		end
-	end,
-	notCheckable = 1,
-	icon = 134400,
-})
-
-tinsert(menuList, {
-	text = _G.HELP_BUTTON,
-	microOffset = nil,
-	bottom = true,
-	func = function()
-		_G.ToggleHelpFrame()
-	end,
-	notCheckable = 1,
-	icon = 511544,
-})
 
 function Module:CreateStyle()
 	local minimapBorder = CreateFrame("Frame", "KKUI_MinimapBorder", Minimap)
@@ -618,63 +419,52 @@ function Module:Minimap_OnMouseWheel(zoom)
 	end
 end
 
-function Module:Minimap_TrackingDropdown()
-	local dropdown = CreateFrame("Frame", "KKUI_MiniMapTrackingDropDown", _G.UIParent, "UIDropDownMenuTemplate")
-	dropdown:SetID(1)
-	dropdown:SetClampedToScreen(true)
-	dropdown:Hide()
+-- function Module:Minimap_TrackingDropdown()
+-- 	local dropdown = CreateFrame("Frame", "KKUI_MiniMapTrackingDropDown", _G.UIParent, "UIDropDownMenuTemplate")
+-- 	dropdown:SetID(1)
+-- 	dropdown:SetClampedToScreen(true)
+-- 	dropdown:Hide()
 
-	_G.UIDropDownMenu_Initialize(dropdown, _G.MiniMapTrackingDropDown_Initialize, "MENU")
-	dropdown.noResize = true
+-- 	_G.UIDropDownMenu_Initialize(dropdown, _G.MiniMapTrackingDropDown_Initialize, "MENU")
+-- 	dropdown.noResize = true
 
-	return dropdown
-end
+-- 	return dropdown
+-- end
 
-function Module:Minimap_OnMouseUp(btn)
-	K.EasyMenu:Hide()
+-- function Module:Minimap_OnMouseUp(btn)
+-- 	K.EasyMenu:Hide()
 
-	if Module.TrackingDropdown then
-		_G.HideDropDownMenu(1, nil, Module.TrackingDropdown)
-	end
+-- 	if Module.TrackingDropdown then
+-- 		_G.HideDropDownMenu(1, nil, Module.TrackingDropdown)
+-- 	end
 
-	local position = Minimap.mover:GetPoint()
-	if btn == "MiddleButton" or (btn == "RightButton" and IsShiftKeyDown()) then
-		if InCombatLockdown() then
-			_G.UIErrorsFrame:AddMessage(K.InfoColor .. _G.ERR_NOT_IN_COMBAT)
-			return
-		end
+-- 	local position = Minimap.mover:GetPoint()
+-- 	if btn == "MiddleButton" or (btn == "RightButton" and IsShiftKeyDown()) then
+-- 		if InCombatLockdown() then
+-- 			_G.UIErrorsFrame:AddMessage(K.InfoColor .. _G.ERR_NOT_IN_COMBAT)
+-- 			return
+-- 		end
 
-		if position:match("LEFT") then
-			K.LibEasyMenu.Create(menuList, K.EasyMenu, "cursor", 0, 0)
-		else
-			K.LibEasyMenu.Create(menuList, K.EasyMenu, "cursor", -160, 0)
-		end
-	elseif btn == "RightButton" then
-		local button = _G.MinimapCluster.Tracking.Button
-		if button then
-			button:OpenMenu()
+-- 		if position:match("LEFT") then
+-- 			K.LibEasyMenu.Create(menuList, K.EasyMenu, "cursor", 0, 0)
+-- 		else
+-- 			K.LibEasyMenu.Create(menuList, K.EasyMenu, "cursor", -160, 0)
+-- 		end
+-- 	elseif btn == "RightButton" then
+-- 		local button = _G.MinimapCluster.Tracking.Button
+-- 		if button then
+-- 			button:OpenMenu()
 
-			if button.menu then
-				local left = position and position:match("RIGHT")
-				button.menu:ClearAllPoints()
-				button.menu:SetPoint(left and "TOPRIGHT" or "TOPLEFT", Minimap, left and "LEFT" or "RIGHT", left and -4 or 4, 0)
-			end
-		end
-	else
-		_G.Minimap:OnClick(self)
-	end
-end
-
-function Module:SetupHybridMinimap()
-	HybridMinimap.CircleMask:SetTexture("Interface\\BUTTONS\\WHITE8X8")
-end
-
-function Module:HybridMinimapOnLoad(addon)
-	if addon == "Blizzard_HybridMinimap" then
-		Module:SetupHybridMinimap()
-		K:UnregisterEvent(self, Module.HybridMinimapOnLoad)
-	end
-end
+-- 			if button.menu then
+-- 				local left = position and position:match("RIGHT")
+-- 				button.menu:ClearAllPoints()
+-- 				button.menu:SetPoint(left and "TOPRIGHT" or "TOPLEFT", Minimap, left and "LEFT" or "RIGHT", left and -4 or 4, 0)
+-- 			end
+-- 		end
+-- 	else
+-- 		_G.Minimap:OnClick(self)
+-- 	end
+-- end
 
 function Module:QueueStatusTimeFormat(seconds)
 	local hours = math_floor(mod(seconds, 86400) / 3600)
@@ -766,29 +556,6 @@ function Module:BlizzardACF()
 	end
 end
 
--- Define the module and its offsets
-do
-	local meep = 12.125
-	Module.MICRO_OFFSETS = {
-		CharacterMicroButton = 0.07 / meep,
-		SpellbookMicroButton = 1.05 / meep,
-		ProfessionMicroButton = 1.05 / meep,
-		TalentMicroButton = 2.04 / meep,
-		PlayerSpellsMicroButton = 2.04 / meep,
-		AchievementMicroButton = 3.03 / meep,
-		QuestLogMicroButton = 4.02 / meep,
-		GuildMicroButton = 5.01 / meep, -- Retail
-		SocialsMicroButton = 5.01 / meep, -- Classic, use Guild button
-		LFDMicroButton = 6.00 / meep, -- Retail
-		LFGMicroButton = 6.00 / meep, -- Classic
-		EJMicroButton = 7.00 / meep,
-		CollectionsMicroButton = 8.00 / meep,
-		MainMenuMicroButton = 9 / meep, -- flip these
-		HelpMicroButton = 10 / meep, -- on classic
-		StoreMicroButton = 10.0 / meep,
-	}
-end
-
 function Module:OnEnable()
 	if not C["Minimap"].Enable then
 		return
@@ -798,9 +565,6 @@ function Module:OnEnable()
 	Minimap:SetFrameLevel(10)
 	Minimap:SetMaskTexture(C["Media"].Textures.White8x8Texture)
 	DropDownList1:SetClampedToScreen(true)
-
-	-- Create the new minimap tracking dropdown frame and initialize it
-	Module.TrackingDropdown = Module:Minimap_TrackingDropdown()
 
 	local minimapMover = K.Mover(Minimap, "Minimap", "Minimap", { "TOPRIGHT", UIParent, "TOPRIGHT", -4, -4 })
 	Minimap:ClearAllPoints()
@@ -816,7 +580,7 @@ function Module:OnEnable()
 
 	Minimap:EnableMouseWheel(true)
 	Minimap:SetScript("OnMouseWheel", Module.Minimap_OnMouseWheel)
-	Minimap:SetScript("OnMouseUp", Module.Minimap_OnMouseUp)
+	-- Minimap:SetScript("OnMouseUp", Module.Minimap_OnMouseUp)
 
 	-- Hide Blizz
 	local frames = {
@@ -859,7 +623,4 @@ function Module:OnEnable()
 			end
 		end
 	end
-
-	-- HybridMinimap
-	K:RegisterEvent("ADDON_LOADED", Module.HybridMinimapOnLoad)
 end

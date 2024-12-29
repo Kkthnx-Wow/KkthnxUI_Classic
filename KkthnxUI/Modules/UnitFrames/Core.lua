@@ -175,12 +175,12 @@ function Module:ToggleCastBarLatency(frame)
 	end
 
 	if C["Unitframe"].CastbarLatency then
-		frame:RegisterEvent("GLOBAL_MOUSE_UP", Module.OnCastSent, true) -- Fix quests with WorldFrame interaction
-		frame:RegisterEvent("GLOBAL_MOUSE_DOWN", Module.OnCastSent, true)
+		-- frame:RegisterEvent("GLOBAL_MOUSE_UP", Module.OnCastSent, true) -- Fix quests with WorldFrame interaction
+		-- frame:RegisterEvent("GLOBAL_MOUSE_DOWN", Module.OnCastSent, true)
 		frame:RegisterEvent("CURRENT_SPELL_CAST_CHANGED", Module.OnCastSent, true)
 	else
-		frame:UnregisterEvent("GLOBAL_MOUSE_UP", Module.OnCastSent)
-		frame:UnregisterEvent("GLOBAL_MOUSE_DOWN", Module.OnCastSent)
+		-- frame:UnregisterEvent("GLOBAL_MOUSE_UP", Module.OnCastSent)
+		-- frame:UnregisterEvent("GLOBAL_MOUSE_DOWN", Module.OnCastSent)
 		frame:UnregisterEvent("CURRENT_SPELL_CAST_CHANGED", Module.OnCastSent)
 		if frame.Castbar then
 			frame.Castbar.__sendTime = nil
@@ -218,10 +218,10 @@ end
 function Module:UpdateIconTexCoord(width, height)
 	local ratio = height / width
 	local mult = (1 - ratio) / 2
-	self.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3] + mult, K.TexCoords[4] - mult)
+	self.icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3] + mult, K.TexCoords[4] - mult)
 end
 
-function Module.PostCreateButton(element, button)
+function Module.PostCreateIcon(element, button)
 	local fontSize = element.fontSize or element.size * 0.52
 	local parentFrame = CreateFrame("Frame", nil, button)
 	parentFrame:SetAllPoints(button)
@@ -229,25 +229,25 @@ function Module.PostCreateButton(element, button)
 
 	button.Count = button.Count or K.CreateFontString(parentFrame, fontSize - 1, "", "OUTLINE", false, "BOTTOMRIGHT", 6, -3)
 
-	button.Cooldown.noOCC = true
-	button.Cooldown.noCooldownCount = true
-	button.Cooldown:SetReverse(true)
-	button.Cooldown:SetHideCountdownNumbers(true)
-	button.Icon:SetAllPoints()
-	button.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
+	--button.Cooldown.noOCC = true
+	-- button.Cooldown.noCooldownCount = true
+	-- button.Cooldown:SetReverse(true)
+	-- button.Cooldown:SetHideCountdownNumbers(true)
+	button.icon:SetAllPoints()
+	button.icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
 	if element.__owner.mystyle == "nameplate" then
-		button.Cooldown:SetAllPoints()
+		-- button.cooldown:SetAllPoints()
 		button:CreateShadow(true)
 	else
-		button.Cooldown:SetPoint("TOPLEFT", 1, -1)
-		button.Cooldown:SetPoint("BOTTOMRIGHT", -1, 1)
+		-- button.cooldown:SetPoint("TOPLEFT", 1, -1)
+		-- button.cooldown:SetPoint("BOTTOMRIGHT", -1, 1)
 		button:CreateBorder()
 	end
 
-	button.Overlay:SetTexture(nil)
-	button.Stealable:SetParent(parentFrame)
-	button.Stealable:SetAtlas("bags-newitem")
+	button.overlay:SetTexture(nil)
+	button.stealable:SetParent(parentFrame)
+	button.stealable:SetAtlas("bags-newitem")
 	-- button:HookScript("OnMouseDown", AuraModule.RemoveSpellFromIgnoreList)
 
 	if not button.timer then
@@ -267,24 +267,21 @@ Module.ReplacedSpellIcons = {
 
 local dispellType = {
 	["Magic"] = true,
-	[""] = true,
 }
 
-function Module.PostUpdateButton(element, button, unit, data)
-	local duration, expiration, debuffType = data.duration, data.expirationTime, data.dispelName
-
+function Module.PostUpdateIcon(element, _, button, _, _, duration, expiration, debuffType)
 	local style = element.__owner.mystyle
 	button:SetSize(style == "nameplate" and element.size or element.size, style == "nameplate" and element.size * 1 or element.size)
 
 	-- Update appearance based on harmful status and style
-	if button.isHarmful and filteredStyle[style] and not data.isPlayerAura then
-		button.Icon:SetDesaturated(true)
+	if button.isDebuff and filteredStyle[style] and not button.isPlayer then
+		button.icon:SetDesaturated(true)
 	else
-		button.Icon:SetDesaturated(false)
+		button.icon:SetDesaturated(false)
 	end
 
 	-- Update border color based on debuff type
-	if button.isHarmful then
+	if button.isDebuff then
 		local color = oUF.colors.debuff[debuffType] or oUF.colors.debuff.none
 		if style == "nameplate" then
 			button.Shadow:SetBackdropBorderColor(color[1], color[2], color[3], 0.8)
@@ -300,7 +297,7 @@ function Module.PostUpdateButton(element, button, unit, data)
 	end
 
 	-- Show stealable indicator if applicable
-	if dispellType[debuffType] and not UnitIsPlayer(unit) and not button.isHarmful then
+	if element.alwaysShowStealable and dispellType[debuffType] and not UnitIsPlayer(unit) and not button.isDebuff then
 		button.Stealable:Show()
 	end
 
@@ -318,11 +315,6 @@ function Module.PostUpdateButton(element, button, unit, data)
 	local newTexture = Module.ReplacedSpellIcons[button.spellID]
 	if newTexture then
 		button.Icon:SetTexture(newTexture)
-	end
-
-	-- Update bolster stacks count if applicable
-	if element.bolsterInstanceID and element.bolsterInstanceID == button.auraInstanceID then
-		button.Count:SetText(element.bolsterStacks)
 	end
 end
 
@@ -371,10 +363,9 @@ function Module.AurasPostUpdateInfo(element, _, _, debuffsChanged)
 	end
 end
 
-function Module.CustomFilter(element, unit, data)
+function Module.CustomFilter(element, unit, button, name, _, _, debuffType, _, _, caster, isStealable, _, spellID, _, _, _, nameplateShowAll)
 	-- Ensure consistent variable naming conventions
 	local style = element.__owner.mystyle
-	local name, debuffType, isStealable, spellID, nameplateShowAll = data.name, data.dispelName, data.isStealable, data.spellId, data.nameplateShowAll
 	local showDebuffType = C["Unitframe"].OnlyShowPlayerDebuff
 
 	-- Add comments to clarify the purpose of certain sections
@@ -389,18 +380,18 @@ function Module.CustomFilter(element, unit, data)
 		elseif C.NameplateBlackList[spellID] then
 			return false
 		-- Filter based on debuff type and dispellability
-		elseif (isStealable or dispellType[debuffType]) and not UnitIsPlayer(unit) and not data.isHarmful then
+		elseif (isStealable or element.alwaysShowStealable and dispellType[debuffType]) and not UnitIsPlayer(unit) and not button.isDebuff then
 			return true
 		elseif C.NameplateWhiteList[spellID] then
 			return true
 		else
 			-- Filter based on aura filter settings
 			local auraFilter = C["Nameplate"].AuraFilter.Value
-			return (auraFilter == 3 and nameplateShowAll) or (auraFilter ~= 1 and data.isPlayerAura)
+			return (auraFilter == 3 and nameplateShowAll) or (auraFilter ~= 1 and button.isPlayer)
 		end
 	else
 		-- Filter based on showDebuffType setting
-		return (showDebuffType and data.isPlayerAura) or (not showDebuffType and name)
+		return (showDebuffType and button.isPlayer) or (not showDebuffType and name)
 	end
 end
 

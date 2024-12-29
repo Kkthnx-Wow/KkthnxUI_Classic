@@ -128,6 +128,8 @@
    <Script file="Miscellaneous\Elements\TradeTabs.lua" />
    <Script file="Miscellaneous\Elements\yClassColors.lua" /> -->
    <!-- Announcements -->
+   <Script file="Announcements\Core.lua" />
+   <Script file="Announcements\Elements\QuestNotifier.lua" />
    <!-- <Script file="Announcements\Core.lua" />
    <Script file="Announcements\Elements\Countdown.lua" />
    <Script file="Announcements\Elements\HealthAlert.lua" />

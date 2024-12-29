@@ -319,8 +319,8 @@ function Module:CreateRaid()
 		Buffs.onlyShowPlayer = onlyShowPlayer
 		Buffs.filter = filter
 		Buffs.IsRaid = true
-		Buffs.PostCreateButton = Module.PostCreateButton
-		Buffs.PostUpdateButton = Module.PostUpdateButton
+		Buffs.PostCreateIcon = Module.PostCreateIcon
+		Buffs.PostUpdateIcon = Module.PostUpdateIcon
 
 		self.Buffs = Buffs
 	end

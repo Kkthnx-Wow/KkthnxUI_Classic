@@ -1016,13 +1016,13 @@ function Module:CreatePlates()
 	self.Auras.size = C["Nameplate"].AuraSize
 	self.Auras.gap = false
 	self.Auras.disableMouse = true
-	self.Auras.FilterAura = Module.CustomFilter
+	self.Auras.CustomFilter = Module.CustomFilter
 
 	Module:UpdateAuraContainer(self:GetWidth(), self.Auras, self.Auras.numTotal)
 
 	self.Auras.showStealableBuffs = true
-	self.Auras.PostCreateButton = Module.PostCreateButton
-	self.Auras.PostUpdateButton = Module.PostUpdateButton
+	self.Auras.PostCreateIcon = Module.PostCreateIcon
+	self.Auras.PostUpdateIcon = Module.PostUpdateIcon
 	self.Auras.PostUpdateInfo = Module.AurasPostUpdateInfo
 
 	Module:CreateThreatColor(self)

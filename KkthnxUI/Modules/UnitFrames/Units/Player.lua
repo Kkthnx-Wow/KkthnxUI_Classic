@@ -158,8 +158,8 @@ function Module:CreatePlayer()
 
 		Module:UpdateAuraContainer(playerWidth, Debuffs, Debuffs.num)
 
-		Debuffs.PostCreateButton = Module.PostCreateButton
-		Debuffs.PostUpdateButton = Module.PostUpdateButton
+		Debuffs.PostCreateIcon = Module.PostCreateIcon
+		Debuffs.PostUpdateIcon = Module.PostUpdateIcon
 
 		self.Debuffs = Debuffs
 	end
@@ -178,8 +178,8 @@ function Module:CreatePlayer()
 
 		Module:UpdateAuraContainer(playerWidth, Buffs, Buffs.num)
 
-		Buffs.PostCreateButton = Module.PostCreateButton
-		Buffs.PostUpdateButton = Module.PostUpdateButton
+		Buffs.PostCreateIcon = Module.PostCreateIcon
+		Buffs.PostUpdateIcon = Module.PostUpdateIcon
 
 		self.Buffs = Buffs
 	end
