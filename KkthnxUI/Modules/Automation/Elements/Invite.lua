@@ -13,7 +13,7 @@ local LFGInvitePopup = LFGInvitePopup
 local previousInviterGUID
 
 local function HandlePartyInvite(inviterGUID)
-	if IsInGroup() or QueueStatusButton:IsShown() or inviterGUID == previousInviterGUID then
+	if IsInGroup() or inviterGUID == previousInviterGUID then
 		return
 	end
 
@@ -28,7 +28,7 @@ local function AutoInvite(event, _, _, _, _, _, _, inviterGUID)
 	if event == "PARTY_INVITE_REQUEST" then
 		HandlePartyInvite(inviterGUID)
 	elseif event == "GROUP_ROSTER_UPDATE" then
-		StaticPopupSpecial_Hide(LFGInvitePopup)
+		-- StaticPopupSpecial_Hide(LFGInvitePopup)
 		StaticPopup_Hide("PARTY_INVITE")
 		previousInviterGUID = nil
 	end

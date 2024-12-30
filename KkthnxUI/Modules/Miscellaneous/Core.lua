@@ -280,60 +280,27 @@ end
 -- 	Module:ToggleMinimapIcon()
 -- end
 
--- -- Game Menu Setup
--- local gameMenuLastButtons = {
--- 	[_G.GAMEMENU_OPTIONS] = 1,
--- 	[_G.BLIZZARD_STORE] = 2,
--- }
+-- Game Menu Setup
+function Module:CreateGUIGameMenuButton()
+	local gameMenuButton = CreateFrame("Button", "KKUI_GameMenuFrame", GameMenuFrame, "GameMenuButtonTemplate")
+	gameMenuButton:SetText(K.Title)
+	gameMenuButton:SetPoint("TOP", GameMenuButtonAddons, "BOTTOM", 0, -21)
 
--- function Module:PositionGameMenuButton()
--- 	local anchorIndex = (C_StorePublic.IsEnabled and C_StorePublic.IsEnabled() and 2) or 1
--- 	for button in GameMenuFrame.buttonPool:EnumerateActive() do
--- 		local text = button:GetText()
--- 		GameMenuFrame.MenuButtons[text] = button
--- 		local lastIndex = gameMenuLastButtons[text]
--- 		if lastIndex == anchorIndex and GameMenuFrame.KkthnxUI then
--- 			GameMenuFrame.KkthnxUI:SetPoint("TOPLEFT", button, "BOTTOMLEFT", 0, -10)
--- 		elseif not lastIndex then
--- 			local point, anchor, point2, x, y = button:GetPoint()
--- 			button:SetPoint(point, anchor, point2, x, y - 36)
--- 		end
--- 	end
--- 	GameMenuFrame:SetHeight(GameMenuFrame:GetHeight() + 36)
--- 	if GameMenuFrame.KkthnxUI then
--- 		GameMenuFrame.KkthnxUI:SetFormattedText(K.Title)
--- 	end
--- end
+	GameMenuFrame:HookScript("OnShow", function(self)
+		GameMenuButtonLogout:SetPoint("TOP", gameMenuButton, "BOTTOM", 0, -21)
+		self:SetHeight(self:GetHeight() + gameMenuButton:GetHeight() + 22)
+	end)
 
--- function Module:ClickGameMenu()
--- 	if InCombatLockdown() then
--- 		UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_IN_COMBAT)
--- 		return
--- 	end
--- 	K["GUI"]:Toggle()
--- 	HideUIPanel(GameMenuFrame)
--- 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
--- 	if not InCombatLockdown() then
--- 		HideUIPanel(GameMenuFrame)
--- 	end
--- end
-
--- function Module:CreateGUIGameMenuButton()
--- 	if GameMenuFrame.KkthnxUI then
--- 		return
--- 	end
--- 	local button = CreateFrame("Button", "KKUI_GameMenuButton", GameMenuFrame, "MainMenuFrameButtonTemplate")
--- 	button:SetScript("OnClick", function()
--- 		Module:ClickGameMenu()
--- 	end)
-
--- 	button:SkinButton()
--- 	GameMenuFrame.KkthnxUI = button
--- 	GameMenuFrame.MenuButtons = {}
--- 	hooksecurefunc(GameMenuFrame, "Layout", function()
--- 		Module:PositionGameMenuButton()
--- 	end)
--- end
+	gameMenuButton:SetScript("OnClick", function()
+		if InCombatLockdown() then
+			UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_IN_COMBAT)
+			return
+		end
+		K["GUI"]:Toggle()
+		HideUIPanel(GameMenuFrame)
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
+	end)
+end
 
 -- -- Create Quest XP Percent Display
 -- function Module:CreateQuestXPPercent()

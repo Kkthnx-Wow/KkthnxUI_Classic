@@ -33,7 +33,7 @@ function Module:CreateLeaveVehicle()
 	button.icon:SetDrawLayer("ARTWORK")
 	button.icon.__lockdown = true
 
-	button:SetScript("OnEnter", MainMenuBarVehicleLeaveButton.OnEnter)
+	button:SetScript("OnEnter", MainMenuBarVehicleLeaveButton_OnEnter)
 	button:SetScript("OnLeave", K.HideTooltip)
 	button:SetScript("OnClick", function(self)
 		if UnitOnTaxi("player") then
