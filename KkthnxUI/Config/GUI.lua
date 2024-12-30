@@ -13,7 +13,7 @@ local TUTORIAL_TITLE47 = TUTORIAL_TITLE47
 
 local emojiExampleIcon = "|TInterface\\Addons\\KkthnxUI\\Media\\Chat\\Emojis\\StuckOutTongueClosedEyes:0:0:4|t"
 local enableTextColor = "|cff00cc4c"
-local newFeatureIcon = "|TInterface\\GossipFrame\\CampaignAvailableQuestIcon:16:16:-2|t"
+local newFeatureIcon = "|TInterface\\Addons\\KkthnxUI\\Media\\Nameplates\\star:14:14:-2|t"
 
 local function updateBagSize()
 	K:GetModule("Bags"):UpdateBagSize()

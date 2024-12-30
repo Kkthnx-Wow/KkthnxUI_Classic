@@ -88,102 +88,30 @@ function Module:CreateStyle()
 	end)
 end
 
+local function ResetTrackingFrameAnchor()
+	MiniMapTracking:ClearAllPoints()
+	MiniMapTracking:SetPoint("RIGHT", Minimap, -5, 5)
+end
+
 function Module:ReskinRegions()
-	-- -- QueueStatus Button
-	-- if LFGMinimapFrame then
-	-- 	LFGMinimapFrame:SetParent(MinimapCluster)
-	-- 	LFGMinimapFrame:SetSize(24, 24)
-	-- 	LFGMinimapFrame:SetFrameLevel(20)
-	-- 	LFGMinimapFrame:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -4, 4)
+	-- Configure the tracking icon
+	MiniMapTracking:SetScale(0.8)
+	MiniMapTracking:SetFrameLevel(999)
+	MiniMapTrackingBorder:Hide()
+	MiniMapTrackingIcon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
-	-- 	LFGMinimapFrameIcon:SetAlpha(0)
+	-- Create a background frame for the tracking icon
+	local trackingIconBackground = CreateFrame("Frame", nil, MiniMapTracking, "BackdropTemplate")
+	trackingIconBackground:SetAllPoints(MiniMapTrackingIcon)
+	trackingIconBackground:SetFrameLevel(MiniMapTracking:GetFrameLevel())
+	trackingIconBackground:CreateBorder()
 
-	-- 	QueueStatusFrame:SetPoint("TOPRIGHT", LFGMinimapFrame, "TOPLEFT")
+	-- Set the border color
+	trackingIconBackground.KKUI_Border:SetVertexColor(K.r, K.g, K.b)
 
-	-- 	hooksecurefunc(LFGMinimapFrame, "SetPoint", function(button, _, _, _, x, y)
-	-- 		if not (x == -4 and y == 4) then
-	-- 			button:ClearAllPoints()
-	-- 			button:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -4, 4)
-	-- 		end
-	-- 	end)
-
-	-- 	local queueIcon = Minimap:CreateTexture(nil, "ARTWORK")
-	-- 	queueIcon:SetPoint("CENTER", LFGMinimapFrame)
-	-- 	queueIcon:SetSize(56, 56)
-	-- 	queueIcon:SetTexture("Interface\\Minimap\\Dungeon_Icon")
-
-	-- 	local anim = queueIcon:CreateAnimationGroup()
-	-- 	anim:SetLooping("REPEAT")
-	-- 	anim.rota = anim:CreateAnimation("Rotation")
-	-- 	anim.rota:SetDuration(2)
-	-- 	anim.rota:SetDegrees(360)
-
-	-- 	hooksecurefunc(QueueStatusFrame, "Update", function()
-	-- 		queueIcon:SetShown(LFGMinimapFrame:IsShown())
-	-- 	end)
-
-	-- 	hooksecurefunc(LFGMinimapFrame.Eye, "PlayAnim", function()
-	-- 		anim:Play()
-	-- 	end)
-
-	-- 	hooksecurefunc(LFGMinimapFrame.Eye, "StopAnimating", function()
-	-- 		anim:Pause()
-	-- 	end)
-
-	-- 	local queueStatusDisplay = Module.QueueStatusDisplay
-	-- 	if queueStatusDisplay then
-	-- 		queueStatusDisplay.text:ClearAllPoints()
-	-- 		queueStatusDisplay.text:SetPoint("CENTER", LFGMinimapFrame, 0, -5)
-	-- 		queueStatusDisplay.text:SetFontObject(K.UIFont)
-	-- 		queueStatusDisplay.text:SetFont(
-	-- 			select(1, queueStatusDisplay.text:GetFont()),
-	-- 			13,
-	-- 			select(3, queueStatusDisplay.text:GetFont())
-	-- 		)
-
-	-- 		if queueStatusDisplay.title then
-	-- 			Module:ClearQueueStatus()
-	-- 		end
-	-- 	end
-	-- end
-
-	-- Difficulty Flags
-	local instDifficulty = MinimapCluster.InstanceDifficulty
-	if instDifficulty then
-		instDifficulty:SetParent(Minimap)
-		instDifficulty:SetScale(0.9)
-
-		local function UpdateFlagAnchor(frame, _, _, _, _, _, force)
-			if force then
-				return
-			end
-			frame:ClearAllPoints()
-			frame:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 2, -2, true)
-		end
-
-		UpdateFlagAnchor(instDifficulty)
-		hooksecurefunc(instDifficulty, "SetPoint", UpdateFlagAnchor)
-
-		local function ReplaceFlagTexture(texture)
-			texture:SetTexture(K.MediaFolder .. "Minimap\\Flag")
-		end
-
-		local function ReskinDifficultyFrame(frame)
-			if not frame then
-				return
-			end
-
-			if frame.Border then
-				frame.Border:Hide()
-			end
-			ReplaceFlagTexture(frame.Background)
-			hooksecurefunc(frame.Background, "SetAtlas", ReplaceFlagTexture)
-		end
-
-		ReskinDifficultyFrame(instDifficulty.Instance)
-		ReskinDifficultyFrame(instDifficulty.Guild)
-		ReskinDifficultyFrame(instDifficulty.ChallengeMode)
-	end
+	-- Reset the tracking frame anchor
+	ResetTrackingFrameAnchor()
+	hooksecurefunc("SetLookingForGroupUIAvailable", ResetTrackingFrameAnchor)
 
 	-- Mail icon
 	if MiniMapMailFrame then
@@ -362,6 +290,137 @@ function Module:ShowCalendar()
 	end
 end
 
+function Module:TrackMenu_OnClick(spellID)
+	CastSpellByID(spellID)
+end
+
+function Module:TrackMenu_CheckStatus()
+	local texture = GetSpellTexture(self.arg1)
+	if texture == GetTrackingTexture() then
+		return true
+	end
+end
+
+function Module:EasyTrackMenu()
+	local trackSpells = {
+		2383, --Find Herbs
+		2580, --Find Minerals
+		2481, --Find Treasure
+		1494, --Track Beasts
+		19883, --Track Humanoids
+		19884, --Track Undead
+		19885, --Track Hidden
+		19880, --Track Elementals
+		19878, --Track Demons
+		19882, --Track Giants
+		19879, --Track Dragonkin
+		5225, --Track Humanoids: Druid
+		5500, --Sense Demons
+		5502, --Sense Undead
+	}
+
+	local menuList = {
+		[1] = { text = "TrackMenu", isTitle = true, notCheckable = true },
+	}
+
+	local function updateMenuList()
+		for i = 2, #menuList do
+			if menuList[i] then
+				wipe(menuList[i])
+			end
+		end
+
+		local index = 2
+		for _, spellID in pairs(trackSpells) do
+			if IsPlayerSpell(spellID) then
+				if not menuList[index] then
+					menuList[index] = {}
+				end
+				local spellName, _, texture = GetSpellInfo(spellID)
+				menuList[index].arg1 = spellID
+				menuList[index].text = spellName
+				menuList[index].func = Module.TrackMenu_OnClick
+				menuList[index].checked = Module.TrackMenu_CheckStatus
+				menuList[index].icon = texture
+				menuList[index].tCoordLeft = 0.08
+				menuList[index].tCoordRight = 0.92
+				menuList[index].tCoordTop = 0.08
+				menuList[index].tCoordBottom = 0.92
+
+				index = index + 1
+			end
+		end
+
+		return index
+	end
+
+	local function toggleTrackMenu(self)
+		if DropDownList1:IsShown() then
+			DropDownList1:Hide()
+		else
+			local index = updateMenuList()
+			if index > 2 then
+				local offset = self:GetWidth() * self:GetScale() * 0.5
+				K.LibEasyMenu.Create(menuList, K.EasyMenu, self, -offset, offset, "MENU")
+			end
+		end
+	end
+
+	-- Click Func
+	local hasAlaCalendar = IsAddOnLoaded("alaCalendar")
+	Minimap:SetScript("OnMouseUp", function(self, btn)
+		if btn == "RightButton" then
+			toggleTrackMenu(self)
+		elseif btn == "MiddleButton" and hasAlaCalendar then
+			K:TogglePanel(ALA_CALENDAR)
+		else
+			Minimap_OnClick(self)
+		end
+	end)
+end
+
+local function UpdateDifficultyFlag()
+	local frame = _G["KKUI_MinimapDifficulty"]
+	local _, instanceType, difficulty, _, _, _, _, _, instanceGroupSize = GetInstanceInfo()
+	local _, _, isHeroic, _, displayHeroic = GetDifficultyInfo(difficulty)
+	if instanceType == "raid" or isHeroic or displayHeroic then
+		if isHeroic or displayHeroic then
+			frame.tex:SetTexCoord(0, 0.25, 0.0703125, 0.4296875)
+		else
+			frame.tex:SetTexCoord(0, 0.25, 0.5703125, 0.9296875)
+		end
+		frame.text:SetText(instanceGroupSize)
+		frame:Show()
+	else
+		frame:Hide()
+	end
+end
+
+function Module:MinimapDifficulty()
+	if _G.MiniMapInstanceDifficulty then
+		return
+	end -- hide flag if blizz makes its own
+
+	local frame = CreateFrame("Frame", "KKUI_MinimapDifficulty", Minimap)
+	frame:SetSize(38, 46)
+	frame:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 2, 2)
+	frame:SetScale(0.6)
+	frame:Hide()
+
+	local tex = frame:CreateTexture(nil, "ARTWORK")
+	tex:SetTexture("Interface\\Minimap\\UI-DungeonDifficulty-Button")
+	tex:SetPoint("CENTER")
+	tex:SetSize(64, 46)
+	tex:SetTexCoord(0, 0.25, 0.0703125, 0.4140625)
+	frame.tex = tex
+
+	frame.text = K.CreateFontString(frame, 15, "", "", true, "CENTER", 1, -8)
+
+	K:RegisterEvent("GROUP_ROSTER_UPDATE", UpdateDifficultyFlag)
+	K:RegisterEvent("UPDATE_INSTANCE_INFO", UpdateDifficultyFlag)
+	K:RegisterEvent("INSTANCE_GROUP_SIZE_CHANGED", UpdateDifficultyFlag)
+end
+
 local function GetVolumeColor(cur)
 	local r, g, b = K.oUF:RGBColorGradient(cur, 100, 1, 1, 1, 1, 0.8, 0, 1, 0, 0)
 	return r, g, b
@@ -439,13 +498,8 @@ function Module:OnEnable()
 	Minimap:SetPoint("TOPRIGHT", minimapMover)
 	Minimap.mover = minimapMover
 
-	self:HideMinimapClock()
-	self:ShowCalendar()
-	self:UpdateMinimapScale()
-
 	Minimap:EnableMouseWheel(true)
 	Minimap:SetScript("OnMouseWheel", Module.Minimap_OnMouseWheel)
-	-- Minimap:SetScript("OnMouseUp", Module.Minimap_OnMouseUp)
 
 	-- Hide Blizz
 	local frames = {
@@ -471,12 +525,16 @@ function Module:OnEnable()
 
 	-- Add Elements
 	local loadMinimapModules = {
-		"BlizzardACF",
 		"CreatePing",
 		"CreateRecycleBin",
 		"CreateSoundVolume",
 		"CreateStyle",
 		"ReskinRegions",
+		"EasyTrackMenu",
+		"MinimapDifficulty",
+		"HideMinimapClock",
+		"ShowCalendar",
+		"UpdateMinimapScale",
 	}
 
 	for _, funcName in ipairs(loadMinimapModules) do

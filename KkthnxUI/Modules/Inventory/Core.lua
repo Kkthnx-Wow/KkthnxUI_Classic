@@ -1118,13 +1118,9 @@ function Module:OnEnable()
 		end
 
 		self.iLvl:SetText("")
-		if showItemLevel then
-			local level = item.level -- ilvl for keystone and battlepet
-			if not level and isItemNeedsLevel(item) then
-				level = item.ilvl
-			end
-
-			if level then
+		if showItemLevel and isItemNeedsLevel(item) then
+			local level = item.level
+			if level and level > 1 then
 				local color = K.QualityColors[item.quality]
 				self.iLvl:SetText(level)
 				self.iLvl:SetTextColor(color.r, color.g, color.b)
