@@ -126,4 +126,13 @@ tinsert(C.defaultThemes, function()
 	end
 
 	hooksecurefunc("PaperDollItemSlotButton_Update", PaperDollItemSlotButtonUpdate)
+
+	hooksecurefunc("PaperDollFrame_SetLevel", function()
+		local classDisplayName, class = UnitClass("player")
+		local raceDisplayName = UnitRace("player")
+		local classColor = RAID_CLASS_COLORS[class]
+		local classColorString = format("ff%.2x%.2x%.2x", classColor.r * 255, classColor.g * 255, classColor.b * 255)
+
+		CharacterLevelText:SetFormattedText("Level %d %s |c%s%s|r", UnitLevel("player"), raceDisplayName, classColorString, classDisplayName)
+	end)
 end)

@@ -2,6 +2,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
    <!-- DataText -->
    <Script file="DataText\Core.lua" />
+   <Script file="DataText\Elements\Durability.lua" />
    <Script file="DataText\Elements\Time.lua" />
    <Script file="DataText\Elements\Location.lua" />
    <Script file="DataText\Elements\Latency.lua" />

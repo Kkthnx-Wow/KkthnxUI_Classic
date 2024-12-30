@@ -25,6 +25,7 @@ local localSlots = {
 	[8] = { 8, INVTYPE_FEET, 1000 },
 	[9] = { 16, INVTYPE_WEAPONMAINHAND, 1000 },
 	[10] = { 17, INVTYPE_WEAPONOFFHAND, 1000 },
+	[11] = { 18, INVTYPE_RANGED, 1000 },
 }
 
 local function hideAlertWhileCombat()
@@ -123,20 +124,15 @@ local function OnEnter()
 	GameTooltip:AddLine(" ")
 
 	local totalCost = 0
-	for i = 1, 10 do
+	for i = 1, #localSlots do
 		if localSlots[i][3] ~= 1000 then
 			local slot = localSlots[i][1]
-			local cur = math_floor(localSlots[i][3] * 100)
+			local cur = floor(localSlots[i][3] * 100)
 			local slotIcon = localSlots[i][4]
 			GameTooltip:AddDoubleLine(slotIcon .. localSlots[i][2], cur .. "%", 1, 1, 1, getDurabilityColor(cur, 100))
 
-			local data = C_TooltipInfo.GetInventoryItem("player", slot)
-			if data then
-				local argVal = data.args and data.args[7]
-				if argVal and argVal.field == "repairCost" then
-					totalCost = totalCost + argVal.intVal
-				end
-			end
+			K.ScanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+			totalCost = totalCost + select(3, K.ScanTooltip:SetInventoryItem("player", slot))
 		end
 	end
 
@@ -157,15 +153,19 @@ function Module:CreateDurabilityDataText()
 		return
 	end
 
-	DurabilityDataText = CreateFrame("Button", nil, UIParent, "PanelTabButtonTemplate")
-	DurabilityDataText:SetPoint("TOP", PaperDollFrame, "BOTTOM", 214, 3)
+	-- Ensure CharacterLevelText and PaperDollFrame are valid
+	if not CharacterLevelText or not PaperDollFrame then
+		return
+	end
+
+	DurabilityDataText = CreateFrame("Frame", nil, UIParent)
+	DurabilityDataText:SetSize(100, 20)
+	DurabilityDataText:SetPoint("TOP", CharacterLevelText, "BOTTOM", 0, -4)
 	DurabilityDataText:SetFrameLevel(PaperDollFrame:GetFrameLevel() + 2)
 	DurabilityDataText:SetParent(PaperDollFrame)
-	DurabilityDataText:Disable()
 
-	DurabilityDataText.LeftActive:Hide()
-	DurabilityDataText.MiddleActive:Hide()
-	DurabilityDataText.RightActive:Hide()
+	DurabilityDataText.Text = K.CreateFontString(DurabilityDataText, 11)
+	DurabilityDataText.Text:SetAllPoints(DurabilityDataText)
 
 	local function _OnEvent(...)
 		OnEvent(...)
