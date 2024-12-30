@@ -16,8 +16,6 @@ local C_NamePlate_SetNamePlateEnemySize = C_NamePlate.SetNamePlateEnemySize
 local C_NamePlate_SetNamePlateFriendlySize = C_NamePlate.SetNamePlateFriendlySize
 local C_NamePlate_SetNamePlateEnemyClickThrough = C_NamePlate.SetNamePlateEnemyClickThrough
 local C_NamePlate_SetNamePlateFriendlyClickThrough = C_NamePlate.SetNamePlateFriendlyClickThrough
-local C_Scenario_GetInfo = C_Scenario.GetInfo
-local C_Scenario_GetStepInfo = C_Scenario.GetStepInfo
 local CreateFrame = CreateFrame
 local GetNumGroupMembers = GetNumGroupMembers
 local GetNumSubgroupMembers = GetNumSubgroupMembers
@@ -1327,7 +1325,7 @@ function Module:PostUpdatePlates(event, unit)
 		Module.UpdateTargetChange(self)
 		Module.UpdateQuestUnit(self, event, unit)
 		Module.UpdateUnitClassify(self, unit)
-		Module.UpdateDungeonProgress(self, unit)
+		-- Module.UpdateDungeonProgress(self, unit)
 		Module:UpdateClassIcon(self, unit)
 		Module:UpdateTargetClassPower()
 

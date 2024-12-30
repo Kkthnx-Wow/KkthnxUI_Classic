@@ -97,7 +97,9 @@ function Module:ReskinRegions()
 	-- Configure the tracking icon
 	MiniMapTracking:SetScale(0.8)
 	MiniMapTracking:SetFrameLevel(999)
-	MiniMapTrackingBorder:Hide()
+	if MiniMapTrackingBorder then
+		MiniMapTrackingBorder:Hide()
+	end
 	MiniMapTrackingIcon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
 	-- Create a background frame for the tracking icon
