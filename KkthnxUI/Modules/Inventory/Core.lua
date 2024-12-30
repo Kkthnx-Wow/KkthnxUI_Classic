@@ -388,7 +388,7 @@ function Module:GetEmptySlot(bagType, bagGroup)
 end
 
 function Module:FreeSlotOnDrop()
-	local bagID, slotID = Module:GetEmptySlot(self.__name)
+	local bagID, slotID = Module:GetEmptySlot(self.__owner.Settings.BagType, self.__owner.bagGroup)
 	if slotID then
 		PickupContainerItem(bagID, slotID)
 	end

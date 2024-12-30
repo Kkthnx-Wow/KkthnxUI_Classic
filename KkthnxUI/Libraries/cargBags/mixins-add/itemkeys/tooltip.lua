@@ -22,7 +22,7 @@ DESCRIPTION:
 	Item keys which require tooltip parsing to work
 ]]
 local _, ns = ...
-local K, C, L = unpack(KkthnxUI)
+local K, C, L = unpack(ns)
 local cargBags = ns.cargBags
 
 local bindTypeToString = {
@@ -42,6 +42,7 @@ cargBags.itemKeys["bindOn"] = function(i)
 	end
 
 	local tip = K.ScanTooltip
+	print(tip)
 	if not tip then
 		return
 	end
