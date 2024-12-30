@@ -23,15 +23,6 @@ function Module.PostUpdateAddPower(element, cur, max)
 	end
 end
 
-local function updatePartySync(self)
-	local hasJoined = C_QuestSession.HasJoined()
-	if hasJoined then
-		self.QuestSyncIndicator:Show()
-	else
-		self.QuestSyncIndicator:Hide()
-	end
-end
-
 function Module:CreatePlayer()
 	self.mystyle = "player"
 
@@ -535,10 +526,10 @@ function Module:CreatePlayer()
 	end
 
 	local CombatIndicator = Health:CreateTexture(nil, "OVERLAY")
-	CombatIndicator:SetSize(24, 24)
-	CombatIndicator:SetPoint("LEFT", 6, 0)
-	CombatIndicator:SetAtlas("ShipMissionIcon-Combat-Map")
-	-- CombatIndicator:SetAlpha(0.7)
+	CombatIndicator:SetSize(16, 16)
+	CombatIndicator:SetPoint("LEFT", 6, -1)
+	CombatIndicator:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Unitframes\\Combat-Icon")
+	CombatIndicator:SetAlpha(0.6)
 
 	local RaidTargetIndicator = Overlay:CreateTexture(nil, "OVERLAY")
 	if playerPortraitStyle ~= "NoPortraits" and playerPortraitStyle ~= "OverlayPortrait" then
@@ -623,19 +614,16 @@ function Module:CreatePlayer()
 		self.RestingIndicator = RestingIndicator
 	end
 
-	local QuestSyncIndicator = Overlay:CreateTexture(nil, "OVERLAY")
-	if playerPortraitStyle ~= "NoPortraits" and playerPortraitStyle ~= "OverlayPortrait" then
-		QuestSyncIndicator:SetPoint("BOTTOM", self.Portrait, "BOTTOM", 0, -13)
-	else
-		QuestSyncIndicator:SetPoint("BOTTOM", Health, "BOTTOM", 0, -13)
-	end
-	QuestSyncIndicator:SetSize(26, 26)
-	QuestSyncIndicator:SetAtlas("QuestSharing-DialogIcon")
-	QuestSyncIndicator:Hide()
+	do
+		if K.Class ~= "WARRIOR" then
+			local ticker = CreateFrame("StatusBar", nil, Power)
+			ticker:SetFrameLevel(Power:GetFrameLevel() + 3)
+			ticker:SetAllPoints()
+			ticker.Spark = ticker:CreateTexture(nil, "OVERLAY")
 
-	self:RegisterEvent("QUEST_SESSION_LEFT", updatePartySync, true)
-	self:RegisterEvent("QUEST_SESSION_JOINED", updatePartySync, true)
-	self:RegisterEvent("PLAYER_ENTERING_WORLD", updatePartySync, true)
+			self.EnergyManaRegen = ticker
+		end
+	end
 
 	if C["Unitframe"].DebuffHighlight then
 		local DebuffHighlight = Health:CreateTexture(nil, "OVERLAY")
@@ -683,7 +671,6 @@ function Module:CreatePlayer()
 	self.RaidTargetIndicator = RaidTargetIndicator
 	self.ReadyCheckIndicator = ReadyCheckIndicator
 	self.ResurrectIndicator = ResurrectIndicator
-	self.QuestSyncIndicator = QuestSyncIndicator
 	self.Highlight = Highlight
 	self.ThreatIndicator = ThreatIndicator
 end

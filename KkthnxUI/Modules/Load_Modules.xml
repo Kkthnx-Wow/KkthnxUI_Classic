@@ -82,6 +82,7 @@
    <Script file="UnitFrames\Plugins\oUF_RaidDebuffs.lua" />
    <Script file="UnitFrames\Plugins\oUF_Swing.lua" />
    <Script file="UnitFrames\Plugins\oUF_Trinkets.lua" />
+   <Script file="UnitFrames\Plugins\oUF_EnergyManaRegen.lua" />
    <!-- Unitframes -->
    <Script file="UnitFrames\Core.lua" />
    <Script file="UnitFrames\Elements\Castbar.lua" />

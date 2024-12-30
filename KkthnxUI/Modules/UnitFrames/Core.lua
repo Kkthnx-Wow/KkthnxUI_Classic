@@ -546,6 +546,34 @@ function Module:CreateClassPower(self)
 	self.ClassPowerBar = bar
 end
 
+function Module:CreateEneryTicker(self)
+	if K.Class == "WARRIOR" then
+		return
+	end
+
+	local ticker = CreateFrame("StatusBar", nil, self.Power)
+	ticker:SetFrameLevel(self.Power:GetFrameLevel() + 3)
+	ticker:SetAllPoints()
+	ticker.Spark = ticker:CreateTexture(nil, "OVERLAY")
+
+	self.EnergyManaRegen = ticker
+end
+
+function Module:ToggleEnergyTicker(enable)
+	if not self.EnergyManaRegen then
+		return
+	end
+	if enable then
+		if not self:IsElementEnabled("EnergyManaRegen") then
+			self:EnableElement("EnergyManaRegen")
+		end
+	else
+		if self:IsElementEnabled("EnergyManaRegen") then
+			self:DisableElement("EnergyManaRegen")
+		end
+	end
+end
+
 local textScaleFrames = {
 	["player"] = true,
 	["target"] = true,

@@ -37,8 +37,9 @@ local function startSelling()
 				local quality, link, noValue, itemID, itemCount = info.quality, info.hyperlink, info.hasNoValue, info.itemID, info.stackCount
 				if link and not noValue and (quality == 0 or KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList[itemID]) and not sellCache["b" .. bag .. "s" .. slot] then
 					sellCache["b" .. bag .. "s" .. slot] = true
-					local itemSellPrice = select(11, GetItemInfo(link)) * itemCount
-					sellCount = sellCount + itemSellPrice
+					local itemInfo = { C_Item.GetItemInfo(itemID) }
+					local sellPrice = itemInfo[11] * itemCount
+					sellCount = sellCount + sellPrice
 					C_Container_UseContainerItem(bag, slot)
 					K.Delay(0.15, startSelling)
 					return
