@@ -94,7 +94,6 @@ function Module:HyperLink_OnEnter(link, ...)
 end
 
 function Module:HyperLink_OnLeave(_, ...)
-	BattlePetTooltip:Hide()
 	GameTooltip:Hide()
 	GameTooltip.__isHoverTip = nil
 

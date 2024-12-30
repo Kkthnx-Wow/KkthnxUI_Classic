@@ -152,7 +152,7 @@ local function buildBNetTable(num)
 				local wowProjectID = gameAccountInfo.wowProjectID
 				local zoneName = gameAccountInfo.areaName or UNKNOWN
 
-				charName = FriendsFrame_GetFormattedCharacterName(charName, battleTag, client, timerunningSeasonID)
+				charName = BNet_GetValidatedCharacterName(charName, battleTag, client, timerunningSeasonID)
 				class = K.ClassList[class]
 
 				local status = FRIENDS_TEXTURE_ONLINE
@@ -428,7 +428,7 @@ local function buttonOnEnter(self)
 					GameTooltip:AddLine(string_format("%s%s %s%s%s", clientString, level, classColor, charName, realmName))
 
 					if wowProjectID ~= WOW_PROJECT_ID then
-						zoneName = "*" .. zoneName
+						zoneName = "*" .. gameText
 					end
 					GameTooltip:AddLine(string_format("%s%s", inactiveZone, zoneName))
 				end

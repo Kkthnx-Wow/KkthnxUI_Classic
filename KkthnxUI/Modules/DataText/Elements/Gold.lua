@@ -248,53 +248,13 @@ local function OnEnter(self)
 		GameTooltip:AddLine(L["Hold Shift"], 0.63, 0.82, 1)
 	end
 
-	local accountmoney = C_Bank.FetchDepositedMoney(Enum.BankType.Account)
 	GameTooltip:AddLine(" ")
 	GameTooltip:AddDoubleLine(CHARACTER .. ":", K.FormatMoney(totalGold), 0.63, 0.82, 1, 1, 1, 1)
-	GameTooltip:AddDoubleLine(ACCOUNT_BANK_PANEL_TITLE .. ":", K.FormatMoney(accountmoney), 0.63, 0.82, 1, 1, 1, 1)
-	GameTooltip:AddDoubleLine(TOTAL .. ":", K.FormatMoney(totalGold + accountmoney), 0.63, 0.82, 1, 1, 1, 1)
+	GameTooltip:AddDoubleLine(TOTAL .. ":", K.FormatMoney(totalGold), 0.63, 0.82, 1, 1, 1, 1)
 
-	GameTooltip:AddLine(" ")
-	GameTooltip:AddDoubleLine("|TInterface\\ICONS\\WoW_Token01:12:12:0:0:50:50:4:46:4:46|t " .. TOKEN_FILTER_LABEL .. ":", K.FormatMoney(C_WowTokenPublic_GetCurrentMarketPrice() or 0), 0.5, 0.7, 1, 1, 1, 1)
-
-	title = false
-	local chargeInfo = C_CurrencyInfo_GetCurrencyInfo(2813) -- Tier charges
-	if chargeInfo then
-		if not title then
-			GameTooltip:AddLine(" ")
-			GameTooltip:AddLine(CURRENCY .. ":", 0.63, 0.82, 1)
-			title = true
-		end
-		local iconTexture = "|T" .. chargeInfo.iconFileID .. ":12:12:0:0:50:50:4:46:4:46|t"
-		local currencyText = iconTexture .. " " .. chargeInfo.name
-		GameTooltip:AddDoubleLine(currencyText, chargeInfo.quantity .. "/" .. chargeInfo.maxQuantity, 1, 1, 1, 1, 1, 1)
-	end
-
-	for i = 1, 6 do
-		local currencyInfo = C_CurrencyInfo_GetBackpackCurrencyInfo(i)
-		if not currencyInfo then
-			break
-		end
-
-		local name, count, icon, currencyID = currencyInfo.name, currencyInfo.quantity, currencyInfo.iconFileID, currencyInfo.currencyTypesID
-
-		if name and count then
-			if not title then
-				GameTooltip:AddLine(" ")
-				GameTooltip:AddLine(CURRENCY .. ":", 0.5, 0.7, 1)
-				title = true
-			end
-
-			local total = C_CurrencyInfo_GetCurrencyInfo(currencyID).maxQuantity
-			local iconTexture = "|T" .. icon .. ":12:12:0:0:50:50:4:46:4:46|t "
-			local currencyText = iconTexture .. name
-
-			if total > 0 then
-				GameTooltip:AddDoubleLine(currencyText, BreakUpLargeNumbers(count) .. "/" .. K.ShortValue(total), 1, 1, 1, 1, 1, 1)
-			else
-				GameTooltip:AddDoubleLine(currencyText, BreakUpLargeNumbers(count), 1, 1, 1, 1, 1, 1)
-			end
-		end
+	if GetLocale() == "zhCN" then
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddDoubleLine("|TInterface\\ICONS\\WoW_Token01:12:12:0:0:50:50:4:46:4:46|t " .. TOKEN_FILTER_LABEL .. ":", K.FormatMoney(C_WowTokenPublic_GetCurrentMarketPrice() or 0), 0.5, 0.7, 1, 1, 1, 1)
 	end
 
 	if self == GoldDataText then
@@ -332,8 +292,6 @@ local function OnMouseUp(self, btn)
 	else
 		if KkthnxUIDB.ShowSlots then
 			ToggleAllBags()
-		else
-			ToggleCharacter("TokenFrame")
 		end
 	end
 end
