@@ -233,21 +233,6 @@ function Module:UpdateGroupRoles()
 	K:RegisterEvent("GROUP_LEFT", resetGroupRoles)
 end
 
-function Module:CheckThreatStatus(unit)
-	if not UnitExists(unit) then
-		return
-	end
-
-	local unitTarget = unit .. "target"
-	local unitRole = isInGroup and UnitExists(unitTarget) and not UnitIsUnit(unitTarget, "player") and groupRoles[UnitName(unitTarget)] or "NONE"
-
-	if K.Role == "Tank" and unitRole == "TANK" then
-		return true, UnitThreatSituation(unitTarget, unit)
-	else
-		return false, UnitThreatSituation("player", unit)
-	end
-end
-
 -- Update unit color
 function Module:UpdateColor(_, unit)
 	if not unit or self.unit ~= unit then
@@ -260,13 +245,12 @@ function Module:UpdateColor(_, unit)
 	local isCustomUnit = customUnits[name] or customUnits[npcID]
 	local isPlayer = self.isPlayer
 	local isFriendly = self.isFriendly
-	local isOffTank, status = Module:CheckThreatStatus(unit)
+	local status = UnitThreatSituation("player", unit) or false -- just in case
 
 	local customColor = C["Nameplate"].CustomColor
 	local targetColor = C["Nameplate"].TargetColor
 	local insecureColor = C["Nameplate"].InsecureColor
-	local offTankColor = C["Nameplate"].OffTankColor
-	local revertThreat = C["Nameplate"].DPSRevertThreat
+	-- local revertThreat = C["Nameplate"].DPSRevertThreat
 	local secureColor = C["Nameplate"].SecureColor
 	local transColor = C["Nameplate"].TransColor
 	local dotColor = C["Nameplate"].DotColor
@@ -292,37 +276,19 @@ function Module:UpdateColor(_, unit)
 			end
 		elseif isPlayer and not isFriendly and C["Nameplate"].HostileCC then
 			r, g, b = K.UnitColor(unit)
-		elseif UnitIsTapDenied(unit) and not UnitPlayerControlled(unit) or C.NameplateTrashUnits[npcID] then
+		elseif UnitIsTapDenied(unit) and not UnitPlayerControlled(unit) then
 			r, g, b = 0.6, 0.6, 0.6
 		else
-			-- -- Ill work on this later, I have an idea how I want to handle it.
-			-- local selectionType = UnitSelectionType(unit, true)
-			-- -- print(selectionType)
-			-- if selectionType == 1 then -- Hostile or Unfriendly -- Dumbass orange color.
-			-- 	r, g, b = 0.87, 0.44, 0.20
-			-- else
-			r, g, b = K.UnitColor(unit)
-			-- end
+			r, g, b = UnitSelectionColor(unit, true)
+			-- r, g, b = K.UnitColor(unit)
 
-			if status and (C["Nameplate"].TankMode or K.Role == "Tank") then
+			if status then
 				if status == 3 then
-					if K.Role ~= "Tank" and revertThreat then
-						r, g, b = insecureColor[1], insecureColor[2], insecureColor[3]
-					else
-						if isOffTank then
-							r, g, b = offTankColor[1], offTankColor[2], offTankColor[3]
-						else
-							r, g, b = secureColor[1], secureColor[2], secureColor[3]
-						end
-					end
+					r, g, b = secureColor[1], secureColor[2], secureColor[3]
 				elseif status == 2 or status == 1 then
 					r, g, b = transColor[1], transColor[2], transColor[3]
 				elseif status == 0 then
-					if K.Role ~= "Tank" and revertThreat then
-						r, g, b = secureColor[1], secureColor[2], secureColor[3]
-					else
-						r, g, b = insecureColor[1], insecureColor[2], insecureColor[3]
-					end
+					r, g, b = insecureColor[1], insecureColor[2], insecureColor[3]
 				end
 			end
 		end
@@ -487,68 +453,96 @@ function Module:QuestIconCheck()
 	K:RegisterEvent("PLAYER_ENTERING_WORLD", CheckInstanceStatus)
 end
 
-function Module:UpdateQuestUnit(_, unit)
-	if not C["Nameplate"].QuestIndicator then
-		return
-	end
+function Module:UpdateForQuestie(npcID)
+	local data = _QuestieTooltips.lookupByKey and _QuestieTooltips.lookupByKey["m_" .. npcID]
+	if data then
+		local foundObjective, progressText
+		for _, tooltip in pairs(data) do
+			if not tooltip.npc then
+				local questID = tooltip.questId
+				if questID then
+					if _QuestiePlayer.currentQuestlog[questID] then
+						foundObjective = true
 
-	if isInInstance then
-		self.questIcon:Hide()
-		self.questCount:SetText("")
-		return
-	end
-
-	unit = unit or self.unit
-
-	local isLootQuest, questProgress
-	K.ScanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-	K.ScanTooltip:SetUnit(unit)
-
-	for i = 2, K.ScanTooltip:NumLines() do
-		local textLine = _G["KKUI_ScanTooltipTextLeft" .. i]
-		local text = textLine:GetText()
-		if textLine and text then
-			local r, g, b = textLine:GetTextColor()
-			local unitName, progressText = strmatch(text, "^ ([^ ]-) ?%- (.+)$")
-			if r > 0.99 and g > 0.82 and b == 0 then
-				isLootQuest = true
-			elseif unitName and progressText then
-				isLootQuest = false
-				if unitName == "" or unitName == K.Name then
-					local current, goal = strmatch(progressText, "(%d+)/(%d+)")
-					local progress = strmatch(progressText, "([%d%.]+)%%")
-					if current and goal then
-						if tonumber(current) < tonumber(goal) then
-							questProgress = goal - current
+						if tooltip.objective and tooltip.objective.Needed then
+							progressText = tooltip.objective.Needed - tooltip.objective.Collected
+							if progressText == 0 then
+								foundObjective = nil
+							end
 							break
 						end
-					elseif progress then
-						progress = tonumber(progress)
-						if progress and progress < 100 then
-							questProgress = progress .. "%"
-							break
+					end
+				end
+			end
+		end
+
+		if foundObjective then
+			self.questIcon:Show()
+			self.questCount:SetText(progressText)
+		end
+	end
+end
+
+function Module:UpdateCodexQuestUnit(name)
+	if name and CodexMap.tooltips[name] then
+		for _, meta in pairs(CodexMap.tooltips[name]) do
+			local questData = meta["quest"]
+			local quests = CodexDB.quests.loc
+
+			if questData then
+				for questIndex = 1, GetNumQuestLogEntries() do
+					local _, _, _, header, _, _, _, questId = GetQuestLogTitle(questIndex)
+					if not header and quests[questId] and questData == quests[questId].T then
+						local objectives = GetNumQuestLeaderBoards(questIndex)
+						local foundObjective, progressText = nil
+						if objectives then
+							for i = 1, objectives do
+								local text, type = GetQuestLogLeaderBoard(i, questIndex)
+								if type == "monster" then
+									local _, _, monsterName, objNum, objNeeded = strfind(text, Codex:SanitizePattern(QUEST_MONSTERS_KILLED))
+									if meta["spawn"] == monsterName then
+										progressText = objNeeded - objNum
+										foundObjective = true
+										break
+									end
+								elseif table.getn(meta["item"]) > 0 and type == "item" and meta["dropRate"] then
+									local _, _, itemName, objNum, objNeeded = strfind(text, Codex:SanitizePattern(QUEST_OBJECTS_FOUND))
+									for _, item in pairs(meta["item"]) do
+										if item == itemName then
+											progressText = objNeeded - objNum
+											foundObjective = true
+											break
+										end
+									end
+								end
+							end
 						end
-					else
-						isLootQuest = true
-						break
+
+						if foundObjective and progressText > 0 then
+							self.questIcon:Show()
+							self.questCount:SetText(progressText)
+						elseif not foundObjective then
+							self.questIcon:Show()
+						end
 					end
 				end
 			end
 		end
 	end
+end
 
-	if questProgress then
-		self.questCount:SetText(questProgress)
-		self.questIcon:SetAtlas("UI-HUD-MicroMenu-Questlog-Up")
-		self.questIcon:Show()
-	else
-		self.questCount:SetText("")
-		if isLootQuest then
-			self.questIcon:SetAtlas("adventureguide-microbutton-alert")
-			self.questIcon:Show()
-		else
-			self.questIcon:Hide()
-		end
+function Module:UpdateQuestIndicator()
+	if not C["Nameplate"].QuestIndicator then
+		return
+	end
+
+	self.questIcon:Hide()
+	self.questCount:SetText("")
+
+	if CodexMap then
+		Module.UpdateCodexQuestUnit(self, self.unitName)
+	elseif _QuestieTooltips and _QuestiePlayer then
+		Module.UpdateForQuestie(self, self.npcID)
 	end
 end
 
@@ -566,7 +560,7 @@ function Module:AddQuestIcon(self)
 	self.questCount = K.CreateFontString(self, 14, "", nil, "LEFT", 0, 0)
 	self.questCount:SetPoint("LEFT", self.questIcon, "RIGHT", -3, 0)
 
-	self:RegisterEvent("QUEST_LOG_UPDATE", Module.UpdateQuestUnit, true)
+	self:RegisterEvent("QUEST_LOG_UPDATE", Module.UpdateQuestIndicator, true)
 end
 
 function Module:AddClassIcon(self)
@@ -605,50 +599,6 @@ function Module:UpdateClassIcon(self, unit)
 	else
 		self.Class.Icon:SetTexCoord(0, 0, 0, 0)
 		self.Class:Hide()
-	end
-end
-
--- Dungeon progress, MDT required
-function Module:AddDungeonProgress(self)
-	if not C["Nameplate"].AKSProgress then
-		return
-	end
-
-	self.progressText = K.CreateFontString(self, 13, "", "", false, "LEFT", 0, 0)
-	self.progressText:ClearAllPoints()
-	self.progressText:SetPoint("LEFT", self, "RIGHT", 5, 0)
-end
-
-function Module:UpdateDungeonProgress(unit)
-	if not self.progressText or not MDT then
-		return
-	end
-	if unit ~= self.unit then
-		return
-	end
-	self.progressText:SetText("")
-
-	local name, _, _, _, _, _, _, _, _, scenarioType = C_Scenario_GetInfo()
-	if scenarioType == LE_SCENARIO_TYPE_CHALLENGE_MODE then
-		local value = MDT:GetEnemyForces(self.npcID)
-		if value and value > 0 then
-			local total = mdtCacheData[name]
-			if not total then
-				local numCriteria = select(3, C_Scenario_GetStepInfo())
-				for criteriaIndex = 1, numCriteria do
-					local criteriaInfo = C_ScenarioInfo.GetCriteriaInfo(criteriaIndex)
-					if criteriaInfo and criteriaInfo.isWeightedProgress then
-						mdtCacheData[name] = criteriaInfo.totalQuantity
-						total = mdtCacheData[name]
-						break
-					end
-				end
-			end
-
-			if total then
-				self.progressText:SetText(format("+%.2f", value / total * 100))
-			end
-		end
 	end
 end
 
@@ -1043,7 +993,6 @@ function Module:CreatePlates()
 	Module:AddTargetIndicator(self)
 	Module:AddCreatureIcon(self)
 	Module:AddQuestIcon(self)
-	Module:AddDungeonProgress(self)
 	Module:SpellInterruptor(self)
 	Module:AddClassIcon(self)
 
@@ -1086,31 +1035,12 @@ function Module:UpdateNameplateAuras()
 end
 
 function Module:UpdateNameplateSize()
-	-- local plateHeight = C["Nameplate"].PlateHeight
-	-- local nameTextSize = C["Nameplate"].NameTextSize
-	-- local iconSize = plateHeight * 2 + 3
-
-	-- self:SetSize(C["Nameplate"].PlateWidth, plateHeight)
-
-	--self.nameText:SetFont(select(1, KkthnxUIFont:GetFont()), nameTextSize, "")
 	if self.plateType == "NameOnly" then
 		self:Tag(self.nameText, "[nprare][color][name] [nplevel]")
 		self.npcTitle:UpdateTag()
 	else
 		self:Tag(self.nameText, "[nprare][name]")
 	end
-
-	-- self.npcTitle:SetFont(select(1, KkthnxUIFont:GetFont()), nameTextSize - 1, "")
-	-- self.tarName:SetFont(select(1, KkthnxUIFont:GetFont()), nameTextSize + 4, "")
-
-	-- self.Castbar.Icon:SetSize(iconSize, iconSize)
-	-- self.Castbar:SetHeight(plateHeight)
-	-- self.Castbar.Time:SetFont(select(1, KkthnxUIFont:GetFont()), nameTextSize, "")
-	-- self.Castbar.Text:SetFont(select(1, KkthnxUIFont:GetFont()), nameTextSize, "")
-	-- self.Castbar.spellTarget:SetFont(select(1, KkthnxUIFont:GetFont()), nameTextSize + 3, "")
-
-	-- self.healthValue:SetFont(select(1, KkthnxUIFont:GetFont()), C["Nameplate"].HealthTextSize, "")
-	-- self.healthValue:UpdateTag()
 
 	self.nameText:UpdateTag()
 end
@@ -1127,21 +1057,14 @@ function Module:RefreshNameplats()
 end
 
 function Module:RefreshAllPlates()
-	-- Module:ResizePlayerPlate()
 	Module:RefreshNameplats()
 	Module:ResizeTargetPower()
 end
 
-local SoftTargetBlockElements = {
-	"Auras",
-	"RaidTargetIndicator",
-}
-
 local DisabledElements = {
+	"Health",
 	"Castbar",
 	"HealthPrediction",
-	"Health",
-	"PvPClassificationIndicator",
 	"ThreatIndicator",
 }
 function Module:UpdatePlateByType()
@@ -1153,34 +1076,8 @@ function Module:UpdatePlateByType()
 	local raidtarget = self.RaidTargetIndicator
 	local questIcon = self.questIcon
 
-	-- name:SetShown(not self.widgetsOnly)
-	-- name:ClearAllPoints()
-	if self.widgetsOnly then
-		name:Hide()
-	else
-		if name then
-			name:Show()
-			-- name:UpdateTag()
-			name:ClearAllPoints()
-		end
-	end
-	-- self:Tag(self.nameText, "[nprare] [color][name] [nplevel]")
-	-- self.npcTitle:UpdateTag()
+	name:ClearAllPoints()
 	raidtarget:ClearAllPoints()
-
-	if self.isSoftTarget then
-		for _, element in pairs(SoftTargetBlockElements) do
-			if self:IsElementEnabled(element) then
-				self:DisableElement(element)
-			end
-		end
-	else
-		for _, element in pairs(SoftTargetBlockElements) do
-			if not self:IsElementEnabled(element) then
-				self:EnableElement(element)
-			end
-		end
-	end
 
 	if self.plateType == "NameOnly" then
 		for _, element in pairs(DisabledElements) do
@@ -1202,11 +1099,6 @@ function Module:UpdatePlateByType()
 		if questIcon then
 			questIcon:SetPoint("LEFT", name, "RIGHT", -6, 0)
 		end
-
-		if self.widgetContainer then
-			self.widgetContainer:ClearAllPoints()
-			self.widgetContainer:SetPoint("TOP", title, "BOTTOM", 0, -10)
-		end
 	else
 		for _, element in pairs(DisabledElements) do
 			if not self:IsElementEnabled(element) then
@@ -1217,7 +1109,6 @@ function Module:UpdatePlateByType()
 		name:SetJustifyH("LEFT")
 		name:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
 		name:SetPoint("BOTTOMRIGHT", level, "TOPRIGHT", -21, 4)
-		-- self:Tag(self.nameText, "[name]")
 
 		level:Show()
 		hpval:Show()
@@ -1229,11 +1120,6 @@ function Module:UpdatePlateByType()
 		if questIcon then
 			questIcon:SetPoint("LEFT", self, "RIGHT", 1, 0)
 		end
-
-		if self.widgetContainer then
-			self.widgetContainer:ClearAllPoints()
-			self.widgetContainer:SetPoint("TOP", self.Castbar, "BOTTOM", 0, -6)
-		end
 	end
 
 	Module.UpdateNameplateSize(self)
@@ -1244,8 +1130,7 @@ end
 function Module:RefreshPlateType(unit)
 	self.reaction = UnitReaction(unit, "player")
 	self.isFriendly = self.reaction and self.reaction >= 4 and not UnitCanAttack("player", unit)
-	self.isSoftTarget = UnitIsUnit(unit, "softinteract")
-	if C["Nameplate"].NameOnly and self.isFriendly or self.widgetsOnly or self.isSoftTarget then
+	if C["Nameplate"].NameOnly and self.isFriendly or self.widgetsOnly then
 		self.plateType = "NameOnly"
 	elseif C["Nameplate"].FriendPlate and self.isFriendly then
 		self.plateType = "FriendPlate"
@@ -1260,32 +1145,15 @@ function Module:RefreshPlateType(unit)
 end
 
 function Module:OnUnitFactionChanged(unit)
-	local nameplate = C_NamePlate_GetNamePlateForUnit(unit, issecure())
+	local nameplate = C_NamePlate_GetNamePlateForUnit(unit)
 	local unitFrame = nameplate and nameplate.unitFrame
 	if unitFrame and unitFrame.unitName then
 		Module.RefreshPlateType(unitFrame, unit)
 	end
 end
 
-function Module:OnUnitSoftTargetChanged(previousTarget, currentTarget)
-	if not GetCVarBool("SoftTargetIconGameObject") then
-		return
-	end
-
-	for _, nameplate in pairs(C_NamePlate.GetNamePlates()) do
-		local unitFrame = nameplate and nameplate.unitFrame
-		local guid = unitFrame and unitFrame.unitGUID
-		if guid and (guid == previousTarget or guid == currentTarget) then
-			unitFrame.previousType = nil
-			Module.RefreshPlateType(unitFrame, unitFrame.unit)
-			Module.UpdateTargetChange(unitFrame)
-		end
-	end
-end
-
 function Module:RefreshPlateOnFactionChanged()
 	K:RegisterEvent("UNIT_FACTION", Module.OnUnitFactionChanged)
-	K:RegisterEvent("PLAYER_SOFT_INTERACT_CHANGED", Module.OnUnitSoftTargetChanged)
 end
 
 function Module:PostUpdatePlates(event, unit)
@@ -1298,22 +1166,6 @@ function Module:PostUpdatePlates(event, unit)
 		self.unitGUID = UnitGUID(unit)
 		self.isPlayer = UnitIsPlayer(unit)
 		self.npcID = K.GetNPCID(self.unitGUID)
-		-- self.widgetsOnly = UnitNameplateShowsWidgetsOnly(unit)
-
-		local blizzPlate = self:GetParent().UnitFrame
-		if blizzPlate then
-			self.widgetContainer = blizzPlate.WidgetContainer
-			if self.widgetContainer then
-				-- self.widgetContainer:SetParent(self)
-				self.widgetContainer:SetScale(1 / C["General"].UIScale)
-			end
-
-			self.softTargetFrame = blizzPlate.SoftTargetFrame
-			if self.softTargetFrame then
-				-- self.softTargetFrame:SetParent(self)
-				self.softTargetFrame:SetScale(1 / C["General"].UIScale)
-			end
-		end
 
 		Module.RefreshPlateType(self, unit)
 	elseif event == "NAME_PLATE_UNIT_REMOVED" then
@@ -1323,13 +1175,10 @@ function Module:PostUpdatePlates(event, unit)
 	if event ~= "NAME_PLATE_UNIT_REMOVED" then
 		Module.UpdateUnitPower(self)
 		Module.UpdateTargetChange(self)
-		Module.UpdateQuestUnit(self, event, unit)
 		Module.UpdateUnitClassify(self, unit)
-		-- Module.UpdateDungeonProgress(self, unit)
+		Module.UpdateQuestIndicator(self)
 		Module:UpdateClassIcon(self, unit)
 		Module:UpdateTargetClassPower()
-
-		self.tarName:SetShown(ShowTargetNPCs[self.npcID])
 	end
 end
 
@@ -1435,15 +1284,11 @@ function Module:TogglePlateVisibility()
 	end
 
 	if C["Nameplate"].PPHideOOC then
-		plate:RegisterEvent("UNIT_EXITED_VEHICLE", Module.PlateVisibility)
-		plate:RegisterEvent("UNIT_ENTERED_VEHICLE", Module.PlateVisibility)
 		plate:RegisterEvent("PLAYER_REGEN_ENABLED", Module.PlateVisibility, true)
 		plate:RegisterEvent("PLAYER_REGEN_DISABLED", Module.PlateVisibility, true)
 		plate:RegisterEvent("PLAYER_ENTERING_WORLD", Module.PlateVisibility, true)
 		Module.PlateVisibility(plate)
 	else
-		plate:UnregisterEvent("UNIT_EXITED_VEHICLE", Module.PlateVisibility)
-		plate:UnregisterEvent("UNIT_ENTERED_VEHICLE", Module.PlateVisibility)
 		plate:UnregisterEvent("PLAYER_REGEN_ENABLED", Module.PlateVisibility)
 		plate:UnregisterEvent("PLAYER_REGEN_DISABLED", Module.PlateVisibility)
 		plate:UnregisterEvent("PLAYER_ENTERING_WORLD", Module.PlateVisibility)
@@ -1498,18 +1343,6 @@ function Module:ToggleTargetClassPower()
 				end
 			end
 		end
-
-		if plate.Runes then
-			if not plate:IsElementEnabled("Runes") then
-				plate:EnableElement("Runes")
-				plate.Runes:ForceUpdate()
-			end
-			if playerPlate then
-				if playerPlate:IsElementEnabled("Runes") then
-					playerPlate:DisableElement("Runes")
-				end
-			end
-		end
 	else
 		plate:Disable()
 		if plate.ClassPower then
@@ -1520,17 +1353,6 @@ function Module:ToggleTargetClassPower()
 				if not playerPlate:IsElementEnabled("ClassPower") then
 					playerPlate:EnableElement("ClassPower")
 					playerPlate.ClassPower:ForceUpdate()
-				end
-			end
-		end
-		if plate.Runes then
-			if plate:IsElementEnabled("Runes") then
-				plate:DisableElement("Runes")
-			end
-			if playerPlate then
-				if not playerPlate:IsElementEnabled("Runes") then
-					playerPlate:EnableElement("Runes")
-					playerPlate.Runes:ForceUpdate()
 				end
 			end
 		end

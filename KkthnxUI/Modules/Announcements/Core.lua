@@ -6,11 +6,9 @@ function Module:OnEnable()
 		"CreateHealthAnnounce",
 		"CreateInterruptAnnounce",
 		"CreateItemAnnounce",
-		"CreateKeystoneAnnounce",
 		"CreateKillingBlow",
 		"CreatePullCountdown",
 		"CreateQuestNotifier",
-		"CreateRareAnnounce",
 		"CreateResetInstance",
 		"CreateSaySappedAnnounce",
 	}

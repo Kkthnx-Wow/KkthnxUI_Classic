@@ -114,8 +114,6 @@ C["ActionBar"] = {
 
 -- Announcements
 C["Announcements"] = {
-	AlertInChat = false,
-	AlertInWild = false,
 	BrokenAlert = false,
 	DispellAlert = false,
 	HealthAlert = false,
@@ -130,7 +128,6 @@ C["Announcements"] = {
 	PvPEmote = false,
 	QuestNotifier = false,
 	QuestProgress = false,
-	RareAlert = false,
 	ResetInstance = true,
 	SaySapped = false,
 	AlertChannel = {
@@ -150,7 +147,6 @@ C["Announcements"] = {
 C["Automation"] = {
 	-- AutoCollapse = false,
 	AutoDeclineDuels = false,
-	AutoDeclinePetDuels = false,
 	AutoGoodbye = false,
 	AutoInvite = false,
 	AutoOpenItems = false,

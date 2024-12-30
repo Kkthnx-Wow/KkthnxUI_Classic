@@ -304,10 +304,10 @@ local function SetAFK(self, status)
 		self.chat:UnregisterAllEvents()
 		self.chat:Clear()
 
-		if PVEFrame:IsShown() then -- odd bug, frame is blank
-			PVEFrame_ToggleFrame()
-			PVEFrame_ToggleFrame()
-		end
+		-- if PVEFrame:IsShown() then -- odd bug, frame is blank
+		-- 	PVEFrame_ToggleFrame()
+		-- 	PVEFrame_ToggleFrame()
+		-- end
 
 		self.isAFK = false
 	end

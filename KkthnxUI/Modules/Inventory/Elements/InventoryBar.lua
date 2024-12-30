@@ -26,6 +26,24 @@ function Module:BagBar_OnEvent(event)
 	bagBar:UnregisterEvent(event)
 end
 
+function Module:KeyRing_OnEnter()
+	if not GameTooltip:IsForbidden() then
+		GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+		GameTooltip:AddLine(_G.KEYRING, 1, 1, 1)
+		GameTooltip:Show()
+	end
+
+	Module:BagBar_OnEnter()
+end
+
+function Module:KeyRing_OnLeave()
+	if not GameTooltip:IsForbidden() then
+		GameTooltip:Hide()
+	end
+
+	Module:BagBar_OnEnter()
+end
+
 function Module:SkinBag(bag)
 	local icon = bag.icon or _G[bag:GetName() .. "IconTexture"]
 	bag.oldTex = icon:GetTexture()
@@ -194,6 +212,34 @@ function Module:CreateInventoryBar()
 
 	-- 	hooksecurefunc(ReagentSlot, "UpdateTextures", Module.BagButton_UpdateTextures)
 	-- 	hooksecurefunc(ReagentSlot, "SetBarExpanded", Module.SetSizeAndPositionBagBar)
+	-- end
+
+	-- local KeyRing = _G.KeyRingButton
+	-- if KeyRing then
+	-- 	KeyRing:SetParent(bagBar)
+	-- 	KeyRing:SetScript("OnEnter", Module.KeyRing_OnEnter)
+	-- 	KeyRing:SetScript("OnLeave", Module.KeyRing_OnLeave)
+
+	-- 	KeyRing:StripTextures()
+	-- 	KeyRing:CreateBorder()
+	-- 	KeyRing:StyleButton(true)
+
+	-- 	KeyRing:SetNormalTexture([[Interface\ICONS\INV_Misc_Key_03]])
+	-- 	KeyRing:SetPushedTexture([[Interface\ICONS\INV_Misc_Key_03]])
+	-- 	KeyRing:SetDisabledTexture([[Interface\ICONS\INV_Misc_Key_03]])
+
+	-- 	local Normal, Pushed, Disabled = KeyRing:GetNormalTexture(), KeyRing:GetPushedTexture(), KeyRing:GetDisabledTexture()
+
+	-- 	Normal:SetAllPoints()
+	-- 	Pushed:SetAllPoints()
+	-- 	Disabled:SetAllPoints()
+	-- 	Disabled:SetDesaturated(true)
+
+	-- 	Normal:SetTexCoord(unpack(K.TexCoords))
+	-- 	Pushed:SetTexCoord(unpack(K.TexCoords))
+	-- 	Disabled:SetTexCoord(unpack(K.TexCoords))
+
+	-- 	tinsert(buttonList, KeyRing)
 	-- end
 
 	K.Mover(bagBar, "BagBar", "BagBar", bagPosition)

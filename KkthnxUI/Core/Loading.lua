@@ -40,7 +40,6 @@ local function KKUI_VerifyDatabase()
 	KkthnxUIDB.Gold = KkthnxUIDB.Gold or {}
 	KkthnxUIDB.ShowSlots = KkthnxUIDB.ShowSlots or false
 	KkthnxUIDB.ChangeLog = KkthnxUIDB.ChangeLog or {}
-	KkthnxUIDB.KeystoneInfo = KkthnxUIDB.KeystoneInfo or {}
 	KkthnxUIDB.DisabledAddOns = KkthnxUIDB.DisabledAddOns or {}
 end
 

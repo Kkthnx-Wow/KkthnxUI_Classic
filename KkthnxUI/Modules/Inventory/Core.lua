@@ -309,7 +309,7 @@ function Module:CreateKeyToggle(click)
 	keyToggleButton.Icon = keyToggleButton:CreateTexture(nil, "ARTWORK")
 	keyToggleButton.Icon:SetAllPoints()
 	keyToggleButton.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-	keyToggleButton.Icon:SetTexture("Interface\\ICONS\\INV_Misc_Key_12")
+	keyToggleButton.Icon:SetTexture("Interface\\ICONS\\INV_Misc_Key_03")
 
 	keyToggleButton.__owner = self
 	keyToggleButton:SetScript("OnClick", function()
