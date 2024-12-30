@@ -1,33 +1,54 @@
-## !!!THIS IS A WIP AND THERE WILL BE BUGS!!!
+# KkthnxUI for Classic Era Realms
 
-![h4fl1au](https://user-images.githubusercontent.com/1692977/31845157-13107948-b5cc-11e7-926d-67e669b8ca69.png)
+## ⚠️ THIS IS A WORK IN PROGRESS! EXPECT BUGS! ⚠️
 
-[![Support me on Patreon](https://i.imgur.com/FzTLsYV.png) ](https://www.patreon.com/kkthnx)[![Donate through Paypal](https://i.imgur.com/IkPCLeh.png)](https://www.paypal.me/kkthnx) [![Say Thanks](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/Kkthnx)
+![KkthnxUI Preview](https://user-images.githubusercontent.com/1692977/31845157-13107948-b5cc-11e7-926d-67e669b8ca69.png)
 
-KkthnxUI is a simplistic user interface that holds onto the information and functionality, while still keeping most of the good looks. It can be used for any class or role.
+[![Support me on Patreon](https://i.imgur.com/FzTLsYV.png)](https://www.patreon.com/kkthnx)
+[![Donate through Paypal](https://i.imgur.com/IkPCLeh.png)](https://www.paypal.me/kkthnx)
 
-## How to install
-If you're familiar with git, simply clone the repository to a folder named **KkthnxUI** inside your World of Warcraft addons folder.
+**KkthnxUI** is a clean and simplistic user interface designed specifically for **Classic Era realms** in World of Warcraft. It retains functionality and important information while maintaining an elegant aesthetic, suitable for any class or role.
 
-If not, and you need to do this manually, then download and unzip it to your `World of Warcraft\\Interface\\AddOns\\` directory.
+---
 
-Also, make sure the game is closed when moving new files into the addon directory as it is unable to discover new files when it's already running.
+## Installation Instructions
 
-## Report bugs, suggest features, development progress
-Bug reports and feature suggestions are all done through GitHub's Issue tracker linked below. If you're looking for the current development status of the current or next version of the UI, you can check that out at Kkthnx's GitHub project pages.
+### Using Git
+1. Clone the repository to a folder named **KkthnxUI** inside your World of Warcraft AddOns folder.
 
-* [BugTracker](https://github.com/kkthnx-wow/KkthnxUI_Classic/issues/new)
+### Manual Installation
+1. Download the repository and unzip it.
+2. Move the unzipped folder to your `World of Warcraft\\Interface\\AddOns\\` directory.
+3. Ensure the game is **closed** when moving files, as the game cannot discover new files while running.
 
-## Join the community
-There are thousands of users, but most are content to simply download and use the interface without further ado. If you wish to get more involved though, have some questions you can't find answers to anywhere else or simply just wish to stop by and say hello, we have both a [discord](https://discordapp.com/) server and a facebook page.
+---
 
-* [Discord](https://discord.gg/Rc9wcK9cAB)
+## Reporting Bugs and Suggesting Features
 
-## Buy me a coffee!
-Donations are welcome, but not required to use the UI at all. Donations help me further my development and fuel my gaming! Donations will never be a requirement to use the UI! If you would like to donate, you can do so down below.
+All bug reports and feature suggestions should be submitted through GitHub's Issue tracker:
 
-* [PayPal](https://www.paypal.me/kkthnxtv)
-* [Patreon](https://www.patreon.com/kkthnx)
+- [Submit a Bug Report](https://github.com/kkthnx-wow/KkthnxUI_Classic/issues/new)
 
-Regards
-Josh *"Kkthnx"* Russell   
+To follow the development progress, visit [Kkthnx's GitHub Project Pages](https://github.com/kkthnx-wow/KkthnxUI_Classic/projects).
+
+---
+
+## Join the Community
+
+Connect with other users and developers:
+
+- [Join the Discord Community](https://discord.gg/Rc9wcK9cAB)
+
+---
+
+## Support Development
+
+While donations are not required to use **KkthnxUI**, they help fuel development and gaming! If you'd like to support, you can donate through the links below:
+
+- [Donate via PayPal](https://www.paypal.me/kkthnx)
+- [Support on Patreon](https://www.patreon.com/kkthnx)
+
+---
+
+### Regards,
+Josh *"Kkthnx"* Russell
