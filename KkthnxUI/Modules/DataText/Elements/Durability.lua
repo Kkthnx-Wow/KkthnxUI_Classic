@@ -164,7 +164,7 @@ function Module:CreateDurabilityDataText()
 	DurabilityDataText:SetFrameLevel(PaperDollFrame:GetFrameLevel() + 2)
 	DurabilityDataText:SetParent(PaperDollFrame)
 
-	DurabilityDataText.Text = K.CreateFontString(DurabilityDataText, 11)
+	DurabilityDataText.Text = DurabilityDataText:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") -- CharacterLevelText uses GameFontNormalSmall
 	DurabilityDataText.Text:SetAllPoints(DurabilityDataText)
 
 	local function _OnEvent(...)
