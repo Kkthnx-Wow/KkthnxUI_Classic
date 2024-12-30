@@ -1160,9 +1160,11 @@ function Module:UpdatePlateByType()
 	if self.widgetsOnly then
 		name:Hide()
 	else
-		name:Show()
-		-- name:UpdateTag()
-		name:ClearAllPoints()
+		if name then
+			name:Show()
+			-- name:UpdateTag()
+			name:ClearAllPoints()
+		end
 	end
 	-- self:Tag(self.nameText, "[nprare] [color][name] [nplevel]")
 	-- self.npcTitle:UpdateTag()

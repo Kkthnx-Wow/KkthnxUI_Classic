@@ -63,12 +63,12 @@ function Module:ResetDetailsAnchor(force)
 		return
 	end
 
-	local height = 126
+	local height = 105
 	local instance1 = Details:GetInstance(1)
 	local instance2 = Details:GetInstance(2)
 	if instance1 and (force or IsDefaultAnchor(instance1)) then
 		if instance2 then
-			height = 112
+			height = 105
 			EmbedWindow(instance2, -6, 140, 260, height)
 		end
 		EmbedWindow(instance1, -500, 4, 260, height)
@@ -103,8 +103,8 @@ local function ReskinDetails()
 	function listener:OnDetailsEvent(event, instance)
 		if event == "DETAILS_INSTANCE_OPEN" then
 			if not instance.styled and instance:GetId() == 2 then
-				instance1:SetSize(260, 112)
-				EmbedWindow(instance, -3, 140, 250, 112)
+				instance1:SetSize(260, 105)
+				EmbedWindow(instance, -3, 140, 250, 105)
 			end
 			SetupInstance(instance)
 		end

@@ -1,10 +1,6 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:NewModule("AurasTable")
 
-local string_format = string.format
-local table_wipe = table.wipe
-
-local C_Spell_GetSpellInfo = C_Spell.GetSpellInfo
 local UIParent = UIParent
 
 local AuraWatchList = {}
@@ -35,11 +31,11 @@ function Module:AddNewAuraWatch(class, list)
 		for _, v in pairs(k) do
 			local spellID = v.AuraID or v.SpellID
 			if spellID then
-				local name = C_Spell_GetSpellInfo(spellID)
+				local name = GetSpellInfo(spellID)
 				if not name then
-					table_wipe(v)
+					wipe(v)
 					if K.isDeveloper then
-						K.Print(string_format("|cffFF0000Invalid spellID:|r '%s' %s", class, spellID))
+						print(format("|cffFF0000Invalid spellID:|r '%s' %s", class, spellID))
 					end
 				end
 			end
@@ -49,14 +45,13 @@ function Module:AddNewAuraWatch(class, list)
 	if class ~= "ALL" and class ~= K.Class then
 		return
 	end
-
 	if not AuraWatchList[class] then
 		AuraWatchList[class] = {}
 	end
 
 	for name, v in pairs(list) do
 		local direction, interval, mode, size, pos, width = unpack(groups[name])
-		table.insert(AuraWatchList[class], {
+		tinsert(AuraWatchList[class], {
 			Name = name,
 			Direction = direction,
 			Interval = interval,
@@ -69,35 +64,6 @@ function Module:AddNewAuraWatch(class, list)
 	end
 end
 
-function Module:AddDeprecatedGroup()
-	for name, value in pairs(C.DeprecatedAuras) do
-		for _, list in pairs(AuraWatchList["ALL"]) do
-			if list.Name == name then
-				local newTable = newAuraFormat(value)
-				for spellID, v in pairs(newTable) do
-					list.List[spellID] = v
-				end
-			end
-		end
-	end
-
-	table_wipe(C.DeprecatedAuras)
-end
-
 function Module:OnEnable()
-	local loadAuraWatchModules = {
-		"AddDeprecatedGroup",
-	}
-
-	for _, funcName in ipairs(loadAuraWatchModules) do
-		local func = self[funcName]
-		if type(func) == "function" then
-			local success, err = pcall(func, self)
-			if not success then
-				error("Error in function " .. funcName .. ": " .. tostring(err), 2)
-			end
-		end
-	end
-
 	C.AuraWatchList = AuraWatchList
 end
