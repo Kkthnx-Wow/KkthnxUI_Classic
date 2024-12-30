@@ -546,9 +546,7 @@ Module:RegisterTooltips("KkthnxUI", function()
 		f:HookScript("OnShow", Module.ReskinTooltip)
 	end
 
-	-- ItemRefTooltip.CloseButton:SkinCloseButton()
-	-- FloatingBattlePetTooltip.CloseButton:SkinCloseButton()
-	-- FloatingPetBattleAbilityTooltip.CloseButton:SkinCloseButton()
+	ItemRefCloseButton:SkinCloseButton()
 
 	-- DropdownMenu
 	local dropdowns = { "DropDownList", "L_DropDownList", "Lib_DropDownList" }

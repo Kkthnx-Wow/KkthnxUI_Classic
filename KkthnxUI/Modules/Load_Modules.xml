@@ -61,6 +61,7 @@
    <!-- Auras -->
    <Include file="Auras\AuraTemplate.xml" />
    <Script file="Auras\Core.lua" />
+   <Script file="Auras\Elements\AuraWatch.lua" />
    <!-- <Script file="Auras\Elements\AuraWatch.lua" />
    <Script file="Auras\Elements\Reminder.lua" />
    <Script file="Auras\Elements\Totems.lua" />
@@ -190,6 +191,7 @@
    <Include file="Skins\Blizzard\FrameXML\UIDropDownMenu.lua" />
    <Include file="Skins\Blizzard\FrameXML\UIWidgets.lua" /> -->
    <!-- Skins AddOns -->
+   <Include file="Skins\Addons\Details.lua" />
    <!-- <Include file="Skins\Addons\Bartender4.lua" />
    <Include file="Skins\Addons\BigWigs.lua" />
    <Include file="Skins\Addons\ButtonForge.lua" />
