@@ -16,7 +16,7 @@ local sellError = ERR_VENDOR_DOESNT_BUY -- Error message for when the vendor doe
 local function stopSelling(results)
 	sellStop = true
 	if sellCount > 0 and results then
-		K.Print(format(K.SystemColor .. "%s|r%s", "You have sold junk items for", K.FormatMoney(sellCount)))
+		K.Print(format(K.SystemColor .. "%s|r %s", "You have sold junk items for", K.FormatMoney(sellCount)))
 	end
 	sellCount = 0
 end
@@ -34,9 +34,11 @@ local function startSelling()
 
 			local info = C_Container_GetContainerItemInfo(bag, slot)
 			if info then
-				local quality, link, noValue, itemID = info.quality, info.hyperlink, info.hasNoValue, info.itemID
+				local quality, link, noValue, itemID, itemCount = info.quality, info.hyperlink, info.hasNoValue, info.itemID, info.stackCount
 				if link and not noValue and (quality == 0 or KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList[itemID]) and not sellCache["b" .. bag .. "s" .. slot] then
 					sellCache["b" .. bag .. "s" .. slot] = true
+					local itemSellPrice = select(11, GetItemInfo(link)) * itemCount
+					sellCount = sellCount + itemSellPrice
 					C_Container_UseContainerItem(bag, slot)
 					K.Delay(0.15, startSelling)
 					return
