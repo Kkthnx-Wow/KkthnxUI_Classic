@@ -373,10 +373,6 @@ local function UpdateGroupLoot()
 	K:GetModule("Loot"):UpdateLootRollFrames()
 end
 
-local function UpdateYClassColors()
-	K:GetModule("Miscellaneous"):UpdateyClassColors()
-end
-
 -- Sliders > minvalue, maxvalue, stepvalue
 local ActionBar = function(self)
 	local Window = self:CreateWindow(L["ActionBar"])
@@ -499,7 +495,6 @@ local Announcements = function(self)
 	Window:CreateSwitch("Announcements", "KillingBlow", L["Show Your Killing Blow Info"], "Displays a notification when you land a killing blow.")
 	Window:CreateSwitch("Announcements", "PvPEmote", L["Auto Emote On Your Killing Blow"], "Automatically performs an emote when you land a killing blow in PvP.")
 	Window:CreateSwitch("Announcements", "HealthAlert", L["Announce When Low On Health"], "Alerts when your health drops below a critical threshold.")
-	Window:CreateSwitch("Announcements", "KeystoneAlert", newFeatureIcon .. "Announce When New Mythic Key Is Obtained", "Notifies you and your group when you receive a new Mythic+ keystone.")
 
 	Window:CreateSection(INTERRUPT)
 	Window:CreateSwitch("Announcements", "InterruptAlert", enableTextColor .. L["Announce Interrupts"], "Announces when you successfully interrupt a spell.", UpdateInterruptAlert)
@@ -541,7 +536,6 @@ local Automation = function(self)
 	Window:CreateSection("Miscellaneous Options")
 	-- Window:CreateSwitch("Automation", "AutoCollapse", L["Auto Collapse Objective Tracker"], "Automatically collapses the objective tracker when entering an instance.")
 	Window:CreateSwitch("Automation", "AutoGoodbye", L["Say Goodbye After Dungeon Completion"], "Automatically says 'Goodbye' to the group when the dungeon is completed.")
-	Window:CreateSwitch("Automation", "AutoKeystone", newFeatureIcon .. L["Auto Place Mythic Keystones"], "Automatically places your highest available Mythic Keystone in the dungeon keystone slot.")
 	Window:CreateSwitch("Automation", "AutoOpenItems", L["Auto Open Items In Your Inventory"], "Automatically opens items in your inventory that contain loot.")
 	Window:CreateSwitch("Automation", "AutoRelease", L["Auto Release in Battlegrounds & Arenas"], "Automatically releases your spirit upon death in battlegrounds or arenas.")
 	Window:CreateSwitch("Automation", "AutoScreenshot", L["Auto Screenshot Achievements"], "Automatically takes a screenshot when you earn an achievement.")
@@ -763,7 +757,6 @@ local Minimap = function(self)
 	Window:CreateSection("Features")
 	Window:CreateSwitch("Minimap", "EasyVolume", newFeatureIcon .. L["EasyVolume"], L["EasyVolumeTip"])
 	Window:CreateSwitch("Minimap", "MailPulse", newFeatureIcon .. L["Pulse Minimap Mail"])
-	Window:CreateSwitch("Minimap", "QueueStatusText", newFeatureIcon .. L["QueueStatus"])
 	Window:CreateSwitch("Minimap", "ShowRecycleBin", L["Show Minimap Button Collector"])
 
 	-- Recycle Bin Section
@@ -786,13 +779,10 @@ local Misc = function(self)
 	Window:CreateSection(GENERAL)
 	Window:CreateSwitch("Misc", "ColorPicker", L["Enhanced Color Picker"])
 	Window:CreateSwitch("Misc", "EasyMarking", L["EasyMarking by Ctrl + LeftClick"])
-	Window:CreateSwitch("Misc", "HideBanner", L["Hide RaidBoss EmoteFrame"])
 	Window:CreateSwitch("Misc", "HideBossEmote", L["Hide BossBanner"])
 	Window:CreateSwitch("Misc", "ImprovedStats", L["Display Character Frame Full Stats"])
-	Window:CreateSwitch("Misc", "NoTalkingHead", L["Remove And Hide The TalkingHead Frame"])
 	Window:CreateSwitch("Misc", "ShowWowHeadLinks", L["Show Wowhead Links Above Questlog Frame"])
 	Window:CreateSwitch("Misc", "SlotDurability", L["Show Slot Durability %"])
-	Window:CreateSwitch("Misc", "YClassColors", "Enable ClassColors", "Toggle the display of class colors in the guild roster, friends list, and Who frame.", UpdateYClassColors)
 
 	Window:CreateSection("Camera")
 	Window:CreateSlider("Misc", "MaxCameraZoom", newFeatureIcon .. "Max Camera Zoom Level", 1, 2.6, 0.1, nil, UpdateMaxZoomLevel)
@@ -805,7 +795,6 @@ local Misc = function(self)
 	Window:CreateSwitch("Misc", "AFKCamera", L["AFK Camera"])
 	Window:CreateSwitch("Misc", "EnhancedFriends", L["Enhanced Colors (Friends/Guild +)"])
 	Window:CreateSwitch("Misc", "MuteSounds", "Mute Various Annoying Sounds In-Game")
-	Window:CreateSwitch("Misc", "ParagonEnable", L["Add Paragon Info on ReputationFrame"], L["ParagonReputationTip"])
 
 	-- Mail Section
 	Window:CreateSection("Mail")
@@ -815,10 +804,6 @@ local Misc = function(self)
 	Window:CreateSection("Questing")
 	Window:CreateSwitch("Misc", "ExpRep", "Display Exp/Rep Bar (Minimap)")
 	Window:CreateSwitch("Misc", "QuestTool", "Add Tips For Some Quests And World Quests")
-
-	-- Mythic+ Section
-	Window:CreateSection("Mythic+")
-	Window:CreateSwitch("Misc", "MDGuildBest", L["Show Mythic+ GuildBest"])
 
 	-- Raid Tool Section
 	Window:CreateSection("Raid Tool")
@@ -833,7 +818,6 @@ local Misc = function(self)
 	if C["Misc"].ItemLevel then
 		Window:CreateSwitch("Misc", "GemEnchantInfo", L["Character/Inspect Gem/Enchant Info"])
 	end
-	Window:CreateSwitch("Misc", "QuickJoin", newFeatureIcon .. L["QuickJoin"], L["QuickJoinTip"])
 	Window:CreateSwitch("Misc", "ItemLevel", L["Show Character/Inspect ItemLevel Info"])
 end
 
@@ -866,7 +850,6 @@ local Nameplate = function(self)
 	Window:CreateSwitch("Nameplate", "TankMode", L["Force TankMode Colored"])
 
 	Window:CreateSection("Miscellaneous")
-	Window:CreateSwitch("Nameplate", "AKSProgress", L["Show AngryKeystones Progress"])
 	Window:CreateSwitch("Nameplate", "PlateAuras", "Target Nameplate Auras", nil, refreshNameplates)
 	Window:CreateSwitch("Nameplate", "QuestIndicator", L["Quest Progress Indicator"])
 	Window:CreateSwitch("Nameplate", "Smooth", L["Smooth Bars Transition"])
@@ -913,7 +896,6 @@ local Skins = function(self)
 
 	Window:CreateSection("Blizzard Skins")
 	Window:CreateSwitch("Skins", "BlizzardFrames", L["Skin Some Blizzard Frames & Objects"])
-	Window:CreateSwitch("Skins", "TalkingHeadBackdrop", L["TalkingHead Skin"])
 	Window:CreateSwitch("Skins", "ChatBubbles", L["ChatBubbles Skin"])
 	Window:CreateSlider("Skins", "ChatBubbleAlpha", L["ChatBubbles Background Alpha"], 0, 1, 0.1, nil, UpdateChatBubble)
 

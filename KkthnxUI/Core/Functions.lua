@@ -487,84 +487,72 @@ end
 
 -- Item Level Functions
 do
+	local iLvlDB = {}
+	local itemLevelString = "^" .. gsub(ITEM_LEVEL, "%%d", "")
+	local RETRIEVING_ITEM_INFO = RETRIEVING_ITEM_INFO
+
 	local tip = CreateFrame("GameTooltip", "KKUI_ScanTooltip", nil, "GameTooltipTemplate")
 	K.ScanTooltip = tip
 
-	local iLvlDB = {}
-	local enchantString = string_gsub(ENCHANTED_TOOLTIP_LINE, "%%s", "(.+)")
-	local itemLevelString = "^" .. string_gsub(ITEM_LEVEL, "%%d", "")
-	local isUnknownString = {
-		[TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN] = true,
-		[TRANSMOGRIFY_TOOLTIP_ITEM_UNKNOWN_APPEARANCE_KNOWN] = true,
-	}
+	function K:InspectItemTextures()
+		if not tip.gems then
+			tip.gems = {}
+		else
+			wipe(tip.gems)
+		end
 
-	local slotData = { gems = {}, gemsColor = {} }
+		for i = 1, 5 do
+			local tex = _G["KKUI_ScanTooltipTexture" .. i]
+			local texture = tex and tex:IsShown() and tex:GetTexture()
+			if texture then
+				tip.gems[i] = texture
+			end
+		end
+
+		return tip.gems
+	end
+
 	function K.GetItemLevel(link, arg1, arg2, fullScan)
 		if fullScan then
-			local data = C_TooltipInfo.GetInventoryItem(arg1, arg2)
-			if not data then
-				return
+			tip:SetOwner(UIParent, "ANCHOR_NONE")
+			tip:SetInventoryItem(arg1, arg2)
+
+			if not tip.slotInfo then
+				tip.slotInfo = {}
+			else
+				wipe(tip.slotInfo)
 			end
 
-			table_wipe(slotData.gems)
-			table_wipe(slotData.gemsColor)
-			slotData.iLvl = nil
-			slotData.enchantText = nil
+			local slotInfo = tip.slotInfo
+			slotInfo.gems = K:InspectItemTextures()
 
-			local isHoA = data.id == 158075
-			local num = 0
-			for i = 2, #data.lines do
-				local lineData = data.lines[i]
-				if not slotData.iLvl then
-					local text = lineData.leftText
-					local found = text and strfind(text, itemLevelString)
-					if found then
-						local level = strmatch(text, "(%d+)%)?$")
-						slotData.iLvl = tonumber(level) or 0
-					end
-				elseif isHoA then
-					if lineData.essenceIcon then
-						num = num + 1
-						slotData.gems[num] = lineData.essenceIcon
-						slotData.gemsColor[num] = lineData.leftColor
-					end
-				else
-					if lineData.enchantID then
-						slotData.enchantText = strmatch(lineData.leftText, enchantString)
-					elseif lineData.gemIcon then
-						num = num + 1
-						slotData.gems[num] = lineData.gemIcon
-					elseif lineData.socketType then
-						num = num + 1
-						slotData.gems[num] = format("Interface\\ItemSocketingFrame\\UI-EmptySocket-%s", lineData.socketType)
-					end
-				end
-			end
-
-			return slotData
+			return slotInfo
 		else
 			if iLvlDB[link] then
 				return iLvlDB[link]
 			end
 
-			local data
+			tip:SetOwner(UIParent, "ANCHOR_NONE")
 			if arg1 and type(arg1) == "string" then
-				data = C_TooltipInfo.GetInventoryItem(arg1, arg2)
+				tip:SetInventoryItem(arg1, arg2)
 			elseif arg1 and type(arg1) == "number" then
-				data = C_TooltipInfo.GetBagItem(arg1, arg2)
+				tip:SetBagItem(arg1, arg2)
 			else
-				data = C_TooltipInfo.GetHyperlink(link, nil, nil, true)
+				tip:SetHyperlink(link)
 			end
-			if not data then
-				return
+
+			local firstLine = _G.KKUI_ScanTooltipTextLeft1:GetText()
+			if firstLine == RETRIEVING_ITEM_INFO then
+				return "tooSoon"
 			end
 
 			for i = 2, 5 do
-				local lineData = data.lines[i]
-				if not lineData then
+				local line = _G["KKUI_ScanTooltipTextLeft" .. i]
+				if not line then
 					break
 				end
-				local text = lineData.leftText
+
+				local text = line:GetText()
 				local found = text and strfind(text, itemLevelString)
 				if found then
 					local level = strmatch(text, "(%d+)%)?$")
@@ -572,24 +560,64 @@ do
 					break
 				end
 			end
+
 			return iLvlDB[link]
 		end
 	end
 
-	function K.IsUnknownTransmog(bagID, slotID)
-		local data = C_TooltipInfo.GetBagItem(bagID, slotID)
-		local lineData = data and data.lines
-		if not lineData then
-			return
+	local pendingNPCs, nameCache, callbacks = {}, {}, {}
+	local loadingStr = "..."
+	local pendingFrame = CreateFrame("Frame")
+	pendingFrame:Hide()
+	pendingFrame:SetScript("OnUpdate", function(self, elapsed)
+		self.elapsed = (self.elapsed or 0) + elapsed
+		if self.elapsed > 1 then
+			if next(pendingNPCs) then
+				for npcID, count in pairs(pendingNPCs) do
+					if count > 2 then
+						nameCache[npcID] = UNKNOWN
+						if callbacks[npcID] then
+							callbacks[npcID](UNKNOWN)
+						end
+						pendingNPCs[npcID] = nil
+					else
+						local name = K.GetNPCName(npcID, callbacks[npcID])
+						if name and name ~= loadingStr then
+							pendingNPCs[npcID] = nil
+						else
+							pendingNPCs[npcID] = pendingNPCs[npcID] + 1
+						end
+					end
+				end
+			else
+				self:Hide()
+			end
+
+			self.elapsed = 0
+		end
+	end)
+
+	function K.GetNPCName(npcID, callback)
+		local name = nameCache[npcID]
+		if not name then
+			tip:SetOwner(UIParent, "ANCHOR_NONE")
+			tip:SetHyperlink(format("unit:Creature-0-0-0-0-%d", npcID))
+			name = _G.KKUI_ScanTooltipTextLeft1:GetText() or loadingStr
+			if name == loadingStr then
+				if not pendingNPCs[npcID] then
+					pendingNPCs[npcID] = 1
+					pendingFrame:Show()
+				end
+			else
+				nameCache[npcID] = name
+			end
+		end
+		if callback then
+			callback(name)
+			callbacks[npcID] = callback
 		end
 
-		for i = #lineData, 1, -1 do
-			local line = lineData[i]
-			if line.price then
-				return false
-			end
-			return line.leftText and isUnknownString[line.leftText]
-		end
+		return name
 	end
 end
 

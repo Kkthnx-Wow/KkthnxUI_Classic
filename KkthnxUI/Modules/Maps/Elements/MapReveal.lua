@@ -110,8 +110,17 @@ function Module:MapData_RefreshOverlays(fullUpdate)
 					end
 					texture:SetWidth(texturePixelWidth)
 					texture:SetHeight(texturePixelHeight)
-					texture:SetTexCoord(0, texturePixelWidth / textureFileWidth, 0, texturePixelHeight / textureFileHeight)
-					texture:SetPoint("TOPLEFT", offsetX + (TILE_SIZE_WIDTH * (k - 1)), -(offsetY + (TILE_SIZE_HEIGHT * (j - 1))))
+					texture:SetTexCoord(
+						0,
+						texturePixelWidth / textureFileWidth,
+						0,
+						texturePixelHeight / textureFileHeight
+					)
+					texture:SetPoint(
+						"TOPLEFT",
+						offsetX + (TILE_SIZE_WIDTH * (k - 1)),
+						-(offsetY + (TILE_SIZE_HEIGHT * (j - 1)))
+					)
 					texture:SetTexture(fileDataIDs[((j - 1) * numTexturesWide) + k], nil, nil, "TRILINEAR")
 
 					if KkthnxUIDB.Variables[K.Realm][K.Name].RevealWorldMap then
@@ -146,9 +155,10 @@ function Module:CreateWorldMapReveal()
 		return
 	end
 
-	local bu = CreateFrame("CheckButton", nil, WorldMapFrame.BorderFrame.TitleContainer, "OptionsBaseCheckButtonTemplate")
+	local bu = CreateFrame("CheckButton", nil, WorldMapFrame, "OptionsBaseCheckButtonTemplate")
+	bu:SetFrameLevel(WorldMapFrame:GetFrameLevel() + 2)
 	bu:SetHitRectInsets(-5, -5, -5, -5)
-	bu:SetPoint("TOPRIGHT", -260, 0)
+	bu:SetPoint("TOPLEFT", 25, 0)
 	bu:SetSize(24, 24)
 	bu:SetChecked(KkthnxUIDB.Variables[K.Realm][K.Name].RevealWorldMap)
 	bu.text = K.CreateFontString(bu, 12, "Map Reveal", "", "system", "LEFT", 24, 0)

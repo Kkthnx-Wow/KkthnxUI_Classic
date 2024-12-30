@@ -20,7 +20,6 @@ local GameTooltip_Hide = GameTooltip_Hide
 local ITEM_QUALITY_COLORS = ITEM_QUALITY_COLORS
 local GREED, NEED, PASS = GREED, NEED, PASS
 local ROLL_DISENCHANT = ROLL_DISENCHANT
-local TRANSMOGRIFICATION = TRANSMOGRIFICATION
 
 local enableDisenchant = false
 
@@ -110,10 +109,9 @@ end
 
 local iconCoords = {
 	[0] = { -0.05, 1.05, -0.05, 1.05 }, -- pass
-	[1] = { 0.025, 1.025, -0.05, 0.95 }, -- need
-	[2] = { 0, 1, 0.05, 0.95 }, -- greed
-	[3] = { 0, 1, 0, 1 }, -- disenchant
-	[4] = { 0, 1, 0, 1 }, -- transmog
+	[1] = { 0, 1, -0.05, 0.95 }, -- need
+	[2] = { 0, 1, -0.025, 0.85 }, -- greed
+	[3] = { 0, 1, -0.05, 0.95 }, -- disenchant
 }
 
 local function RollTexCoords(button, icon, minX, maxX, minY, maxY)
@@ -235,11 +233,10 @@ function Module:CreateRollBar(name)
 	status.spark:SetBlendMode("ADD")
 	status.spark:SetPoint("CENTER", status:GetStatusBarTexture(), "RIGHT", 0, 0)
 
-	bar.need = CreateRollButton(bar, [[lootroll-toast-icon-need]], 1, NEED, { "LEFT", bar.button, "RIGHT", 6, 0 }, true)
-	bar.transmog = CreateRollButton(bar, [[lootroll-toast-icon-transmog]], 4, TRANSMOGRIFICATION, { "LEFT", bar.need, "RIGHT", 3, 0 }, true)
-	bar.greed = CreateRollButton(bar, [[lootroll-toast-icon-greed]], 2, GREED, { "LEFT", bar.need, "RIGHT", 3, 0 }, true)
-	bar.disenchant = enableDisenchant and CreateRollButton(bar, [[lootroll-toast-icon-disenchant]], 3, ROLL_DISENCHANT, { "LEFT", bar.greed, "RIGHT", 3, 0 }, true)
-	bar.pass = CreateRollButton(bar, [[lootroll-toast-icon-pass]], 0, PASS, { "LEFT", bar.disenchant or bar.greed, "RIGHT", 3, 0 }, true)
+	bar.need = CreateRollButton(bar, [[Interface\Buttons\UI-GroupLoot-Dice]], 1, NEED, { "LEFT", bar.button, "RIGHT", 6, 0 })
+	bar.greed = CreateRollButton(bar, [[Interface\Buttons\UI-GroupLoot-Coin]], 2, GREED, { "LEFT", bar.need, "RIGHT", 3, 0 })
+	bar.disenchant = enableDisenchant and CreateRollButton(bar, [[Interface\Buttons\UI-GroupLoot-DE]], 3, ROLL_DISENCHANT, { "LEFT", bar.greed, "RIGHT", 3, 0 })
+	bar.pass = CreateRollButton(bar, [[Interface\Buttons\UI-GroupLoot-Pass]], 0, PASS, { "LEFT", bar.disenchant or bar.greed, "RIGHT", 3, 0 })
 
 	local bind = bar:CreateFontString()
 	bind:SetPoint("LEFT", bar.pass, "RIGHT", 3, 0)
@@ -280,7 +277,7 @@ local function GetFrame()
 end
 
 function Module:LootRoll_Start(rollID, rollTime)
-	local texture, name, count, quality, bop, canNeed, canGreed, canDisenchant, reasonNeed, reasonGreed, reasonDisenchant, deSkillRequired, canTransmog = GetLootRollItemInfo(rollID)
+	local texture, name, count, quality, bop, canNeed, canGreed, canDisenchant, reasonNeed, reasonGreed, reasonDisenchant, deSkillRequired = GetLootRollItemInfo(rollID)
 
 	if not name then
 		for _, rollBar in next, Module.RollBars do
@@ -316,26 +313,21 @@ function Module:LootRoll_Start(rollID, rollTime)
 
 	bar.button.KKUI_Border:SetVertexColor(color.r, color.g, color.b)
 
-	bar.need.text:SetText("")
+	bar.need.text:SetText(0)
 	bar.need:SetEnabled(canNeed)
 	bar.need.tiptext = canNeed and NEED or _G["LOOT_ROLL_INELIGIBLE_REASON" .. reasonNeed]
 
-	bar.transmog.text:SetText("")
-	bar.transmog:SetShown(not not canTransmog)
-	bar.transmog:SetEnabled(canTransmog)
-
-	bar.greed.text:SetText("")
-	bar.greed:SetShown(not canTransmog)
+	bar.greed.text:SetText(0)
 	bar.greed:SetEnabled(canGreed)
 	bar.greed.tiptext = canGreed and GREED or _G["LOOT_ROLL_INELIGIBLE_REASON" .. reasonGreed]
 
 	if bar.disenchant then
-		bar.disenchant.text:SetText("")
+		bar.disenchant.text:SetText(0)
 		bar.disenchant:SetEnabled(canDisenchant)
-		bar.disenchant.tiptext = canDisenchant and ROLL_DISENCHANT or format(_G["LOOT_ROLL_INELIGIBLE_REASON" .. reasonDisenchant], deSkillRequired)
+		bar.disenchant.tiptext = canDisenchant and ROLL_DISENCHANT or _G["LOOT_ROLL_INELIGIBLE_REASON" .. reasonDisenchant] and format(_G["LOOT_ROLL_INELIGIBLE_REASON" .. reasonDisenchant], deSkillRequired)
 	end
 
-	bar.pass.text:SetText("")
+	bar.pass.text:SetText(0)
 
 	bar.fsbind:SetText(bop and L["BoP"] or L["BoE"])
 	bar.fsbind:SetVertexColor(bop and 1 or 0.3, bop and 0.3 or 1, bop and 0.1 or 0.3)
@@ -363,48 +355,19 @@ local function GetRollBarByID(rollID)
 	end
 end
 
-function Module:LootRoll_GetRollID(encounterID, lootListID)
-	local index = cachedIndex[encounterID]
-	return index and (index + lootListID - 1)
-end
+function Module:LootRoll_UpdateDrops(itemIdx, playerIdx)
+	local rollID = C_LootHistory.GetItem(itemIdx)
+	local name, class, rollType = C_LootHistory.GetPlayerInfo(itemIdx, playerIdx)
 
-local rollStateToType = {
-	-- [Enum.EncounterLootDropRollState.NeedMainSpec] = 1,
-	-- -- [Enum.EncounterLootDropRollState.NeedOffSpec] = 1,
-	-- [Enum.EncounterLootDropRollState.Transmog] = 4,
-	-- [Enum.EncounterLootDropRollState.Greed] = 2,
-	-- [Enum.EncounterLootDropRollState.Pass] = 0,
-}
-
-function Module:LootRoll_UpdateDrops(encounterID, lootListID)
-	local dropInfo = C_LootHistory.GetSortedInfoForDrop(encounterID, lootListID)
-	local rollID = Module:LootRoll_GetRollID(encounterID, lootListID)
-
-	if rollID then
-		cachedRolls[rollID] = {}
-		-- Check if dropInfo is not nil
-		if dropInfo and not dropInfo.allPassed then
-			for _, roll in ipairs(dropInfo.rollInfos) do
-				local rollType = rollStateToType[roll.state]
-				if rollType then
-					cachedRolls[rollID][rollType] = cachedRolls[rollID][rollType] or {}
-					tinsert(cachedRolls[rollID][rollType], { roll.playerName, roll.playerClass })
-				end
-			end
-		end
+	if rollID and name and rollType then
+		cachedRolls[rollID] = cachedRolls[rollID] or {}
+		cachedRolls[rollID][rollType] = cachedRolls[rollID][rollType] or {}
+		tinsert(cachedRolls[rollID][rollType], { name, class })
 
 		local bar = GetRollBarByID(rollID)
 		if bar then
-			for rollType in pairs(cachedRolls[rollID]) do
-				bar[rolltypes[rollType]].text:SetText(#cachedRolls[rollID][rollType])
-			end
+			bar[rolltypes[rollType]].text:SetText(#cachedRolls[rollID][rollType])
 		end
-	end
-end
-
-function Module:LootRoll_EncounterEnd(id, _, _, _, status)
-	if status == 1 then
-		Module.EncounterID = id
 	end
 end
 
@@ -420,20 +383,19 @@ function Module:LootRoll_Cancel(_, rollID)
 end
 
 function Module:CreateGroupLoot()
-	-- if not C["Loot"].GroupLoot then
-	-- 	return
-	-- end
+	if not C["Loot"].GroupLoot then
+		return
+	end
 
-	-- parentFrame = CreateFrame("Frame", nil, UIParent)
-	-- parentFrame:SetSize(RollWidth, RollHeight)
-	-- K.Mover(parentFrame, "GroupLootMover", "GroupLootMover", { "TOP", UIParent, 0, -200 })
+	parentFrame = CreateFrame("Frame", nil, UIParent)
+	parentFrame:SetSize(RollWidth, RollHeight)
+	K.Mover(parentFrame, "GroupLootMover", "GroupLootMover", { "TOP", UIParent, 0, -200 })
 
-	-- -- K:RegisterEvent("LOOT_HISTORY_UPDATE_DROP", self.LootRoll_UpdateDrops)
-	-- K:RegisterEvent("ENCOUNTER_END", self.LootRoll_EncounterEnd)
-	-- K:RegisterEvent("START_LOOT_ROLL", self.LootRoll_Start)
+	K:RegisterEvent("LOOT_HISTORY_ROLL_CHANGED", self.LootRoll_UpdateDrops)
+	K:RegisterEvent("START_LOOT_ROLL", self.LootRoll_Start)
 
-	-- _G.UIParent:UnregisterEvent("START_LOOT_ROLL")
-	-- _G.UIParent:UnregisterEvent("CANCEL_LOOT_ROLL")
+	_G.UIParent:UnregisterEvent("START_LOOT_ROLL")
+	_G.UIParent:UnregisterEvent("CANCEL_LOOT_ROLL")
 end
 
 local testFrame
@@ -460,7 +422,6 @@ function Module:LootRollTest()
 	testFrame:Show()
 	testFrame:SetPoint("TOP", parentFrame, "TOP")
 	testFrame.need:SetScript("OnClick", OnClick_Hide)
-	testFrame.transmog:SetScript("OnClick", OnClick_Hide)
 	testFrame.greed:SetScript("OnClick", OnClick_Hide)
 	testFrame.greed:Hide()
 	if testFrame.disenchant then
@@ -470,7 +431,6 @@ function Module:LootRollTest()
 
 	local itemID = 17103
 	local bop = 1
-	local canTransmog = true
 	local item = Item:CreateFromItemID(itemID)
 	item:ContinueOnItemLoad(function()
 		local name, link, quality, itemLevel, _, _, _, _, _, icon = C_Item.GetItemInfo(itemID)
@@ -480,9 +440,6 @@ function Module:LootRollTest()
 		testFrame.fsloot:SetText(name)
 		testFrame.fsbind:SetText(bop and "BoP" or "BoE")
 		testFrame.fsbind:SetVertexColor(bop and 1 or 0.3, bop and 0.3 or 1, bop and 0.1 or 0.3)
-
-		testFrame.transmog:SetShown(not not canTransmog)
-		testFrame.greed:SetShown(not canTransmog)
 
 		testFrame.status:SetStatusBarColor(color.r, color.g, color.b, 0.7)
 		testFrame.status:SetMinMaxValues(0, 100)

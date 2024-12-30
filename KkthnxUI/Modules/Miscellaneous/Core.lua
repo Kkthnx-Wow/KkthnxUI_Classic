@@ -144,7 +144,6 @@ function Module:OnEnable()
 		"CreateTicketStatusFrameMove",
 		"CreateTradeTargetInfo",
 		"CreateVehicleSeatMover",
-		"UpdateyClassColors",
 		"UpdateMaxCameraZoom",
 		-- "CreateObjectiveSizeUpdate",
 		-- "CreateQuestSizeUpdate",

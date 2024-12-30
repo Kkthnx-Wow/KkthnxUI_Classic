@@ -6,9 +6,11 @@ local wipe, select, pairs = wipe, _G.select, _G.pairs
 local ATTACHMENTS_MAX_RECEIVE, ERR_MAIL_DELETE_ITEM_ERROR = ATTACHMENTS_MAX_RECEIVE, _G.ERR_MAIL_DELETE_ITEM_ERROR
 local C_Mail_HasInboxMoney = C_Mail.HasInboxMoney
 local C_Mail_IsCommandPending = C_Mail.IsCommandPending
-local GetInboxNumItems, GetInboxHeaderInfo, GetInboxItem, GetItemInfo = GetInboxNumItems, _G.GetInboxHeaderInfo, _G.GetInboxItem, _G.GetItemInfo
+local GetInboxNumItems, GetInboxHeaderInfo, GetInboxItem, GetItemInfo =
+	GetInboxNumItems, _G.GetInboxHeaderInfo, _G.GetInboxItem, _G.GetItemInfo
 local GetSendMailPrice, GetMoney = GetSendMailPrice, _G.GetMoney
-local InboxItemCanDelete, DeleteInboxItem, TakeInboxMoney, TakeInboxItem = InboxItemCanDelete, _G.DeleteInboxItem, _G.TakeInboxMoney, _G.TakeInboxItem
+local InboxItemCanDelete, DeleteInboxItem, TakeInboxMoney, TakeInboxItem =
+	InboxItemCanDelete, _G.DeleteInboxItem, _G.TakeInboxMoney, _G.TakeInboxItem
 local NORMAL_STRING = GUILDCONTROL_OPTION16
 local OPENING_STRING = OPEN_ALL_MAIL_BUTTON_OPENING
 local GameTooltip = GameTooltip
@@ -69,7 +71,13 @@ function Module:InboxItem_OnEnter()
 				local itemName, _, itemQuality, _, _, _, _, _, _, itemTexture = GetItemInfo(itemID)
 				if itemName then
 					local r, g, b = GetItemQualityColor(itemQuality)
-					GameTooltip:AddDoubleLine(" |T" .. itemTexture .. ":12:12:0:0:50:50:4:46:4:46|t " .. itemName, count, r, g, b)
+					GameTooltip:AddDoubleLine(
+						" |T" .. itemTexture .. ":12:12:0:0:50:50:4:46:4:46|t " .. itemName,
+						count,
+						r,
+						g,
+						b
+					)
 				end
 			end
 			GameTooltip:Show()
@@ -186,7 +194,13 @@ function Module:MailBox_CollectCurrent()
 end
 
 function Module:CollectCurrentButton()
-	local button = Module:MailBox_CreatButton(OpenMailFrame, 82, 22, L["Take All"], { "RIGHT", "OpenMailReplyButton", "LEFT", -1, 0 })
+	local button = Module:MailBox_CreatButton(
+		OpenMailFrame,
+		82,
+		22,
+		L["Take All"],
+		{ "RIGHT", "OpenMailReplyButton", "LEFT", -1, 0 }
+	)
 	button:SetScript("OnClick", Module.MailBox_CollectCurrent)
 end
 
@@ -248,7 +262,8 @@ function OpenAllMail:AdvanceToNextItem()
 		local itemID = select(2, GetInboxItem(self.mailIndex, self.attachmentIndex))
 		local hasBlacklistedItem = self:IsItemBlacklisted(itemID)
 		local hasCOD = CODAmount and CODAmount > 0
-		local hasMoneyOrItem = C_Mail.HasInboxMoney(self.mailIndex) or HasInboxItem(self.mailIndex, self.attachmentIndex)
+		local hasMoneyOrItem = C_Mail.HasInboxMoney(self.mailIndex)
+			or HasInboxItem(self.mailIndex, self.attachmentIndex)
 		if not hasBlacklistedItem and not isGM and not hasCOD and hasMoneyOrItem then
 			foundAttachment = true
 		else

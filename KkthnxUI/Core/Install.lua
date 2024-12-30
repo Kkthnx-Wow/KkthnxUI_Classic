@@ -231,11 +231,11 @@ function Module:ForceChatSettings()
 	-- Configure ChatFrame2 (Combat Log)
 	FCF_DockFrame(ChatFrame2)
 	FCF_SetLocked(ChatFrame2, true)
-	FCF_SetWindowName(ChatFrame2, L["Combat"])
+	FCF_SetWindowName(ChatFrame2, GUILD_BANK_LOG)
 	ChatFrame2:Show()
 
 	-- Configure Whispers Window
-	local Whispers = FCF_OpenNewWindow("Whispers")
+	local Whispers = FCF_OpenNewWindow(WHISPER)
 	FCF_SetLocked(Whispers, true)
 	FCF_DockFrame(Whispers)
 	ChatFrame_RemoveAllMessageGroups(Whispers)
@@ -244,7 +244,7 @@ function Module:ForceChatSettings()
 	ChatFrame_AddMessageGroup(Whispers, "BN_CONVERSATION")
 
 	-- Configure Trade Window
-	local Trade = FCF_OpenNewWindow(L["Trade"])
+	local Trade = FCF_OpenNewWindow(TRADE)
 	FCF_SetLocked(Trade, true)
 	FCF_DockFrame(Trade)
 	ChatFrame_RemoveAllMessageGroups(Trade)
@@ -253,7 +253,7 @@ function Module:ForceChatSettings()
 	ChatFrame_AddChannel(Trade, L["Services"])
 
 	-- Configure Loot Window
-	local Loot = FCF_OpenNewWindow(L["Loot"])
+	local Loot = FCF_OpenNewWindow(LOOT)
 	FCF_SetLocked(Loot, true)
 	FCF_DockFrame(Loot)
 	ChatFrame_RemoveAllMessageGroups(Loot)

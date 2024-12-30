@@ -19,6 +19,8 @@
    <Script file="DataText\Elements\Time.lua" /> -->
    <!-- Blizzard -->
    <Script file="Blizzard\Core.lua" />
+   <Script file="Blizzard\Elements\MirrorBars.lua" />
+   <Script file="Blizzard\Elements\TimerTracker.lua" />
    <!-- <Script file="Blizzard\Elements\AlertFrames.lua" />
    <Script file="Blizzard\Elements\AltPowerBar.lua" />
    <Script file="Blizzard\Elements\ColorPicker.lua" />
@@ -109,6 +111,8 @@
    <Script file="Miscellaneous\Elements\ExpRep.lua" />
    <Script file="Miscellaneous\Elements\AFKCam.lua" />
    <Script file="Miscellaneous\Elements\MovableFrames.lua" />
+   <Script file="Miscellaneous\Elements\ImprovedMail.lua" />
+   <Script file="Miscellaneous\Elements\yClassColors.lua" />
    <!-- <Script file="Miscellaneous\Elements\AlreadyKnown.lua" />
    <Script file="Miscellaneous\Elements\ImprovedMail.lua" />
    <Script file="Miscellaneous\Elements\MDGuildBest.lua" />
@@ -120,8 +124,7 @@
    <Script file="Miscellaneous\Elements\QuickJoin.lua" />
    <Script file="Miscellaneous\Elements\RaidTool.lua" />
    <Script file="Miscellaneous\Elements\SlotItemLevel.lua" />
-   <Script file="Miscellaneous\Elements\TradeTabs.lua" />
-   <Script file="Miscellaneous\Elements\yClassColors.lua" /> -->
+   <Script file="Miscellaneous\Elements\TradeTabs.lua" /> -->
    <!-- Announcements -->
    <Script file="Announcements\Core.lua" />
    <Script file="Announcements\Elements\QuestNotifier.lua" />
@@ -130,13 +133,16 @@
    <Script file="Announcements\Elements\HealthAlert.lua" />
    <Script file="Announcements\Elements\Interrupt.lua" />
    <Script file="Announcements\Elements\ItemAlert.lua" />
-   <Script file="Announcements\Elements\Keystone.lua" />
    <Script file="Announcements\Elements\KillingBlow.lua" />
    <Script file="Announcements\Elements\QuestNotifier.lua" />
    <Script file="Announcements\Elements\RareAlert.lua" />
    <Script file="Announcements\Elements\ResetInstance.lua" />
    <Script file="Announcements\Elements\Sapped.lua" /> -->
    <!-- Automation -->
+   <Script file="Automation\Core.lua" />
+   <Script file="Automation\Elements\DeclineDuel.lua" />
+   <Script file="Automation\Elements\Invite.lua" />
+   <Script file="Automation\Elements\Resurrect.lua" />
    <!-- <Script file="Automation\Core.lua" />
    <Script file="Automation\Elements\AutoKeystone.lua" />
    <Script file="Automation\Elements\AutoOpen.lua" />

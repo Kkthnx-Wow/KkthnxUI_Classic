@@ -89,59 +89,63 @@ function Module:CreateStyle()
 end
 
 function Module:ReskinRegions()
-	-- QueueStatus Button
-	if QueueStatusButton then
-		QueueStatusButton:SetParent(MinimapCluster)
-		QueueStatusButton:SetSize(24, 24)
-		QueueStatusButton:SetFrameLevel(20)
-		QueueStatusButton:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -4, 4)
+	-- -- QueueStatus Button
+	-- if LFGMinimapFrame then
+	-- 	LFGMinimapFrame:SetParent(MinimapCluster)
+	-- 	LFGMinimapFrame:SetSize(24, 24)
+	-- 	LFGMinimapFrame:SetFrameLevel(20)
+	-- 	LFGMinimapFrame:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -4, 4)
 
-		QueueStatusButtonIcon:SetAlpha(0)
+	-- 	LFGMinimapFrameIcon:SetAlpha(0)
 
-		QueueStatusFrame:SetPoint("TOPRIGHT", QueueStatusButton, "TOPLEFT")
+	-- 	QueueStatusFrame:SetPoint("TOPRIGHT", LFGMinimapFrame, "TOPLEFT")
 
-		hooksecurefunc(QueueStatusButton, "SetPoint", function(button, _, _, _, x, y)
-			if not (x == -4 and y == 4) then
-				button:ClearAllPoints()
-				button:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -4, 4)
-			end
-		end)
+	-- 	hooksecurefunc(LFGMinimapFrame, "SetPoint", function(button, _, _, _, x, y)
+	-- 		if not (x == -4 and y == 4) then
+	-- 			button:ClearAllPoints()
+	-- 			button:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -4, 4)
+	-- 		end
+	-- 	end)
 
-		local queueIcon = Minimap:CreateTexture(nil, "ARTWORK")
-		queueIcon:SetPoint("CENTER", QueueStatusButton)
-		queueIcon:SetSize(56, 56)
-		queueIcon:SetTexture("Interface\\Minimap\\Dungeon_Icon")
+	-- 	local queueIcon = Minimap:CreateTexture(nil, "ARTWORK")
+	-- 	queueIcon:SetPoint("CENTER", LFGMinimapFrame)
+	-- 	queueIcon:SetSize(56, 56)
+	-- 	queueIcon:SetTexture("Interface\\Minimap\\Dungeon_Icon")
 
-		local anim = queueIcon:CreateAnimationGroup()
-		anim:SetLooping("REPEAT")
-		anim.rota = anim:CreateAnimation("Rotation")
-		anim.rota:SetDuration(2)
-		anim.rota:SetDegrees(360)
+	-- 	local anim = queueIcon:CreateAnimationGroup()
+	-- 	anim:SetLooping("REPEAT")
+	-- 	anim.rota = anim:CreateAnimation("Rotation")
+	-- 	anim.rota:SetDuration(2)
+	-- 	anim.rota:SetDegrees(360)
 
-		hooksecurefunc(QueueStatusFrame, "Update", function()
-			queueIcon:SetShown(QueueStatusButton:IsShown())
-		end)
+	-- 	hooksecurefunc(QueueStatusFrame, "Update", function()
+	-- 		queueIcon:SetShown(LFGMinimapFrame:IsShown())
+	-- 	end)
 
-		hooksecurefunc(QueueStatusButton.Eye, "PlayAnim", function()
-			anim:Play()
-		end)
+	-- 	hooksecurefunc(LFGMinimapFrame.Eye, "PlayAnim", function()
+	-- 		anim:Play()
+	-- 	end)
 
-		hooksecurefunc(QueueStatusButton.Eye, "StopAnimating", function()
-			anim:Pause()
-		end)
+	-- 	hooksecurefunc(LFGMinimapFrame.Eye, "StopAnimating", function()
+	-- 		anim:Pause()
+	-- 	end)
 
-		local queueStatusDisplay = Module.QueueStatusDisplay
-		if queueStatusDisplay then
-			queueStatusDisplay.text:ClearAllPoints()
-			queueStatusDisplay.text:SetPoint("CENTER", QueueStatusButton, 0, -5)
-			queueStatusDisplay.text:SetFontObject(K.UIFont)
-			queueStatusDisplay.text:SetFont(select(1, queueStatusDisplay.text:GetFont()), 13, select(3, queueStatusDisplay.text:GetFont()))
+	-- 	local queueStatusDisplay = Module.QueueStatusDisplay
+	-- 	if queueStatusDisplay then
+	-- 		queueStatusDisplay.text:ClearAllPoints()
+	-- 		queueStatusDisplay.text:SetPoint("CENTER", LFGMinimapFrame, 0, -5)
+	-- 		queueStatusDisplay.text:SetFontObject(K.UIFont)
+	-- 		queueStatusDisplay.text:SetFont(
+	-- 			select(1, queueStatusDisplay.text:GetFont()),
+	-- 			13,
+	-- 			select(3, queueStatusDisplay.text:GetFont())
+	-- 		)
 
-			if queueStatusDisplay.title then
-				Module:ClearQueueStatus()
-			end
-		end
-	end
+	-- 		if queueStatusDisplay.title then
+	-- 			Module:ClearQueueStatus()
+	-- 		end
+	-- 	end
+	-- end
 
 	-- Difficulty Flags
 	local instDifficulty = MinimapCluster.InstanceDifficulty
@@ -185,12 +189,13 @@ function Module:ReskinRegions()
 	if MiniMapMailFrame then
 		MiniMapMailFrame:ClearAllPoints()
 		if C["DataText"].Time then
-			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 6)
+			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 14)
 		else
 			MiniMapMailFrame:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, 4)
 		end
 		MiniMapMailIcon:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Minimap\\Mail")
-		MiniMapMailIcon:SetSize(20, 13)
+		MiniMapMailIcon:SetSize(64, 58)
+		MiniMapMailIcon:SetScale(0.5)
 	end
 
 	if TimeManagerClockButton then
@@ -331,13 +336,13 @@ function Module:ShowCalendar()
 			GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
 			GameTimeFrame:SetSize(22, 22)
 
-			calendarText:ClearAllPoints()
-			calendarText:SetPoint("CENTER", 0, -4)
-			calendarText:SetFontObject(K.UIFont)
-			calendarText:SetFont(select(1, calendarText:GetFont()), 12, select(3, calendarText:GetFont()))
-			calendarText:SetTextColor(0, 0, 0)
-			calendarText:SetShadowOffset(0, 0)
-			calendarText:SetAlpha(0.9)
+			-- calendarText:ClearAllPoints()
+			-- calendarText:SetPoint("CENTER", 0, -4)
+			-- calendarText:SetFontObject(K.UIFont)
+			-- calendarText:SetFont(select(1, calendarText:GetFont()), 12, select(3, calendarText:GetFont()))
+			-- calendarText:SetTextColor(0, 0, 0)
+			-- calendarText:SetShadowOffset(0, 0)
+			-- calendarText:SetAlpha(0.9)
 
 			-- hooksecurefunc("GameTimeFrame_SetDate", function()
 			-- 	GameTimeFrame:SetNormalTexture("Interface\\AddOns\\KkthnxUI\\Media\\Minimap\\Calendar.blp")
@@ -419,143 +424,6 @@ function Module:Minimap_OnMouseWheel(zoom)
 	end
 end
 
--- function Module:Minimap_TrackingDropdown()
--- 	local dropdown = CreateFrame("Frame", "KKUI_MiniMapTrackingDropDown", _G.UIParent, "UIDropDownMenuTemplate")
--- 	dropdown:SetID(1)
--- 	dropdown:SetClampedToScreen(true)
--- 	dropdown:Hide()
-
--- 	_G.UIDropDownMenu_Initialize(dropdown, _G.MiniMapTrackingDropDown_Initialize, "MENU")
--- 	dropdown.noResize = true
-
--- 	return dropdown
--- end
-
--- function Module:Minimap_OnMouseUp(btn)
--- 	K.EasyMenu:Hide()
-
--- 	if Module.TrackingDropdown then
--- 		_G.HideDropDownMenu(1, nil, Module.TrackingDropdown)
--- 	end
-
--- 	local position = Minimap.mover:GetPoint()
--- 	if btn == "MiddleButton" or (btn == "RightButton" and IsShiftKeyDown()) then
--- 		if InCombatLockdown() then
--- 			_G.UIErrorsFrame:AddMessage(K.InfoColor .. _G.ERR_NOT_IN_COMBAT)
--- 			return
--- 		end
-
--- 		if position:match("LEFT") then
--- 			K.LibEasyMenu.Create(menuList, K.EasyMenu, "cursor", 0, 0)
--- 		else
--- 			K.LibEasyMenu.Create(menuList, K.EasyMenu, "cursor", -160, 0)
--- 		end
--- 	elseif btn == "RightButton" then
--- 		local button = _G.MinimapCluster.Tracking.Button
--- 		if button then
--- 			button:OpenMenu()
-
--- 			if button.menu then
--- 				local left = position and position:match("RIGHT")
--- 				button.menu:ClearAllPoints()
--- 				button.menu:SetPoint(left and "TOPRIGHT" or "TOPLEFT", Minimap, left and "LEFT" or "RIGHT", left and -4 or 4, 0)
--- 			end
--- 		end
--- 	else
--- 		_G.Minimap:OnClick(self)
--- 	end
--- end
-
-function Module:QueueStatusTimeFormat(seconds)
-	local hours = math_floor(mod(seconds, 86400) / 3600)
-	if hours > 0 then
-		return Module.QueueStatusDisplay.text:SetFormattedText("%d" .. K.MyClassColor .. "h", hours)
-	end
-
-	local mins = math_floor(mod(seconds, 3600) / 60)
-	if mins > 0 then
-		return Module.QueueStatusDisplay.text:SetFormattedText("%d" .. K.MyClassColor .. "m", mins)
-	end
-
-	local secs = math_floor(seconds, 60)
-	if secs > 0 then
-		return Module.QueueStatusDisplay.text:SetFormattedText("%d" .. K.MyClassColor .. "s", secs)
-	end
-end
-
-function Module:QueueStatusSetTime(seconds)
-	local timeInQueue = GetTime() - seconds
-	Module:QueueStatusTimeFormat(timeInQueue)
-	Module.QueueStatusDisplay.text:SetTextColor(1, 1, 1)
-end
-
-function Module:QueueStatusOnUpdate(elapsed)
-	-- Replicate QueueStatusEntry_OnUpdate throttle
-	self.updateThrottle = self.updateThrottle - elapsed
-	if self.updateThrottle <= 0 then
-		Module:QueueStatusSetTime(self.queuedTime)
-		self.updateThrottle = 0.1
-	end
-end
-
-function Module:SetFullQueueStatus(title, queuedTime, averageWait)
-	if not C["Minimap"].QueueStatusText then
-		return
-	end
-
-	local display = Module.QueueStatusDisplay
-	if not display.title or display.title == title then
-		if queuedTime then
-			display.title = title
-			display.updateThrottle = 0
-			display.queuedTime = queuedTime
-			display.averageWait = averageWait
-			display:SetScript("OnUpdate", Module.QueueStatusOnUpdate)
-		else
-			Module:ClearQueueStatus()
-		end
-	end
-end
-
-function Module:SetMinimalQueueStatus(title)
-	if Module.QueueStatusDisplay.title == title then
-		Module:ClearQueueStatus()
-	end
-end
-
-function Module:ClearQueueStatus()
-	local display = Module.QueueStatusDisplay
-	display.text:SetText("")
-	display.title = nil
-	display.queuedTime = nil
-	display.averageWait = nil
-	display:SetScript("OnUpdate", nil)
-end
-
-function Module:CreateQueueStatusText()
-	local display = CreateFrame("Frame", "KKUI_QueueStatusDisplay", _G.QueueStatusButton)
-	display.text = display:CreateFontString(nil, "OVERLAY")
-
-	Module.QueueStatusDisplay = display
-
-	_G.QueueStatusButton:HookScript("OnHide", Module.ClearQueueStatus)
-	hooksecurefunc("QueueStatusEntry_SetMinimalDisplay", Module.SetMinimalQueueStatus)
-	hooksecurefunc("QueueStatusEntry_SetFullDisplay", Module.SetFullQueueStatus)
-end
-
-function Module:BlizzardACF()
-	local frame = AddonCompartmentFrame
-	if C["Minimap"].ShowRecycleBin then
-		K.HideInterfaceOption(frame)
-	else
-		frame:ClearAllPoints()
-		frame:SetPoint("BOTTOMRIGHT", Minimap, -26, 2)
-		frame:SetFrameLevel(999)
-		frame:StripTextures()
-		frame:CreateBorder()
-	end
-end
-
 function Module:OnEnable()
 	if not C["Minimap"].Enable then
 		return
@@ -574,9 +442,6 @@ function Module:OnEnable()
 	self:HideMinimapClock()
 	self:ShowCalendar()
 	self:UpdateMinimapScale()
-	if _G.QueueStatusButton then
-		Module:CreateQueueStatusText()
-	end
 
 	Minimap:EnableMouseWheel(true)
 	Minimap:SetScript("OnMouseWheel", Module.Minimap_OnMouseWheel)
