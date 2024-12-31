@@ -36,7 +36,7 @@ local function setupCheckButton()
 		return
 	end
 
-	local AutoQuestCheckButton = CreateFrame("CheckButton", nil, WorldMapFrame.BorderFrame.TitleContainer, "OptionsBaseCheckButtonTemplate")
+	local AutoQuestCheckButton = CreateFrame("CheckButton", nil, WorldMapFrame, "OptionsBaseCheckButtonTemplate")
 	AutoQuestCheckButton:SetPoint("TOPRIGHT", -140, 0)
 	AutoQuestCheckButton:SetSize(24, 24)
 
@@ -49,50 +49,18 @@ local function setupCheckButton()
 	AutoQuestCheckButton:SetScript("OnClick", function(self)
 		KkthnxUIDB.Variables[K.Realm][K.Name].AutoQuest = self:GetChecked()
 	end)
+	AutoQuestCheckButton.title = "Auto Quest"
+	K.AddTooltip(AutoQuestCheckButton, "ANCHOR_BOTTOMLEFT", "|nWhen enabled, quests and dialogs will be interacted with automatically.|n|nIf a gossip window has only one option, it will be automatically selected.|n|nHold the SHIFT key to temporarily pause automation.|n|nTo block an NPC from being auto-interacted with, hold the ALT key and click their name on the Gossip or Quest frame.", "info", "Auto Quest", true)
 
-	isCheckButtonCreated = true
-
-	function AutoQuestCheckButton.UpdateTooltip(self)
-		if GameTooltip:IsForbidden() then
-			return
-		end
-
-		GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 10)
-
-		local r, g, b = 0.2, 1.0, 0.2
-
-		if KkthnxUIDB.Variables[K.Realm][K.Name].AutoQuest == true then
-			GameTooltip:AddLine(L["Auto Quest Enabled"])
-			GameTooltip:AddLine(" ")
-			GameTooltip:AddLine(L["Auto Quest Enabled Desc"], r, g, b)
-		else
-			GameTooltip:AddLine(L["Auto Quest Disabled"])
-			GameTooltip:AddLine(" ")
-			GameTooltip:AddLine(L["Auto Quest Disabled Desc"], r, g, b)
-		end
-
-		GameTooltip:Show()
+	local QuestToggle = _G.Questie_Toggle
+	if QuestToggle then
+		QuestToggle:ClearAllPoints()
+		QuestToggle:SetHeight(22)
+		QuestToggle:SetPoint("LEFT", WorldMapZoomOutButton, "RIGHT", 5, 0)
+		QuestToggle.SetPoint = K.Noop
 	end
 
-	AutoQuestCheckButton:HookScript("OnEnter", function(self)
-		if GameTooltip:IsForbidden() then
-			return
-		end
-
-		self:UpdateTooltip()
-	end)
-
-	AutoQuestCheckButton:HookScript("OnLeave", function()
-		if GameTooltip:IsForbidden() then
-			return
-		end
-
-		GameTooltip:Hide()
-	end)
-
-	AutoQuestCheckButton:SetScript("OnClick", function(self)
-		KkthnxUIDB.Variables[K.Realm][K.Name].AutoQuest = self:GetChecked()
-	end)
+	isCheckButtonCreated = true
 end
 WorldMapFrame:HookScript("OnShow", setupCheckButton)
 
@@ -437,7 +405,6 @@ QuestNpcNameFrame:HookScript("OnShow", UnitQuickQuestStatus)
 QuestNpcNameFrame:HookScript("OnMouseDown", ToggleQuickQuestStatus)
 local frame = GossipFrame.TitleContainer
 if frame then
-	GossipFrameCloseButton:SetFrameLevel(frame:GetFrameLevel() + 1) -- fix clicking on gossip close button
 	frame:HookScript("OnShow", UnitQuickQuestStatus)
 	frame:HookScript("OnMouseDown", ToggleQuickQuestStatus)
 end

@@ -27,39 +27,7 @@ do
 	local Class = UnitClassBase("player")
 	local Unusable
 
-	if Class == "DEATHKNIGHT" then
-		Unusable = { -- weapon, armor, dual-wield
-			{
-				Enum.ItemWeaponSubclass.Bows,
-				Enum.ItemWeaponSubclass.Guns,
-				Enum.ItemWeaponSubclass.Warglaive,
-				Enum.ItemWeaponSubclass.Staff,
-				Enum.ItemWeaponSubclass.Unarmed,
-				Enum.ItemWeaponSubclass.Dagger,
-				Enum.ItemWeaponSubclass.Thrown,
-				Enum.ItemWeaponSubclass.Crossbow,
-				Enum.ItemWeaponSubclass.Wand,
-			},
-			{ Enum.ItemArmorSubclass.Shield },
-		}
-	elseif Class == "DEMONHUNTER" then
-		Unusable = {
-			{
-				Enum.ItemWeaponSubclass.Axe2H,
-				Enum.ItemWeaponSubclass.Bows,
-				Enum.ItemWeaponSubclass.Guns,
-				Enum.ItemWeaponSubclass.Mace1H,
-				Enum.ItemWeaponSubclass.Mace2H,
-				Enum.ItemWeaponSubclass.Polearm,
-				Enum.ItemWeaponSubclass.Sword2H,
-				Enum.ItemWeaponSubclass.Staff,
-				Enum.ItemWeaponSubclass.Thrown,
-				Enum.ItemWeaponSubclass.Crossbow,
-				Enum.ItemWeaponSubclass.Wand,
-			},
-			{ Enum.ItemArmorSubclass.Mail, Enum.ItemArmorSubclass.Plate, Enum.ItemArmorSubclass.Shield },
-		}
-	elseif Class == "DRUID" then
+	if Class == "DRUID" then
 		Unusable = {
 			{
 				Enum.ItemWeaponSubclass.Axe1H,
@@ -74,20 +42,6 @@ do
 				Enum.ItemWeaponSubclass.Wand,
 			},
 			{ Enum.ItemArmorSubclass.Mail, Enum.ItemArmorSubclass.Plate, Enum.ItemArmorSubclass.Shield },
-			true,
-		}
-	elseif Class == "EVOKER" then
-		Unusable = {
-			{
-				Enum.ItemWeaponSubclass.Bows,
-				Enum.ItemWeaponSubclass.Guns,
-				Enum.ItemWeaponSubclass.Polearm,
-				Enum.ItemWeaponSubclass.Warglaive,
-				Enum.ItemWeaponSubclass.Thrown,
-				Enum.ItemWeaponSubclass.Crossbow,
-				Enum.ItemWeaponSubclass.Wand,
-			},
-			{ Enum.ItemArmorSubclass.Plate, Enum.ItemArmorSubclass.Shield },
 			true,
 		}
 	elseif Class == "HUNTER" then

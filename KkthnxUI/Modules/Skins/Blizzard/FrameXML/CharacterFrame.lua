@@ -135,4 +135,13 @@ tinsert(C.defaultThemes, function()
 
 		CharacterLevelText:SetFormattedText("Level %d %s |c%s%s|r", UnitLevel("player"), raceDisplayName, classColorString, classDisplayName)
 	end)
+
+	hooksecurefunc("PaperDollFrame_SetGuild", function()
+		local guildName, title = GetGuildInfo("player")
+		local infoColorString = "|cff4ebdbb"
+
+		if guildName then
+			CharacterGuildText:SetFormattedText(GUILD_TITLE_TEMPLATE, infoColorString .. title .. "|r", guildName)
+		end
+	end)
 end)

@@ -51,6 +51,10 @@ Engine[3] = {} -- L, Localization
 local K, C, L = Engine[1], Engine[2], Engine[3]
 
 do -- Expansions
+	K.TBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC -- not used
+	K.Cata = WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC
+	K.Wrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+	K.Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 	K.Classic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
 	local season = C_Seasons and C_Seasons.GetActiveSeason()
@@ -66,19 +70,21 @@ do -- Expansions
 	K.IsEngravingEnabled = IsEngravingEnabled and IsEngravingEnabled()
 end
 
--- Lib Info
-K.LibEasyMenu = LibStub("LibEasyMenu-1.0-KkthnxUI", true) or nil
-K.LibBase64 = LibStub("LibBase64-1.0-KkthnxUI", true) or nil
-K.LibActionButton = LibStub("LibActionButton-1.0-KkthnxUI", true) or nil
-K.LibChangeLog = LibStub("LibChangelog-KkthnxUI", true) or nil
-K.LibDeflate = LibStub("LibDeflate-KkthnxUI", true) or nil
-K.LibSharedMedia = LibStub("LibSharedMedia-3.0", true) or nil
-K.LibRangeCheck = LibStub("LibRangeCheck-3.0-KkthnxUI", true) or nil
-K.LibSerialize = LibStub("LibSerialize-KkthnxUI", true) or nil
-K.LibCustomGlow = LibStub("LibCustomGlow-1.0-KkthnxUI", true) or nil
-K.LibUnfit = LibStub("Unfit-1.0-KkthnxUI", true) or nil
-K.cargBags = Engine and Engine.cargBags or nil
-K.oUF = Engine and Engine.oUF or nil
+do
+	-- Lib Info
+	K.LibEasyMenu = LibStub("LibEasyMenu-1.0-KkthnxUI", true) or nil
+	K.LibBase64 = LibStub("LibBase64-1.0-KkthnxUI", true) or nil
+	K.LibActionButton = LibStub("LibActionButton-1.0-KkthnxUI", true) or nil
+	K.LibChangeLog = LibStub("LibChangelog-KkthnxUI", true) or nil
+	K.LibDeflate = LibStub("LibDeflate-KkthnxUI", true) or nil
+	K.LibSharedMedia = LibStub("LibSharedMedia-3.0", true) or nil
+	K.LibRangeCheck = LibStub("LibRangeCheck-3.0-KkthnxUI", true) or nil
+	K.LibSerialize = LibStub("LibSerialize-KkthnxUI", true) or nil
+	K.LibCustomGlow = LibStub("LibCustomGlow-1.0-KkthnxUI", true) or nil
+	K.LibUnfit = LibStub("Unfit-1.0-KkthnxUI", true) or nil
+	K.cargBags = Engine and Engine.cargBags or nil
+	K.oUF = Engine and Engine.oUF or nil
+end
 
 -- AddOn Info
 K.Title = C_AddOns_GetAddOnMetadata(AddOnName, "Title")
@@ -137,18 +143,8 @@ K.AddOnVersion = {}
 
 -- Flags
 -- Constants
-K.PartyPetFlags = bit_bor(
-	COMBATLOG_OBJECT_AFFILIATION_PARTY,
-	COMBATLOG_OBJECT_REACTION_FRIENDLY,
-	COMBATLOG_OBJECT_CONTROL_PLAYER,
-	COMBATLOG_OBJECT_TYPE_PET
-)
-K.RaidPetFlags = bit_bor(
-	COMBATLOG_OBJECT_AFFILIATION_RAID,
-	COMBATLOG_OBJECT_REACTION_FRIENDLY,
-	COMBATLOG_OBJECT_CONTROL_PLAYER,
-	COMBATLOG_OBJECT_TYPE_PET
-)
+K.PartyPetFlags = bit_bor(COMBATLOG_OBJECT_AFFILIATION_PARTY, COMBATLOG_OBJECT_REACTION_FRIENDLY, COMBATLOG_OBJECT_CONTROL_PLAYER, COMBATLOG_OBJECT_TYPE_PET)
+K.RaidPetFlags = bit_bor(COMBATLOG_OBJECT_AFFILIATION_RAID, COMBATLOG_OBJECT_REACTION_FRIENDLY, COMBATLOG_OBJECT_CONTROL_PLAYER, COMBATLOG_OBJECT_TYPE_PET)
 
 -- Tables
 local eventsFrame = CreateFrame("Frame")

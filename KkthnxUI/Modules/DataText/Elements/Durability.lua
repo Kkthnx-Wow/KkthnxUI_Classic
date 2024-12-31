@@ -101,9 +101,8 @@ local function OnEvent(event)
 	else
 		if numSlots > 0 then
 			local r, g, b = getDurabilityColor(math_floor(localSlots[1][3] * 100), 100)
-			local yellowColor = "|cFFF0C500" -- Hexadecimal color code for yellow, the closest I could find/get to match other tabs
 			-- Set the text color to yellow and format the durability text
-			DurabilityDataText.Text:SetFormattedText("%s%%|r %s", K.RGBToHex(r, g, b) .. math.floor(localSlots[1][3] * 100), yellowColor .. DURABILITY)
+			DurabilityDataText.Text:SetFormattedText("%s%%|r %s", K.RGBToHex(r, g, b) .. math.floor(localSlots[1][3] * 100), K.GreyColor .. DURABILITY)
 		else
 			DurabilityDataText.Text:SetText(DURABILITY .. ": " .. K.MyClassColor .. NONE)
 		end
@@ -160,7 +159,7 @@ function Module:CreateDurabilityDataText()
 
 	DurabilityDataText = CreateFrame("Frame", nil, UIParent)
 	DurabilityDataText:SetSize(100, 20)
-	DurabilityDataText:SetPoint("TOP", CharacterLevelText, "BOTTOM", 0, -4)
+	DurabilityDataText:SetPoint("TOP", CharacterGuildText, "BOTTOM", 0, 3)
 	DurabilityDataText:SetFrameLevel(PaperDollFrame:GetFrameLevel() + 2)
 	DurabilityDataText:SetParent(PaperDollFrame)
 

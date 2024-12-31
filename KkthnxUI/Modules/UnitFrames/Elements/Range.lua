@@ -34,9 +34,11 @@ end
 local function friendlyIsInRange(realUnit)
 	local unit = GetGroupUnit(realUnit) or realUnit
 
-	-- if UnitIsPlayer(unit) and (UnitPhaseReason(unit)) then
-	-- 	return false -- is not in same phase
-	-- end
+	if UnitIsPlayer(unit) then
+		if not UnitInPhase(unit) then
+			return false
+		end
+	end
 
 	local inRange, checkedRange = UnitInRange(unit)
 	if checkedRange and not inRange then
@@ -47,28 +49,26 @@ local function friendlyIsInRange(realUnit)
 end
 
 function Module:UpdateRange()
-	if not self.Range then
+	local range = self.Range
+	if not range then
 		return
 	end
 
-	local alpha
-
 	local unit = self.unit
+	local alpha = range.insideAlpha
 
 	if self.forceInRange or unit == "player" then
-		alpha = self.Range.insideAlpha
+		alpha = range.insideAlpha
 	elseif self.forceNotInRange then
-		alpha = self.Range.outsideAlpha
+		alpha = range.outsideAlpha
 	elseif unit then
 		if UnitCanAttack("player", unit) or UnitIsUnit(unit, "pet") then
-			alpha = (getMaxRange(unit) and self.Range.insideAlpha) or self.Range.outsideAlpha
+			alpha = (getMaxRange(unit) and range.insideAlpha) or range.outsideAlpha
 		else
-			alpha = (UnitIsConnected(unit) and friendlyIsInRange(unit) and self.Range.insideAlpha) or self.Range.outsideAlpha
+			alpha = (UnitIsConnected(unit) and friendlyIsInRange(unit) and range.insideAlpha) or range.outsideAlpha
 		end
-	else
-		alpha = self.Range.insideAlpha
 	end
 
-	self.Range.RangeAlpha = alpha
-	self:SetAlpha(self.Range.RangeAlpha)
+	range.RangeAlpha = alpha
+	self:SetAlpha(alpha)
 end

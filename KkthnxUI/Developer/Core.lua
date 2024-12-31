@@ -76,6 +76,7 @@ do
 	local partyMembers = {} -- Tracks party members and their levels
 	local messageQueue = {} -- Queue for delayed messages
 	local debugMode = true -- Set to false to disable debugging
+	local rosterUpdatePending = false -- Prevent multiple updates during delays
 
 	-- Debugging function
 	local function DebugPrint(message)
@@ -86,20 +87,42 @@ do
 
 	-- Update the party members list and their current levels
 	local function UpdatePartyMembers()
+		rosterUpdatePending = false -- Reset pending status
+		if GetNumGroupMembers() == 0 then
+			-- If not in a group, clear all tracked data and exit
+			DebugPrint("Not in a group. Wiping all party member data.")
+			wipe(partyMembers)
+			return
+		end
+
+		-- Track current members
 		DebugPrint("Updating party members...")
+		local currentMembers = {}
 		for i = 1, GetNumGroupMembers() do
 			local unitID = "party" .. i
 			local name = UnitName(unitID)
-			if name and name ~= UnitName("player") then
-				local level = UnitLevel(unitID)
-				if level then
-					if not partyMembers[name] then
-						DebugPrint("Adding new party member: " .. name .. " (Level " .. level .. ")")
-						partyMembers[name] = level -- Add new members without announcing
-					else
-						DebugPrint("Existing party member: " .. name .. " (Stored Level: " .. partyMembers[name] .. ", Current Level: " .. level .. ")")
-					end
+			local level = UnitLevel(unitID)
+
+			if name == "Unknown" or level == 0 then
+				-- Skip processing for members with incomplete data
+				DebugPrint("Skipping incomplete data for: " .. (name or "Unknown") .. " (Level: " .. (level or 0) .. ")")
+			else
+				currentMembers[name] = true
+				if not partyMembers[name] then
+					-- Add new members without announcing
+					DebugPrint("Adding new party member: " .. name .. " (Level " .. level .. ")")
+					partyMembers[name] = level
+				else
+					DebugPrint("Existing party member: " .. name .. " (Stored Level: " .. partyMembers[name] .. ", Current Level: " .. level .. ")")
 				end
+			end
+		end
+
+		-- Remove members who have left
+		for name in pairs(partyMembers) do
+			if not currentMembers[name] then
+				DebugPrint("Removing party member who left: " .. name)
+				partyMembers[name] = nil
 			end
 		end
 	end
@@ -185,12 +208,99 @@ do
 				SendGrats(level, isMilestone)
 			end
 		elseif event == "GROUP_ROSTER_UPDATE" then
-			-- Update party members when the group changes
-			DebugPrint("GROUP_ROSTER_UPDATE event triggered.")
-			UpdatePartyMembers()
+			-- Delay processing for a short time
+			if not rosterUpdatePending then
+				rosterUpdatePending = true
+				DebugPrint("GROUP_ROSTER_UPDATE event triggered. Delaying update...")
+				C_Timer.After(0.5, UpdatePartyMembers)
+			else
+				DebugPrint("GROUP_ROSTER_UPDATE event already pending.")
+			end
 		end
 	end)
 
 	-- Initialize the party member list on login or reload
 	UpdatePartyMembers()
+end
+
+-- LevelUp Display Addon
+do
+	-- Create the addon frame and register events
+	local LevelUpDisplay = CreateFrame("Frame", "LevelUpDisplayFrame")
+	LevelUpDisplay:RegisterEvent("PLAYER_LEVEL_UP")
+
+	-- Function to create and show the level-up message
+	local function ShowLevelUpMessage(level)
+		-- Create the main frame for the level-up display
+		local frame = CreateFrame("Frame", nil, UIParent)
+		frame:SetSize(418, 130)
+		frame:SetPoint("CENTER", 0, 400)
+
+		-- Background texture
+		local background = frame:CreateTexture(nil, "BACKGROUND")
+		background:SetTexture("Interface/Addons/KkthnxUI/Media/Textures/LevelUpTex")
+		background:SetPoint("BOTTOM")
+		background:SetSize(326, 103)
+		background:SetTexCoord(0.00195313, 0.63867188, 0.03710938, 0.23828125)
+		background:SetVertexColor(1, 1, 1, 0.7)
+
+		-- Top gold bar
+		local topBar = frame:CreateTexture(nil, "ARTWORK")
+		topBar:SetDrawLayer("BACKGROUND", 2)
+		topBar:SetTexture("Interface/Addons/KkthnxUI/Media/Textures/LevelUpTex")
+		topBar:SetTexCoord(0.00195313, 0.81835938, 0.01953125, 0.03320313)
+		topBar:SetSize(430, 12)
+		topBar:SetPoint("TOP")
+
+		-- Bottom gold bar
+		local bottomBar = frame:CreateTexture(nil, "ARTWORK")
+		bottomBar:SetDrawLayer("BACKGROUND", 2)
+		bottomBar:SetTexture("Interface/Addons/KkthnxUI/Media/Textures/LevelUpTex")
+		bottomBar:SetTexCoord(0.00195313, 0.81835938, 0.01953125, 0.03320313)
+		bottomBar:SetSize(430, 12)
+		bottomBar:SetPoint("BOTTOM")
+
+		-- "You've Reached" text
+		local headerText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+		headerText:SetPoint("CENTER", 0, 26)
+		headerText:SetFont("Fonts\\FRIZQT__.TTF", 32, "OUTLINE")
+		headerText:SetText("|cFFFFFFFFYou've Reached|r") -- White text
+
+		-- "Level X" text
+		local levelText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+		levelText:SetPoint("CENTER", 0, -30)
+		levelText:SetFont("Fonts\\FRIZQT__.TTF", 50, "OUTLINE")
+		levelText:SetText(string.format("|cFFFFD700Level %d|r", level)) -- Gold text
+
+		-- Fade-out animation
+		local fadeOutAnimation = frame:CreateAnimationGroup()
+		local fadeOut = fadeOutAnimation:CreateAnimation("Alpha")
+		fadeOut:SetFromAlpha(1)
+		fadeOut:SetToAlpha(0)
+		fadeOut:SetDuration(2) -- 2 seconds to fade out
+		fadeOut:SetStartDelay(4) -- Delay before fading
+		fadeOut:SetSmoothing("OUT")
+		fadeOutAnimation:SetScript("OnFinished", function()
+			frame:Hide()
+		end)
+
+		-- Show the frame and start the animation
+		frame:Show()
+		fadeOutAnimation:Play()
+	end
+
+	-- Event handler
+	LevelUpDisplay:SetScript("OnEvent", function(_, event, ...)
+		if event == "PLAYER_LEVEL_UP" then
+			local newLevel = ...
+			ShowLevelUpMessage(newLevel)
+		end
+	end)
+
+	-- Slash command for testing
+	SLASH_LEVELUPDISPLAY1 = "/leveluptest"
+	SlashCmdList["LEVELUPDISPLAY"] = function(msg)
+		local testLevel = tonumber(msg) or 60 -- Default to level 60 if no argument is given
+		ShowLevelUpMessage(testLevel)
+	end
 end

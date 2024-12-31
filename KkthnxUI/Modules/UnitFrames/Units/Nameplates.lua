@@ -279,11 +279,11 @@ function Module:UpdateColor(_, unit)
 		elseif UnitIsTapDenied(unit) and not UnitPlayerControlled(unit) then
 			r, g, b = 0.6, 0.6, 0.6
 		else
-			r, g, b = UnitSelectionColor(unit, true)
-			-- r, g, b = K.UnitColor(unit)
+			--r, g, b = UnitSelectionColor(unit, true)
+			r, g, b = K.UnitColor(unit)
 
 			if status then
-				if status == 3 then
+				if status == 3 and C["Nameplate"].TankMode then
 					r, g, b = secureColor[1], secureColor[2], secureColor[3]
 				elseif status == 2 or status == 1 then
 					r, g, b = transColor[1], transColor[2], transColor[3]
@@ -299,7 +299,7 @@ function Module:UpdateColor(_, unit)
 	end
 
 	self.ThreatIndicator:Hide()
-	if status and (isCustomUnit or (not C["Nameplate"].TankMode and K.Role ~= "Tank")) then
+	if isCustomUnit or not C["Nameplate"].TankMode then
 		if status == 3 then
 			self.ThreatIndicator:SetBackdropBorderColor(1, 0, 0)
 			self.ThreatIndicator:Show()

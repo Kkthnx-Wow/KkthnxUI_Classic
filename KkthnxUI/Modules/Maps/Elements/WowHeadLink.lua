@@ -154,7 +154,7 @@ local function InitializeQuestLink()
 		end
 	end
 
-	questEditBox:RegisterEvent("SUPER_TRACKING_CHANGED")
+	-- questEditBox:RegisterEvent("SUPER_TRACKING_CHANGED")
 	questEditBox:SetScript("OnEvent", SetQuestLink)
 	SetQuestLink()
 
@@ -179,27 +179,27 @@ end
 
 -- Main Function
 function Module:CreateWowHeadLinks()
-	if not C["Misc"].ShowWowHeadLinks or IsAddOnLoaded("Leatrix_Maps") then
-		return
-	end
+	-- if not C["Misc"].ShowWowHeadLinks or IsAddOnLoaded("Leatrix_Maps") then
+	-- 	return
+	-- end
 
-	if C_AddOns.IsAddOnLoaded("Blizzard_AchievementUI") then
-		InitializeAchievementLink()
-	else
-		local waitAchievementsFrame = CreateFrame("FRAME")
-		waitAchievementsFrame:RegisterEvent("ADDON_LOADED")
-		waitAchievementsFrame:SetScript("OnEvent", function(self, _, addon)
-			if addon == "Blizzard_AchievementUI" then
-				InitializeAchievementLink()
-				self:UnregisterAllEvents()
-			end
-		end)
-	end
+	-- if C_AddOns.IsAddOnLoaded("Blizzard_AchievementUI") then
+	-- 	InitializeAchievementLink()
+	-- else
+	-- 	local waitAchievementsFrame = CreateFrame("FRAME")
+	-- 	waitAchievementsFrame:RegisterEvent("ADDON_LOADED")
+	-- 	waitAchievementsFrame:SetScript("OnEvent", function(self, _, addon)
+	-- 		if addon == "Blizzard_AchievementUI" then
+	-- 			InitializeAchievementLink()
+	-- 			self:UnregisterAllEvents()
+	-- 		end
+	-- 	end)
+	-- end
 
-	InitializeQuestLink()
+	-- InitializeQuestLink()
 
-	-- Hide the title text
-	if WorldMapFrameTitleText then
-		WorldMapFrameTitleText:Hide()
-	end
+	-- -- Hide the title text
+	-- if WorldMapFrameTitleText then
+	-- 	WorldMapFrameTitleText:Hide()
+	-- end
 end
