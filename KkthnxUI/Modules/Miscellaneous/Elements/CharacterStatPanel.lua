@@ -45,7 +45,11 @@ local orderList = {}
 local function BuildListFromValue()
 	wipe(orderList)
 
-	for number in gmatch(KkthnxUIDB.StatOrder, "%d") do
+	if not KkthnxUIDB.Variables[K.Realm][K.Name]["StatOrder"] then
+		KkthnxUIDB.Variables[K.Realm][K.Name]["StatOrder"] = "12345"
+	end
+
+	for number in gmatch(KkthnxUIDB.Variables[K.Realm][K.Name]["StatOrder"], "%d") do
 		tinsert(orderList, tonumber(number))
 	end
 end
@@ -79,7 +83,7 @@ local function BuildValueFromList()
 	for _, index in ipairs(orderList) do
 		str = str .. tostring(index)
 	end
-	KkthnxUIDB.StatOrder = str
+	KkthnxUIDB.Variables[K.Realm][K.Name]["StatOrder"] = str
 
 	UpdateCategoriesAnchor()
 end
@@ -274,7 +278,7 @@ local function CreateStatHeader(parent, index, category)
 end
 
 local function ToggleMagicRes()
-	if KkthnxUIDB.StatExpand then
+	if KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"] then
 		CharacterResistanceFrame:ClearAllPoints()
 		CharacterResistanceFrame:SetPoint("TOPLEFT", Module.StatPanel2, 28, -25)
 		CharacterResistanceFrame:SetParent(Module.StatPanel2)
@@ -318,7 +322,7 @@ local function UpdateStats()
 end
 
 local function ToggleStatPanel(texture)
-	if KkthnxUIDB.StatExpand then
+	if KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"] then
 		K.SetupArrow(texture, "left")
 		leftDropDown:Hide()
 		rightDropDown:Hide()
@@ -413,8 +417,8 @@ function Module:CharacterStatePanel()
 	K.ReskinArrow(bu, "right", false)
 
 	bu:SetScript("OnClick", function(self)
-		KkthnxUIDB.StatExpand = not KkthnxUIDB.StatExpand
-		ExpandCharacterFrame(KkthnxUIDB.StatExpand)
+		KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"] = not KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"]
+		ExpandCharacterFrame(KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"])
 		ToggleStatPanel(self.__texture)
 	end)
 
@@ -425,7 +429,7 @@ function Module:CharacterStatePanel()
 	end)
 
 	PaperDollFrame:HookScript("OnShow", function()
-		ExpandCharacterFrame(KkthnxUIDB.StatExpand)
+		ExpandCharacterFrame(KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"])
 	end)
 
 	-- Block LeatrixPlus toggle

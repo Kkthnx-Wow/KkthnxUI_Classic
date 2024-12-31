@@ -23,6 +23,8 @@ local function KKUI_VerifyDatabase()
 	charData.SplitCount = charData.SplitCount or 1
 	charData.TempAnchor = charData.TempAnchor or {}
 	charData.Tracking = charData.Tracking or { PvP = {}, PvE = {} }
+	charData.StatOrder = charData.StatOrder or "12345"
+	charData.StatExpand = charData.StatExpand or false
 
 	if charData.FavouriteItems then
 		local customItems = charData.CustomItems
@@ -41,8 +43,6 @@ local function KKUI_VerifyDatabase()
 	KkthnxUIDB.ShowSlots = KkthnxUIDB.ShowSlots or false
 	KkthnxUIDB.ChangeLog = KkthnxUIDB.ChangeLog or {}
 	KkthnxUIDB.DisabledAddOns = KkthnxUIDB.DisabledAddOns or {}
-	KkthnxUIDB.StatOrder = KkthnxUIDB.StatOrder or "12345"
-	KkthnxUIDB.StatExpand = KkthnxUIDB.StatExpand or true
 end
 
 local function KKUI_CreateDefaults()
