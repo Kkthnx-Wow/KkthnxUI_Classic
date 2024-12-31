@@ -38,10 +38,6 @@ end
 
 -- Handle whispers and send invites if keyword matches
 local function onChatWhisper(event, message, sender, _, _, _, _, _, _, _, _, _, _, presenceID)
-	if QueueStatusButton:IsShown() then
-		return
-	end -- Ignore if the player is in a queue
-
 	if autoInviteKeyword and message:lower() == autoInviteKeyword:lower() and isPlayerGuildOrFriend(sender) then
 		if event == "CHAT_MSG_WHISPER" then
 			C_PartyInfo_InviteUnit(sender)

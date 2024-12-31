@@ -270,8 +270,7 @@ function Module:PostCastStart(unit)
 	if self.Icon then
 		local texture = self.Icon:GetTexture()
 		if not texture or texture == 136235 then
-			-- self.Icon:SetTexture(136243)
-			self.Icon:SetTexture(C["Media"].LogoSmallTexture)
+			self.Icon:SetTexture(136243)
 		end
 	end
 
