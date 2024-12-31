@@ -13,16 +13,14 @@ local timestampFormat = {
 	[5] = "[%H:%M:%S] ",
 }
 
-local IsDeveloper = K.isDeveloper
-local WhisperColorEnabled = C["Chat"].WhisperColor
-local TimestampFormat = C["Chat"].TimestampFormat.Value
-
 local function GetCurrentTime()
 	local locTime = time()
 	local realmTime = not GetCVarBool("timeMgrUseLocalTime") and C_DateAndTime_GetCurrentCalendarTime()
 
 	if realmTime then
-		realmTime.day, realmTime.min, realmTime.sec = realmTime.monthDay, realmTime.minute, date("%S")
+		realmTime.day = realmTime.monthDay
+		realmTime.min = realmTime.minute
+		realmTime.sec = date("%S") -- no sec value for realm time
 		realmTime = time(realmTime)
 	end
 
@@ -30,36 +28,30 @@ local function GetCurrentTime()
 end
 
 function Module:SetupChannelNames(text, ...)
-	if string_find(text, INTERFACE_ACTION_BLOCKED) and not IsDeveloper then
+	if string_find(text, INTERFACE_ACTION_BLOCKED) and not K.isDeveloper then
 		return
 	end
 
 	local r, g, b = ...
-	if WhisperColorEnabled and string_find(text, L["To"] .. " |H[BN]*player.+%]") then
+	if C["Chat"].WhisperColor and string_find(text, L["To"] .. " |H[BN]*player.+%]") then
 		r, g, b = 0.6274, 0.3231, 0.6274
 	end
 
-	if TimestampFormat > 1 then
+	if C["Chat"].TimestampFormat.Value > 1 then
 		local locTime, realmTime = GetCurrentTime()
-		local defaultTimestamp = GetCVar("showTimestamps")
-
-		if defaultTimestamp == "none" then
-			defaultTimestamp = nil
-		end
-
-		local oldTimeStamp = defaultTimestamp and gsub(BetterDate(defaultTimestamp, locTime), "%[([^]]*)%]", "%%[%1%%]")
+		local oldTimeStamp = CHAT_TIMESTAMP_FORMAT and gsub(BetterDate(CHAT_TIMESTAMP_FORMAT, locTime), "%[([^]]*)%]", "%%[%1%%]")
 		if oldTimeStamp then
 			text = gsub(text, oldTimeStamp, "")
 		end
 
-		local timeStamp = BetterDate(K.GreyColor .. timestampFormat[TimestampFormat] .. "|r", realmTime or locTime)
+		local timeStamp = BetterDate(K.GreyColor .. timestampFormat[C["Chat"].TimestampFormat.Value] .. "|r", realmTime or locTime)
 		text = timeStamp .. text
 	end
 
 	if C["Chat"].OldChatNames then
-		return self.oldAddMessage(self, text, r, g, b)
+		return self.oldAddMsg(self, text, r, g, b)
 	else
-		return self.oldAddMessage(self, string_gsub(text, "|h%[(%d+)%..-%]|h", "|h[%1]|h"), r, g, b)
+		return self.oldAddMsg(self, string_gsub(text, "|h%[(%d+)%..-%]|h", "|h[%1]|h"), r, g, b)
 	end
 end
 
@@ -67,7 +59,7 @@ local function renameChatFrames()
 	for i = 1, _G.NUM_CHAT_WINDOWS do
 		if i ~= 2 then
 			local chatFrame = _G["ChatFrame" .. i]
-			chatFrame.oldAddMessage = chatFrame.AddMessage
+			chatFrame.oldAddMsg = chatFrame.AddMessage
 			chatFrame.AddMessage = Module.SetupChannelNames
 		end
 	end

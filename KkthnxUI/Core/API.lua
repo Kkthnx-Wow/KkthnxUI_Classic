@@ -484,11 +484,17 @@ function K.SetupArrow(self, direction)
 end
 
 -- Reskin Arrow
-function K.ReskinArrow(self, direction)
+function K.ReskinArrow(self, direction, border)
+	if border == nil or border == "" then
+		border = true
+	end
+
 	self:StripTextures()
 	self:SetSize(16, 16)
-	self:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, { 0.20, 0.20, 0.20 })
-	self:StyleButton()
+	if border then
+		self:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, { 0.20, 0.20, 0.20 })
+		self:StyleButton()
+	end
 
 	self:SetDisabledTexture("Interface\\ChatFrame\\ChatFrameBackground")
 	local dis = self:GetDisabledTexture()

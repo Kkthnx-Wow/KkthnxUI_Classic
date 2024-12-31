@@ -13,7 +13,6 @@ local GetItemInfo = C_Item.GetItemInfo
 local GetItemStats = C_Item.GetItemStats
 
 local itemCache = {}
-local GetDungeonScoreInColor
 
 local socketWatchList = {
 	["BLUE"] = true,
@@ -23,19 +22,13 @@ local socketWatchList = {
 	["HYDRAULIC"] = true,
 	["META"] = true,
 	["PRISMATIC"] = true,
-	["PUNCHCARDBLUE"] = true,
-	["PUNCHCARDRED"] = true,
-	["PUNCHCARDYELLOW"] = true,
-	["DOMINATION"] = true,
-	["PRIMORDIAL"] = true,
 }
 
 -- Show itemlevel on chat hyperlinks
 local function isItemHasLevel(link)
 	local name, _, rarity, level, _, _, _, _, _, _, _, classID = GetItemInfo(link)
-	if name and level and rarity > 1 and (classID == Enum.ItemClass.Weapon or classID == Enum.ItemClass.Armor) then
-		local itemLevel = K.GetItemLevel(link)
-		return name, itemLevel
+	if name and level and rarity > 1 and (classID == LE_ITEM_CLASS_WEAPON or classID == LE_ITEM_CLASS_ARMOR) then
+		return name, level
 	end
 end
 
@@ -46,15 +39,10 @@ end
 function Module.IsItemHasGem(link)
 	local text = ""
 	local stats = GetItemStats(link)
-	if stats then
-		for stat, count in pairs(stats) do
-			local socket = string_match(stat, "EMPTY_SOCKET_(%S+)")
-			if socket and socketWatchList[socket] then
-				if socket == "PRIMORDIAL" then -- primordial texture is missing, use meta instead, needs review
-					socket = "META"
-				end
-				text = text .. GetSocketTexture(socket, count)
-			end
+	for stat, count in pairs(stats) do
+		local socket = string_match(stat, "EMPTY_SOCKET_(%S+)")
+		if socket and socketWatchList[socket] then
+			text = text .. GetSocketTexture(socket, count)
 		end
 	end
 
@@ -62,38 +50,29 @@ function Module.IsItemHasGem(link)
 end
 
 local function convertItemLevel(link)
-	if not link then
-		return
-	end
-
 	if itemCache[link] then
 		return itemCache[link]
 	end
 
-	local name, itemLevel = isItemHasLevel(link)
-	if name and itemLevel then
-		link = string_gsub(link, "|h%[(.-)%]|h", "|h[" .. name .. "(" .. itemLevel .. ")]|h" .. Module.IsItemHasGem(link))
-		itemCache[link] = link
+	local itemLink = string_match(link, "|Hitem:.-|h")
+	if itemLink then
+		local name, itemLevel = isItemHasLevel(itemLink)
+		if name and itemLevel then
+			link = gsub(link, "|h%[(.-)%]|h", "|h[" .. name .. "(" .. itemLevel .. ")]|h" .. Module.IsItemHasGem(itemLink))
+			itemCache[link] = link
+		end
 	end
-
 	return link
-end
-
-local function formatDungeonScore(link, score)
-	return score and string_gsub(link, "|h%[(.-)%]|h", "|h[" .. string_format(DUNGEON_SCORE_LEADER, GetDungeonScoreInColor(score)) .. "]|h")
 end
 
 function Module:UpdateChatItemLevel(_, msg, ...)
 	msg = string_gsub(msg, "(|Hitem:%d+:.-|h.-|h)", convertItemLevel)
-	msg = string_gsub(msg, "(|HdungeonScore:(%d+):.-|h.-|h)", formatDungeonScore)
 
 	return false, msg, ...
 end
 
 function Module:CreateChatItemLevels()
 	if C["Chat"].ChatItemLevel then
-		GetDungeonScoreInColor = K:GetModule("Tooltip").GetDungeonScore
-
 		ChatFrame_AddMessageEventFilter("CHAT_MSG_LOOT", self.UpdateChatItemLevel)
 		ChatFrame_AddMessageEventFilter("CHAT_MSG_CHANNEL", self.UpdateChatItemLevel)
 		ChatFrame_AddMessageEventFilter("CHAT_MSG_SAY", self.UpdateChatItemLevel)

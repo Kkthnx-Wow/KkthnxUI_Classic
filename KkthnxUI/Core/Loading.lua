@@ -41,6 +41,8 @@ local function KKUI_VerifyDatabase()
 	KkthnxUIDB.ShowSlots = KkthnxUIDB.ShowSlots or false
 	KkthnxUIDB.ChangeLog = KkthnxUIDB.ChangeLog or {}
 	KkthnxUIDB.DisabledAddOns = KkthnxUIDB.DisabledAddOns or {}
+	KkthnxUIDB.StatOrder = KkthnxUIDB.StatOrder or "12345"
+	KkthnxUIDB.StatExpand = KkthnxUIDB.StatExpand or true
 end
 
 local function KKUI_CreateDefaults()

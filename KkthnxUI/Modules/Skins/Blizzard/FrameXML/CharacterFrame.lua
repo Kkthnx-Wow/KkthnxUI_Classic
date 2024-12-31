@@ -58,12 +58,14 @@ local function HandleResistanceFrame(frameName)
 		frame:SetSize(24, 24)
 		frame:CreateBorder()
 
-		if i == 1 then
-			frame:ClearAllPoints()
-			frame:SetPoint("TOP", frame:GetParent(), "TOP", 0, -4)
-		else
-			frame:ClearAllPoints()
-			frame:SetPoint("TOP", _G[frameName .. i - 1], "BOTTOM", 0, -6)
+		if not IsAddOnLoaded("CharacterStatsClassic") then
+			if i == 1 then
+				frame:ClearAllPoints()
+				frame:SetPoint("TOP", frame:GetParent(), "TOP", 0, -4)
+			else
+				frame:ClearAllPoints()
+				frame:SetPoint("TOP", _G[frameName .. i - 1], "BOTTOM", 0, -6)
+			end
 		end
 
 		if icon then
