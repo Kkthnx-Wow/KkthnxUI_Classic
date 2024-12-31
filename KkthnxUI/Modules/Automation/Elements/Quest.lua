@@ -130,23 +130,22 @@ QuickQuest:Register("GOSSIP_SHOW", function()
 		return
 	end
 
-	local active = C_GossipInfo_GetNumActiveQuests()
+	local active = C_GossipInfo.GetNumActiveQuests()
 	if active > 0 then
-		for index, questInfo in ipairs(C_GossipInfo_GetActiveQuests()) do
+		for index, questInfo in ipairs(C_GossipInfo.GetActiveQuests()) do
 			local questID = questInfo.questID
-			local isWorldQuest = questID and C_QuestLog_IsWorldQuest(questID)
-			if questInfo.isComplete and not isWorldQuest then
-				C_GossipInfo_SelectActiveQuest(questID)
+			if questInfo.isComplete and questID then
+				C_GossipInfo.SelectActiveQuest(questID)
 			end
 		end
 	end
 
-	local available = C_GossipInfo_GetNumAvailableQuests()
+	local available = C_GossipInfo.GetNumAvailableQuests()
 	if available > 0 then
-		for index, questInfo in ipairs(C_GossipInfo_GetAvailableQuests()) do
+		for index, questInfo in ipairs(C_GossipInfo.GetAvailableQuests()) do
 			local trivial = questInfo.isTrivial
 			if not trivial or IsTrackingHidden() or (trivial and npcID == 64337) then
-				C_GossipInfo_SelectAvailableQuest(questInfo.questID)
+				C_GossipInfo.SelectAvailableQuest(questInfo.questID)
 			end
 		end
 	end
@@ -191,45 +190,22 @@ end)
 
 QuickQuest:Register("GOSSIP_CONFIRM", function(index)
 	if C["AutoQuestData"].SkipConfirmNPCs[GetNPCID()] then
-		C_GossipInfo_SelectOption(index, "", true)
+		SelectGossipOption(index, "", true)
 		StaticPopup_Hide("GOSSIP_CONFIRM")
 	end
 end)
 
 QuickQuest:Register("QUEST_DETAIL", function()
-	if QuestIsFromAreaTrigger() then
+	if not C.IgnoreQuestNPC[GetNPCID()] then
 		AcceptQuest()
-	elseif QuestGetAutoAccept() then
-		AcknowledgeAutoAcceptQuest()
-	elseif not C_QuestLog_IsQuestTrivial(GetQuestID()) or IsTrackingHidden() then
-		if not C.IgnoreQuestNPC[GetNPCID()] then
-			AcceptQuest()
-		end
 	end
 end)
 
 QuickQuest:Register("QUEST_ACCEPT_CONFIRM", AcceptQuest)
 
-local CFG_AutoShareQuest = false -- Put this into our config later.
 QuickQuest:Register("QUEST_ACCEPTED", function(questID)
 	if QuestFrame:IsShown() and QuestGetAutoAccept() then
 		CloseQuest()
-	end
-
-	if CFG_AutoShareQuest then
-		-- Check if the player is in a group (1-5 players)
-		local isInGroup = IsInGroup(LE_PARTY_CATEGORY_HOME)
-
-		-- Check if the player is not in a raid
-		local notInRaid = not IsInRaid()
-
-		if isInGroup and notInRaid then
-			local questLogIndex = C_QuestLog.GetLogIndexForQuestID(questID)
-			if questLogIndex then
-				-- print("Auto-sharing quest:", questID)
-				QuestLogPushQuest(questLogIndex)
-			end
-		end
 	end
 end)
 
@@ -241,8 +217,8 @@ end)
 
 QuickQuest:Register("QUEST_PROGRESS", function()
 	if IsQuestCompletable() then
-		local info = C_QuestLog_GetQuestTagInfo(GetQuestID())
-		if info and (info.tagID == 153 or info.worldQuestType) then
+		local id, _, worldQuest = GetQuestTagInfo(GetQuestID())
+		if id == 153 or worldQuest then
 			return
 		end
 
@@ -320,7 +296,8 @@ local function AttemptAutoComplete(event)
 		end
 
 		local questID, popUpType = GetAutoQuestPopUp(1)
-		if not C_QuestLog_IsWorldQuest(questID) then
+		local _, _, worldQuest = GetQuestTagInfo(questID)
+		if not worldQuest(questID) then
 			if popUpType == "OFFER" then
 				ShowQuestOffer(questID)
 			elseif popUpType == "COMPLETE" then

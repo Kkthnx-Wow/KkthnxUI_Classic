@@ -69,158 +69,175 @@ do
 end
 
 do
-	local gratsFrame = CreateFrame("Frame")
-	gratsFrame:RegisterEvent("UNIT_LEVEL") -- Detect party members' level changes
-	gratsFrame:RegisterEvent("GROUP_ROSTER_UPDATE") -- Track party changes
+	--[[ 
+Addon: LevelCheers
+Author: [Your Name]
+Description:
+    LevelCheers is a lightweight World of Warcraft addon that announces party members' level-ups with congratulatory messages. 
+    It handles milestone levels (e.g., 10, 20, 30) with guaranteed announcements and randomizes the inclusion of the level or the player's name.
+    Users can configure probabilities, debug mode, and messages via slash commands.
 
-	local partyMembers = {} -- Tracks party members and their levels
-	local messageQueue = {} -- Queue for delayed messages
-	local debugMode = true -- Set to false to disable debugging
-	local rosterUpdatePending = false -- Prevent multiple updates during delays
+Features:
+    - Configurable probabilities for announcements and message components.
+    - Guaranteed milestone announcements.
+    - Localization support.
+    - Debugging and performance profiling.
+    - Memory-efficient table pooling for large groups.
+    - Handles raid groups and group disbands gracefully.
+]]
 
-	-- Debugging function
-	local function DebugPrint(message)
-		if debugMode then
-			print("|cff00ff00[LevelCheers Debug]:|r " .. message)
-		end
-	end
+	-- -- Global Variables
+	-- local gratsFrame = CreateFrame("Frame")
+	-- gratsFrame:RegisterEvent("UNIT_LEVEL")
+	-- gratsFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
 
-	-- Update the party members list and their current levels
-	local function UpdatePartyMembers()
-		rosterUpdatePending = false -- Reset pending status
-		if GetNumGroupMembers() == 0 then
-			-- If not in a group, clear all tracked data and exit
-			DebugPrint("Not in a group. Wiping all party member data.")
-			wipe(partyMembers)
-			return
-		end
+	-- local partyMembers = {} -- Tracks party members and their levels
+	-- local messageQueue = {} -- Queue for delayed messages
+	-- local debugMode = false -- Default debug mode
+	-- local settings = {
+	-- 	announceProbability = 0.7, -- 70% chance to announce non-milestones
+	-- 	includeNameProbability = 0.5, -- 50% chance to include name
+	-- 	includeLevelProbability = 0.5, -- 50% chance to include level
+	-- 	milestoneInterval = 10, -- Announce every 10 levels
+	-- 	delayBetweenMessages = 4, -- Delay in seconds
+	-- 	customMessages = {
+	-- 		grats = { "Grats!", "Congrats!", "Awesome, grats!" },
+	-- 		includeLevel = { "Grats on level %s!", "Welcome to level %s!", "Level %s! Grats!" },
+	-- 		milestone = { "Wow, level %s! Huge grats!", "Big milestone: level %s! Grats!" },
+	-- 	},
+	-- }
 
-		-- Track current members
-		DebugPrint("Updating party members...")
-		local currentMembers = {}
-		for i = 1, GetNumGroupMembers() do
-			local unitID = "party" .. i
-			local name = UnitName(unitID)
-			local level = UnitLevel(unitID)
+	-- -- Debugging Function
+	-- local function DebugPrint(message)
+	-- 	if debugMode then
+	-- 		print("|cff00ff00[LevelCheers Debug]:|r " .. message)
+	-- 	end
+	-- end
 
-			if name == "Unknown" or level == 0 then
-				-- Skip processing for members with incomplete data
-				DebugPrint("Skipping incomplete data for: " .. (name or "Unknown") .. " (Level: " .. (level or 0) .. ")")
-			else
-				currentMembers[name] = true
-				if not partyMembers[name] then
-					-- Add new members without announcing
-					DebugPrint("Adding new party member: " .. name .. " (Level " .. level .. ")")
-					partyMembers[name] = level
-				else
-					DebugPrint("Existing party member: " .. name .. " (Stored Level: " .. partyMembers[name] .. ", Current Level: " .. level .. ")")
-				end
-			end
-		end
+	-- -- Update Party Members
+	-- local function UpdatePartyMembers()
+	-- 	if GetNumGroupMembers() == 0 then
+	-- 		DebugPrint("Not in a group. Wiping all party member data.")
+	-- 		wipe(partyMembers)
+	-- 		return
+	-- 	end
 
-		-- Remove members who have left
-		for name in pairs(partyMembers) do
-			if not currentMembers[name] then
-				DebugPrint("Removing party member who left: " .. name)
-				partyMembers[name] = nil
-			end
-		end
-	end
+	-- 	if IsInRaid() then
+	-- 		DebugPrint("Skipping announcements in raid groups.")
+	-- 		return
+	-- 	end
 
-	-- Queue a congratulatory message
-	local function QueueGratsMessage(message)
-		table.insert(messageQueue, message)
-		DebugPrint("Queued message: " .. message)
-	end
+	-- 	DebugPrint("Updating party members...")
+	-- 	local currentMembers = {}
+	-- 	for i = 1, GetNumGroupMembers() do
+	-- 		local unitID = "party" .. i
+	-- 		local name = UnitName(unitID)
+	-- 		local level = UnitLevel(unitID)
 
-	-- Process the message queue with a delay
-	local function ProcessMessageQueue()
-		if #messageQueue > 0 then
-			local message = table.remove(messageQueue, 1) -- Get the first message
-			SendChatMessage(message, "PARTY") -- Send the message in party chat
-			DebugPrint("Sent message: " .. message)
+	-- 		if name == "Unknown" or level == 0 then
+	-- 			DebugPrint("Skipping incomplete data for: " .. (name or "Unknown") .. " (Level: " .. (level or 0) .. ")")
+	-- 		else
+	-- 			currentMembers[name] = true
+	-- 			if not partyMembers[name] then
+	-- 				DebugPrint("Adding new party member: " .. name .. " (Level " .. level .. ")")
+	-- 				partyMembers[name] = level
+	-- 			else
+	-- 				DebugPrint("Existing party member: " .. name .. " (Stored Level: " .. partyMembers[name] .. ", Current Level: " .. level .. ")")
+	-- 			end
+	-- 		end
+	-- 	end
 
-			-- Schedule the next message after 4 seconds
-			if #messageQueue > 0 then
-				C_Timer.After(4, ProcessMessageQueue)
-			end
-		end
-	end
+	-- 	for name in pairs(partyMembers) do
+	-- 		if not currentMembers[name] then
+	-- 			DebugPrint("Removing party member who left: " .. name)
+	-- 			partyMembers[name] = nil
+	-- 		end
+	-- 	end
+	-- end
 
-	-- Send a congratulatory message with optional level
-	local function SendGrats(level, isMilestone)
-		local gratsMessages = {
-			"Grats!",
-			"Congrats!",
-			"Awesome, grats!",
-		}
-		local includeLevelMessages = {
-			"Grats on level %s!",
-			"Welcome to level %s!",
-			"Level %s! Grats!",
-		}
-		local milestoneMessages = {
-			"Wow, level %s! Huge grats!",
-			"Congratulations on reaching level %s!",
-			"Big milestone: level %s! Grats!",
-		}
+	-- -- Queue and Process Messages
+	-- local function QueueGratsMessage(message)
+	-- 	table.insert(messageQueue, message)
+	-- 	DebugPrint("Queued message: " .. message)
+	-- end
 
-		local message
-		if isMilestone then
-			-- Always use a milestone-specific message
-			message = milestoneMessages[math.random(#milestoneMessages)]:format(level)
-			DebugPrint("Milestone detected: Level " .. level)
-		elseif math.random() > 0.3 then
-			-- 70% chance to announce
-			if math.random() > 0.5 then
-				-- 50% chance to include level in the message
-				message = includeLevelMessages[math.random(#includeLevelMessages)]:format(level)
-				DebugPrint("Announcing level-specific message for Level " .. level)
-			else
-				-- Otherwise, send a generic congratulatory message
-				message = gratsMessages[math.random(#gratsMessages)]
-				DebugPrint("Announcing generic message.")
-			end
-		else
-			-- Do not send any message (30% chance)
-			DebugPrint("Skipping announcement for Level " .. level)
-			return
-		end
+	-- local function ProcessMessageQueue()
+	-- 	if #messageQueue > 0 then
+	-- 		local message = table.remove(messageQueue, 1)
+	-- 		SendChatMessage(message, "PARTY")
+	-- 		DebugPrint("Sent message: " .. message)
 
-		QueueGratsMessage(message)
+	-- 		if #messageQueue > 0 then
+	-- 			C_Timer.After(settings.delayBetweenMessages, ProcessMessageQueue)
+	-- 		end
+	-- 	end
+	-- end
 
-		-- Start processing the queue if not already active
-		if #messageQueue == 1 then
-			C_Timer.After(4, ProcessMessageQueue)
-		end
-	end
+	-- -- Announce Level-Ups
+	-- local function SendGrats(level, isMilestone, name)
+	-- 	local messages = settings.customMessages
+	-- 	local message
 
-	-- Event handling
-	gratsFrame:SetScript("OnEvent", function(_, event, arg1)
-		if event == "UNIT_LEVEL" then
-			-- Handle level changes
-			local name = UnitName(arg1)
-			local level = UnitLevel(arg1)
-			if name and level and partyMembers[name] and partyMembers[name] < level then
-				DebugPrint("Level-up detected for " .. name .. " (New Level: " .. level .. ")")
-				partyMembers[name] = level
-				local isMilestone = level % 10 == 0
-				SendGrats(level, isMilestone)
-			end
-		elseif event == "GROUP_ROSTER_UPDATE" then
-			-- Delay processing for a short time
-			if not rosterUpdatePending then
-				rosterUpdatePending = true
-				DebugPrint("GROUP_ROSTER_UPDATE event triggered. Delaying update...")
-				C_Timer.After(0.5, UpdatePartyMembers)
-			else
-				DebugPrint("GROUP_ROSTER_UPDATE event already pending.")
-			end
-		end
-	end)
+	-- 	if isMilestone then
+	-- 		-- Milestone messages
+	-- 		if math.random() < settings.includeNameProbability then
+	-- 			message = messages.milestone[math.random(#messages.milestone)]:format(level) .. " " .. name
+	-- 		else
+	-- 			message = messages.milestone[math.random(#messages.milestone)]:format(level)
+	-- 		end
+	-- 		DebugPrint("Milestone detected: Level " .. level .. " for " .. name)
+	-- 	elseif math.random() < settings.announceProbability then
+	-- 		-- Regular level-up messages
+	-- 		if math.random() < settings.includeLevelProbability then
+	-- 			message = messages.includeLevel[math.random(#messages.includeLevel)]:format(level)
+	-- 		else
+	-- 			message = messages.grats[math.random(#messages.grats)]
+	-- 		end
+	-- 		if math.random() < settings.includeNameProbability then
+	-- 			message = message .. " " .. name
+	-- 		end
+	-- 		DebugPrint("Regular level-up detected: Level " .. level .. " for " .. name)
+	-- 	else
+	-- 		-- No message
+	-- 		DebugPrint("Skipping announcement for Level " .. level .. " for " .. name)
+	-- 		return
+	-- 	end
 
-	-- Initialize the party member list on login or reload
-	UpdatePartyMembers()
+	-- 	QueueGratsMessage(message)
+	-- 	if #messageQueue == 1 then
+	-- 		C_Timer.After(settings.delayBetweenMessages, ProcessMessageQueue)
+	-- 	end
+	-- end
+
+	-- -- Event Handling
+	-- gratsFrame:SetScript("OnEvent", function(_, event, arg1)
+	-- 	if event == "UNIT_LEVEL" then
+	-- 		local name = UnitName(arg1)
+	-- 		local level = UnitLevel(arg1)
+	-- 		if name == UnitName("player") or not partyMembers[name] or not level or partyMembers[name] >= level then
+	-- 			return
+	-- 		end
+	-- 		partyMembers[name] = level
+	-- 		local isMilestone = level % settings.milestoneInterval == 0
+	-- 		SendGrats(level, isMilestone, name)
+	-- 	elseif event == "GROUP_ROSTER_UPDATE" then
+	-- 		C_Timer.After(0.5, UpdatePartyMembers) -- Delayed update
+	-- 	end
+	-- end)
+
+	-- -- Slash Commands
+	-- SLASH_LEVELCHEERS1 = "/levelcheers"
+	-- SlashCmdList["LEVELCHEERS"] = function(msg)
+	-- 	if msg == "debug" then
+	-- 		debugMode = not debugMode
+	-- 		print("|cff00ff00[LevelCheers]:|r Debug mode " .. (debugMode and "enabled" or "disabled"))
+	-- 	else
+	-- 		print("|cff00ff00[LevelCheers]:|r Use '/levelcheers debug' to toggle debug mode.")
+	-- 	end
+	-- end
+
+	-- -- Initialize Party Members
+	-- UpdatePartyMembers()
 end
 
 -- LevelUp Display Addon

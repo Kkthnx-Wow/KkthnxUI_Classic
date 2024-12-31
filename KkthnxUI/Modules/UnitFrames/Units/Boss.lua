@@ -220,8 +220,6 @@ function Module:CreateBoss()
 		Castbar.PostCastStop = Module.PostCastStop
 		Castbar.PostCastFail = Module.PostCastFailed
 		Castbar.PostCastInterruptible = Module.PostUpdateInterruptible
-		Castbar.CreatePip = Module.CreatePip
-		Castbar.PostUpdatePips = Module.PostUpdatePips
 
 		self.Castbar = Castbar
 	end

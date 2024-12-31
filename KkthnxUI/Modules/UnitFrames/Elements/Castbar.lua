@@ -13,43 +13,100 @@ local UnitName = UnitName
 local YOU = YOU
 
 local channelingTicks = {
-	[740] = 4, -- Tranquility
-	[755] = 5, -- Life Tap
-	[5143] = 4, -- Arcane Missiles
-	[12051] = 6, -- Evocation
-	[15407] = 6, -- Mind Flay
-	[47757] = 3, -- Penance
-	[47758] = 3, -- Penance
-	[48045] = 6, -- Mind Sear
-	[64843] = 4, -- Divine Hymn
-	[120360] = 15, -- Barrage
-	[198013] = 10, -- Eye Beam
-	[198590] = 5, -- Drain Soul
-	[205021] = 5, -- Frostbolt
-	[205065] = 6, -- Void Torrent
-	[206931] = 3, -- Blooddrinker
-	[212084] = 10, -- Fel Devastation
-	[234153] = 5, -- Drain Life
-	[257044] = 7, -- Rapid Fire
-	[291944] = 6, -- Rejuvenation, Zandalari Trolls
-	[314791] = 4, -- Metamorphosis, Demon Hunter
-	[324631] = 8, -- Blood and Thunder, Covenant
-	[356995] = 3, -- Decimate, Dragon's Breath
+	--First Aid
+	[23567] = 8, --Warsong Gulch Runecloth Bandage
+	[23696] = 8, --Alterac Heavy Runecloth Bandage
+	[24414] = 8, --Arathi Basin Runecloth Bandage
+	[18610] = 8, --Heavy Runecloth Bandage
+	[18608] = 8, --Runecloth Bandage
+	[10839] = 8, --Heavy Mageweave Bandage
+	[10838] = 8, --Mageweave Bandage
+	[7927] = 8, --Heavy Silk Bandage
+	[7926] = 8, --Silk Bandage
+	[3268] = 7, --Heavy Wool Bandage
+	[3267] = 7, --Wool Bandage
+	[1159] = 6, --Heavy Linen Bandage
+	[746] = 6, --Linen Bandage
+	-- Warlock
+	[1120] = 5, -- Drain Soul(Rank 1)
+	[8288] = 5, -- Drain Soul(Rank 2)
+	[8289] = 5, -- Drain Soul(Rank 3)
+	[11675] = 5, -- Drain Soul(Rank 4)
+	[27217] = 5, -- Drain Soul(Rank 5)
+	[755] = 10, -- Health Funnel(Rank 1)
+	[3698] = 10, -- Health Funnel(Rank 2)
+	[3699] = 10, -- Health Funnel(Rank 3)
+	[3700] = 10, -- Health Funnel(Rank 4)
+	[11693] = 10, -- Health Funnel(Rank 5)
+	[11694] = 10, -- Health Funnel(Rank 6)
+	[11695] = 10, -- Health Funnel(Rank 7)
+	[27259] = 10, -- Health Funnel(Rank 8)
+	[689] = 5, -- Drain Life(Rank 1)
+	[699] = 5, -- Drain Life(Rank 2)
+	[709] = 5, -- Drain Life(Rank 3)
+	[7651] = 5, -- Drain Life(Rank 4)
+	[11699] = 5, -- Drain Life(Rank 5)
+	[11700] = 5, -- Drain Life(Rank 6)
+	[27219] = 5, -- Drain Life(Rank 7)
+	[27220] = 5, -- Drain Life(Rank 8)
+	[5740] = 4, --Rain of Fire(Rank 1)
+	[6219] = 4, --Rain of Fire(Rank 2)
+	[11677] = 4, --Rain of Fire(Rank 3)
+	[11678] = 4, --Rain of Fire(Rank 4)
+	[27212] = 4, --Rain of Fire(Rank 5)
+	[1949] = 15, --Hellfire(Rank 1)
+	[11683] = 15, --Hellfire(Rank 2)
+	[11684] = 15, --Hellfire(Rank 3)
+	[27213] = 15, --Hellfire(Rank 4)
+	[5138] = 5, --Drain Mana(Rank 1)
+	[6226] = 5, --Drain Mana(Rank 2)
+	[11703] = 5, --Drain Mana(Rank 3)
+	[11704] = 5, --Drain Mana(Rank 4)
+	[27221] = 5, --Drain Mana(Rank 5)
+	[30908] = 5, --Drain Mana(Rank 6)
+	-- Priest
+	[15407] = 3, -- Mind Flay(Rank 1)
+	[17311] = 3, -- Mind Flay(Rank 2)
+	[17312] = 3, -- Mind Flay(Rank 3)
+	[17313] = 3, -- Mind Flay(Rank 4)
+	[17314] = 3, -- Mind Flay(Rank 5)
+	[18807] = 3, -- Mind Flay(Rank 6)
+	[25387] = 3, -- Mind Flay(Rank 7)
+	-- Mage
+	[10] = 8, --Blizzard(Rank 1)
+	[6141] = 8, --Blizzard(Rank 2)
+	[8427] = 8, --Blizzard(Rank 3)
+	[10185] = 8, --Blizzard(Rank 4)
+	[10186] = 8, --Blizzard(Rank 5)
+	[10187] = 8, --Blizzard(Rank 6)
+	[27085] = 8, --Blizzard(Rank 7)
+	[5143] = 3, -- Arcane Missiles(Rank 1)
+	[5144] = 4, -- Arcane Missiles(Rank 2)
+	[5145] = 5, -- Arcane Missiles(Rank 3)
+	[8416] = 5, -- Arcane Missiles(Rank 4)
+	[8417] = 5, -- Arcane Missiles(Rank 5)
+	[10211] = 5, -- Arcane Missiles(Rank 6)
+	[10212] = 5, -- Arcane Missiles(Rank 7)
+	[25345] = 5, -- Arcane Missiles(Rank 8)
+	[27075] = 5, -- Arcane Missiles(Rank 9)
+	[38699] = 5, -- Arcane Missiles(Rank 10)
+	[12051] = 4, -- Evocation
+	--Druid
+	[740] = 5, -- Tranquility(Rank 1)
+	[8918] = 5, --Tranquility(Rank 2)
+	[9862] = 5, --Tranquility(Rank 3)
+	[9863] = 5, --Tranquility(Rank 4)
+	[26983] = 5, --Tranquility(Rank 5)
+	[16914] = 10, --Hurricane(Rank 1)
+	[17401] = 10, --Hurricane(Rank 2)
+	[17402] = 10, --Hurricane(Rank 3)
+	[27012] = 10, --Hurricane(Rank 4)
+	--Hunter
+	[1510] = 6, --Volley(Rank 1)
+	[14294] = 6, --Volley(Rank 2)
+	[14295] = 6, --Volley(Rank 3)
+	[27022] = 6, --Volley(Rank 4)
 }
-
-if K.Class == "PRIEST" then
-	local function updateTicks()
-		local numTicks = 3
-		if IsPlayerSpell(193134) then
-			numTicks = 4
-		end
-		channelingTicks[47757] = numTicks
-		channelingTicks[47758] = numTicks
-	end
-
-	K:RegisterEvent("PLAYER_LOGIN", updateTicks)
-	K:RegisterEvent("PLAYER_TALENT_UPDATE", updateTicks)
-end
 
 local function CreateAndUpdateBarTicks(bar, ticks, numTicks)
 	for i = 1, #ticks do
@@ -103,26 +160,6 @@ function Module:OnCastbarUpdate(elapsed)
 		self.duration = duration
 		self:SetValue(duration)
 		self.Spark:SetPoint("CENTER", self, "LEFT", (duration / self.max) * self:GetWidth(), 0)
-
-		if self.stageString then
-			self.stageString:SetText("")
-			if self.empowering then
-				for i = self.numStages, 1, -1 do
-					local pip = self.Pips[i]
-					if pip and duration > pip.duration then
-						self.stageString:SetText(i)
-
-						if self.pipStage ~= i then
-							self.pipStage = i
-							local nextStage = self.numStages == i and 1 or i + 1
-							local nextPip = self.Pips[nextStage]
-							K.UIFrameFadeIn(nextPip.tex, 0.25, 0.3, 1)
-						end
-						break
-					end
-				end
-			end
-		end
 	elseif self.holdTime > 0 then
 		self.holdTime = self.holdTime - elapsed
 	else
@@ -229,6 +266,15 @@ function Module:PostCastStart(unit)
 
 	UpdateCastBarColor(self, unit)
 
+	-- Fix for empty icon
+	if self.Icon then
+		local texture = self.Icon:GetTexture()
+		if not texture or texture == 136235 then
+			-- self.Icon:SetTexture(136243)
+			self.Icon:SetTexture(C["Media"].LogoSmallTexture)
+		end
+	end
+
 	if self.__owner.mystyle == "nameplate" then
 		-- Major spells
 		if C.MajorSpells[self.spellID] then
@@ -266,50 +312,4 @@ function Module:PostCastFailed()
 	self.fadeOut = true
 	self:Show()
 	ResetSpellTarget(self)
-end
-
-Module.PipColors = {
-	[1] = { 0.08, 1, 0, 0.3 },
-	[2] = { 1, 0.1, 0.1, 0.3 },
-	[3] = { 1, 0.5, 0, 0.3 },
-	[4] = { 0.1, 0.7, 0.7, 0.3 },
-	[5] = { 0, 1, 1, 0.3 },
-}
-function Module:CreatePip(stage)
-	local _, height = self:GetSize()
-
-	local pip = CreateFrame("Frame", nil, self, "CastingBarFrameStagePipTemplate")
-	pip.BasePip:SetTexture(C["Media"].Textures.White8x8Texture)
-	pip.BasePip:SetVertexColor(0, 0, 0)
-	pip.BasePip:SetWidth(2)
-	pip.BasePip:SetHeight(height)
-	pip.tex = pip:CreateTexture(nil, "ARTWORK", nil, 2)
-	pip.tex:SetTexture(K.GetTexture(C["General"].Texture))
-	pip.tex:SetVertexColor(unpack(Module.PipColors[stage]))
-
-	return pip
-end
-
-function Module:PostUpdatePips(numStages)
-	local pips = self.Pips
-	local numStages = self.numStages
-
-	for stage = 1, numStages do
-		local pip = pips[stage]
-		pip.tex:SetAlpha(0.3) -- reset pip alpha
-		pip.duration = self.stagePoints[stage]
-
-		if stage == numStages then
-			local firstPip = pips[1]
-			local anchor = pips[numStages]
-			firstPip.tex:SetPoint("BOTTOMRIGHT", self)
-			firstPip.tex:SetPoint("TOPLEFT", anchor.BasePip, "TOPRIGHT")
-		end
-
-		if stage ~= 1 then
-			local anchor = pips[stage - 1]
-			pip.tex:SetPoint("BOTTOMRIGHT", pip.BasePip, "BOTTOMLEFT")
-			pip.tex:SetPoint("TOPLEFT", anchor.BasePip, "TOPRIGHT")
-		end
-	end
 end
