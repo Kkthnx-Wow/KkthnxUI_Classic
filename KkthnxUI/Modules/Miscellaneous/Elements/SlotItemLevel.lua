@@ -239,8 +239,8 @@ function Module:ItemLevel_UpdateInfo(slotFrame, info, quality)
 			slotFrame.enchantText:SetText(enchant)
 			slotFrame.enchantText:SetTextColor(0, 1, 0) -- Set text color to green for normal enchant
 		elseif Module:CanEnchantSlot("player", slotFrame:GetID()) then
-			slotFrame.enchantText:SetText(NO .. " " .. ENSCRIBE)
-			slotFrame.enchantText:SetTextColor(1, 0, 0) -- Set text color to red for missing enchant
+			--slotFrame.enchantText:SetText(NO .. " " .. ENSCRIBE)
+			--slotFrame.enchantText:SetTextColor(1, 0, 0) -- Set text color to red for missing enchant
 		end
 
 		local gemStep, essenceStep = 1, 1
@@ -665,15 +665,6 @@ function Module:CreateSlotItemLevel()
 	-- iLvl on InspectFrame
 	K:RegisterEvent("INSPECT_READY", Module.ItemLevel_UpdateInspect)
 
-	-- iLvl on FlyoutButtons
-	hooksecurefunc("EquipmentFlyout_UpdateItems", function()
-		for _, button in pairs(EquipmentFlyoutFrame.buttons) do
-			if button:IsShown() then
-				Module.ItemLevel_FlyoutSetup(button)
-			end
-		end
-	end)
-
 	-- iLvl on ScrappingMachineFrame
 	K:RegisterEvent("ADDON_LOADED", Module.ItemLevel_ScrappingShow)
 
@@ -688,7 +679,7 @@ function Module:CreateSlotItemLevel()
 	hooksecurefunc("GuildNewsButton_SetText", Module.ItemLevel_ReplaceGuildNews)
 
 	-- iLvl on LootFrame
-	hooksecurefunc(LootFrame.ScrollBox, "Update", Module.ItemLevel_UpdateLoot)
+	-- hooksecurefunc(LootFrame.ScrollBox, "Update", Module.ItemLevel_UpdateLoot)
 
 	-- iLvl on GuildBankFrame
 	K:RegisterEvent("ADDON_LOADED", Module.ItemLevel_GuildBankShow)

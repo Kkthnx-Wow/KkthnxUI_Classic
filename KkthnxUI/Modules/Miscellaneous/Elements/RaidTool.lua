@@ -7,11 +7,9 @@ local tinsert, strsplit, format = table.insert, string.split, string.format
 local IsInGroup, IsInRaid, IsInInstance = IsInGroup, IsInRaid, IsInInstance
 local UnitIsGroupLeader, UnitIsGroupAssistant = UnitIsGroupLeader, UnitIsGroupAssistant
 local IsPartyLFG, IsLFGComplete, HasLFGRestrictions = IsPartyLFG, IsLFGComplete, HasLFGRestrictions
-local GetInstanceInfo, GetNumGroupMembers, GetRaidRosterInfo, GetRaidTargetIndex, SetRaidTarget =
-	GetInstanceInfo, GetNumGroupMembers, GetRaidRosterInfo, GetRaidTargetIndex, SetRaidTarget
+local GetInstanceInfo, GetNumGroupMembers, GetRaidRosterInfo, GetRaidTargetIndex, SetRaidTarget = GetInstanceInfo, GetNumGroupMembers, GetRaidRosterInfo, GetRaidTargetIndex, SetRaidTarget
 local GetTime, SendChatMessage, C_AddOns_IsAddOnLoaded = GetTime, SendChatMessage, C_AddOns.IsAddOnLoaded
-local IsAltKeyDown, IsControlKeyDown, IsShiftKeyDown, InCombatLockdown =
-	IsAltKeyDown, IsControlKeyDown, IsShiftKeyDown, InCombatLockdown
+local IsAltKeyDown, IsControlKeyDown, IsShiftKeyDown, InCombatLockdown = IsAltKeyDown, IsControlKeyDown, IsShiftKeyDown, InCombatLockdown
 local UnitExists, UninviteUnit = UnitExists, UninviteUnit
 local DoReadyCheck, InitiateRolePoll, GetReadyCheckStatus = DoReadyCheck, InitiateRolePoll, GetReadyCheckStatus
 local LeaveParty = C_PartyInfo.LeaveParty
@@ -341,14 +339,7 @@ function Module:RaidTool_BuffChecker(parent)
 			NoBuff[numGroups] = {}
 		end
 
-		if
-			#NoBuff[1] == 0
-			and #NoBuff[2] == 0
-			and #NoBuff[3] == 0
-			and #NoBuff[4] == 0
-			and #NoBuff[5] == 0
-			and #NoBuff[6] == 0
-		then
+		if #NoBuff[1] == 0 and #NoBuff[2] == 0 and #NoBuff[3] == 0 and #NoBuff[4] == 0 and #NoBuff[5] == 0 and #NoBuff[6] == 0 then
 			sendMsg(L["All Buffs Ready"])
 		else
 			sendMsg(L["Raid Buff Checker"])
@@ -540,11 +531,7 @@ function Module:RaidTool_CreateMenu(parent)
 		{
 			ROLE_POLL,
 			function()
-				if
-					IsInGroup()
-					and not HasLFGRestrictions()
-					and (UnitIsGroupLeader("player") or (UnitIsGroupAssistant("player") and IsInRaid()))
-				then
+				if IsInGroup() and not HasLFGRestrictions() and (UnitIsGroupLeader("player") or (UnitIsGroupAssistant("player") and IsInRaid())) then
 					InitiateRolePoll()
 				else
 					UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_LEADER)
@@ -628,12 +615,7 @@ function Module:RaidTool_EasyMarker()
 
 	WorldFrame:HookScript("OnMouseDown", function(_, btn)
 		if btn == "LeftButton" and GetModifiedState() and UnitExists("mouseover") then
-			if
-				not IsInGroup()
-				or (IsInGroup() and not IsInRaid())
-				or UnitIsGroupLeader("player")
-				or UnitIsGroupAssistant("player")
-			then
+			if not IsInGroup() or (IsInGroup() and not IsInRaid()) or UnitIsGroupLeader("player") or UnitIsGroupAssistant("player") then
 				local index = GetRaidTargetIndex("mouseover")
 				for i = 1, 8 do
 					local menu = menuList[i]
@@ -647,86 +629,6 @@ function Module:RaidTool_EasyMarker()
 			end
 		end
 	end)
-end
-
-function Module:RaidTool_WorldMarker()
-	local iconTexture = {
-		"Interface\\TargetingFrame\\UI-RaidTargetingIcon_6",
-		"Interface\\TargetingFrame\\UI-RaidTargetingIcon_4",
-		"Interface\\TargetingFrame\\UI-RaidTargetingIcon_3",
-		"Interface\\TargetingFrame\\UI-RaidTargetingIcon_7",
-		"Interface\\TargetingFrame\\UI-RaidTargetingIcon_1",
-		"Interface\\TargetingFrame\\UI-RaidTargetingIcon_2",
-		"Interface\\TargetingFrame\\UI-RaidTargetingIcon_5",
-		"Interface\\TargetingFrame\\UI-RaidTargetingIcon_8",
-		"Interface\\Buttons\\UI-GroupLoot-Pass-Up",
-	}
-
-	local frame = CreateFrame("Frame", "KKUI_WorldMarkers", UIParent)
-	frame:SetPoint("RIGHT", -100, 0)
-	K.CreateMoverFrame(frame, nil, true)
-	K.RestoreMoverFrame(frame)
-	frame:CreateBorder()
-	frame.buttons = {}
-
-	for i = 1, 9 do
-		local button = CreateFrame("Button", nil, frame, "SecureActionButtonTemplate")
-		button:SetSize(24, 24)
-		button.Icon = button:CreateTexture(nil, "ARTWORK")
-		button.Icon:SetAllPoints()
-		button.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-		button.Icon:SetTexture(iconTexture[i])
-		button:SetHighlightTexture(iconTexture[i])
-		button:SetPushedTexture(iconTexture[i])
-
-		if i ~= 9 then
-			button:RegisterForClicks("AnyUp", "AnyDown")
-			button:SetAttribute("type", "macro")
-			button:SetAttribute("macrotext1", format("/wm %d", i))
-			button:SetAttribute("macrotext2", format("/cwm %d", i))
-		else
-			button:SetScript("OnClick", ClearRaidMarker)
-		end
-		frame.buttons[i] = button
-	end
-
-	Module:RaidTool_UpdateGrid()
-end
-
-local markerTypeToRow = {
-	[1] = 3,
-	[2] = 9,
-	[3] = 1,
-	[4] = 3,
-}
-function Module:RaidTool_UpdateGrid()
-	local frame = _G["KKUI_WorldMarkers"]
-	if not frame then
-		return
-	end
-
-	local size, margin = C["Misc"].MarkerBarSize, 6
-	local showType = C["Misc"].ShowMarkerBar.Value
-	local perRow = markerTypeToRow[showType]
-
-	for i = 1, 9 do
-		local button = frame.buttons[i]
-		button:SetSize(size, size)
-		button:ClearAllPoints()
-		if i == 1 then
-			button:SetPoint("TOPLEFT", frame, margin, -margin)
-		elseif mod(i - 1, perRow) == 0 then
-			button:SetPoint("TOP", frame.buttons[i - perRow], "BOTTOM", 0, -margin)
-		else
-			button:SetPoint("LEFT", frame.buttons[i - 1], "RIGHT", margin, 0)
-		end
-	end
-
-	local column = min(9, perRow)
-	local rows = ceil(9 / perRow)
-	frame:SetWidth(column * size + (column - 1) * margin + 2 * margin)
-	frame:SetHeight(size * rows + (rows - 1) * margin + 2 * margin)
-	frame:SetShown(showType ~= 4)
 end
 
 function Module:RaidTool_Misc()
@@ -751,7 +653,6 @@ function Module:RaidTool_Init()
 	Module:RaidTool_CountDown(frame)
 
 	Module:RaidTool_EasyMarker()
-	Module:RaidTool_WorldMarker()
 	Module:RaidTool_Misc()
 end
 Module:RegisterMisc("RaidTool", Module.RaidTool_Init)

@@ -105,11 +105,10 @@
    <Script file="Miscellaneous\Elements\ImprovedMail.lua" />
    <Script file="Miscellaneous\Elements\yClassColors.lua" />
    <Script file="Miscellaneous\Elements\AlreadyKnown.lua" />
-   <!-- <Script file="Miscellaneous\Elements\MuteSounds.lua" />
-   <Script file="Miscellaneous\Elements\QueueTimer.lua" />
+   <Script file="Miscellaneous\Elements\TradeTabs.lua" />
+   <Script file="Miscellaneous\Elements\MuteSounds.lua" />
    <Script file="Miscellaneous\Elements\RaidTool.lua" />
    <Script file="Miscellaneous\Elements\SlotItemLevel.lua" />
-   <Script file="Miscellaneous\Elements\TradeTabs.lua" /> -->
    <!-- Announcements -->
    <Script file="Announcements\Core.lua" />
    <Script file="Announcements\Elements\QuestNotifier.lua" />

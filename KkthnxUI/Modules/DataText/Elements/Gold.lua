@@ -68,14 +68,14 @@ local function getClassIcon(class)
 end
 
 local factionIcons = {
-	["Horde"] = "UI_HordeIcon",
-	["Alliance"] = "UI_AllianceIcon",
-	["Unknown"] = "INV_Misc_QuestionMark",
+	["Horde"] = "Horde",
+	["Alliance"] = "Alliance",
+	["Unknown"] = "Unknown",
 }
 
 local function getFactionIcon(faction)
-	local icon = factionIcons[faction] or "INV_Misc_QuestionMark"
-	return "|TInterface\\ICONS\\" .. icon .. ":12:12:0:0:50:50:4:46:4:46|t "
+	local icon = factionIcons[faction] or "Unknown"
+	return "|TInterface\\AddOns\\KkthnxUI\\Media\\DataText\\" .. icon .. ":12:12:0:0:50:50:4:46:4:46|t "
 end
 
 local function getSlotString()

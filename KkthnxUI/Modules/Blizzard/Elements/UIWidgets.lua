@@ -19,20 +19,4 @@ function Module:CreateUIWidgets()
 			self:SetPoint("TOPRIGHT", frame1)
 		end
 	end)
-
-	-- Create a frame to move the UIWidgetPowerBar to a more desirable location
-	local frame2 = CreateFrame("Frame", "KKUI_WidgetPowerBarMover", UIParent)
-	frame2:SetSize(260, 40)
-	K.Mover(frame2, "UIWidgetPowerBar", "UIWidgetPowerBar", { "BOTTOM", UIParent, "BOTTOM", 0, 250 })
-
-	-- Hook the SetPoint method of UIWidgetPowerBarContainerFrame to make sure it's always positioned correctly
-	hooksecurefunc(UIWidgetPowerBarContainerFrame, "SetPoint", function(self, _, parent)
-		if parent ~= frame2 then
-			self:ClearAllPoints()
-			self:SetPoint("CENTER", frame2)
-			if self:GetScale() ~= 0.8 then
-				self:SetScale(0.8)
-			end
-		end
-	end)
 end
