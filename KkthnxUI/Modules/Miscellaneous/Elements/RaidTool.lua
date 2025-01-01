@@ -75,9 +75,9 @@ function Module:GetRaidMaxGroup()
 		return 1
 	elseif instType ~= "raid" then
 		return 8
-	elseif difficulty == 8 or difficulty == 1 or difficulty == 2 then
+	elseif difficulty == 8 or difficulty == 1 or difficulty == 2 or difficulty == 24 then
 		return 1
-	elseif difficulty == 14 or difficulty == 15 or (difficulty == 24 and instType == "raid") then
+	elseif difficulty == 14 or difficulty == 15 then
 		return 6
 	elseif difficulty == 16 then
 		return 4
@@ -269,7 +269,7 @@ function Module:RaidTool_BuffChecker(parent)
 	local icon = frame:CreateTexture(nil, "ARTWORK")
 	icon:SetPoint("TOPLEFT", frame, 6, -6)
 	icon:SetPoint("BOTTOMRIGHT", frame, -6, 6)
-	icon:SetAtlas("lootroll-icon-checkmark")
+	icon:SetAtlas("auctionhouse-icon-checkmark")
 
 	local BuffName = { L["Flask"], L["Food"], SPELL_STAT4_NAME, RAID_BUFF_2, RAID_BUFF_3, RUNES }
 	local NoBuff, numGroups, numPlayer = {}, 6, 0
@@ -390,7 +390,7 @@ function Module:RaidTool_CountDown(parent)
 	local icon = frame:CreateTexture(nil, "ARTWORK")
 	icon:SetPoint("TOPLEFT", frame, 6, -6)
 	icon:SetPoint("BOTTOMRIGHT", frame, -6, 6)
-	icon:SetAtlas("clock-icon", true)
+	icon:SetAtlas("auctionhouse-icon-clock", true)
 
 	frame:HookScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")

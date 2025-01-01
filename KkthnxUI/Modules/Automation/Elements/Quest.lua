@@ -2,17 +2,8 @@ local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 
 local next, ipairs, select = next, ipairs, select
 
-local C_GossipInfo_GetActiveQuests = C_GossipInfo.GetActiveQuests
-local C_GossipInfo_GetAvailableQuests = C_GossipInfo.GetAvailableQuests
-local C_GossipInfo_GetNumActiveQuests = C_GossipInfo.GetNumActiveQuests
-local C_GossipInfo_GetNumAvailableQuests = C_GossipInfo.GetNumAvailableQuests
 local C_GossipInfo_GetOptions = C_GossipInfo.GetOptions
-local C_GossipInfo_SelectActiveQuest = C_GossipInfo.SelectActiveQuest
-local C_GossipInfo_SelectAvailableQuest = C_GossipInfo.SelectAvailableQuest
 local C_GossipInfo_SelectOption = C_GossipInfo.SelectOption
-local C_QuestLog_GetQuestTagInfo = C_QuestLog.GetQuestTagInfo
-local C_QuestLog_IsQuestTrivial = C_QuestLog.IsQuestTrivial
-local C_QuestLog_IsWorldQuest = C_QuestLog.IsWorldQuest
 local GetInstanceInfo, GetQuestID = GetInstanceInfo, GetQuestID
 local GetNumActiveQuests, GetActiveTitle, GetActiveQuestID, SelectActiveQuest = GetNumActiveQuests, GetActiveTitle, GetActiveQuestID, SelectActiveQuest
 local GetNumAutoQuestPopUps, GetAutoQuestPopUp, ShowQuestOffer, ShowQuestComplete = GetNumAutoQuestPopUps, GetAutoQuestPopUp, ShowQuestOffer, ShowQuestComplete
@@ -27,7 +18,7 @@ local QuestGetAutoAccept, AcceptQuest, CloseQuest, CompleteQuest, AcknowledgeAut
 local QuestLabelPrepend = Enum.GossipOptionRecFlags.QuestLabelPrepend
 local UnitGUID, IsShiftKeyDown, GetItemInfoFromHyperlink = UnitGUID, IsShiftKeyDown, GetItemInfoFromHyperlink
 
-local choiceQueue
+local quests, choiceQueue = {}
 
 -- Minimap checkbox
 local isCheckButtonCreated
@@ -94,6 +85,21 @@ end
 
 C.IgnoreQuestNPC = {}
 
+local function GetQuestLogQuests(onlyComplete)
+	wipe(quests)
+
+	for index = 1, GetNumQuestLogEntries() do
+		local title, _, _, isHeader, _, isComplete, _, questID = GetQuestLogTitle(index)
+		if not isHeader then
+			if onlyComplete and isComplete or not onlyComplete then
+				quests[title] = questID
+			end
+		end
+	end
+
+	return quests
+end
+
 QuickQuest:Register("QUEST_GREETING", function()
 	local npcID = GetNPCID()
 	if C.IgnoreQuestNPC[npcID] then
@@ -102,11 +108,19 @@ QuickQuest:Register("QUEST_GREETING", function()
 
 	local active = GetNumActiveQuests()
 	if active > 0 then
+		local logQuests = GetQuestLogQuests(true)
 		for index = 1, active do
-			local _, isComplete = GetActiveTitle(index)
-			local questID = GetActiveQuestID(index)
-			if isComplete and not C_QuestLog_IsWorldQuest(questID) then
-				SelectActiveQuest(index)
+			local name, complete = GetActiveTitle(index)
+			if complete then
+				local questID = logQuests[name]
+				if not questID then
+					SelectActiveQuest(index)
+				else
+					local _, _, worldQuest = GetQuestTagInfo(questID)
+					if not worldQuest then
+						SelectActiveQuest(index)
+					end
+				end
 			end
 		end
 	end
@@ -114,8 +128,8 @@ QuickQuest:Register("QUEST_GREETING", function()
 	local available = GetNumAvailableQuests()
 	if available > 0 then
 		for index = 1, available do
-			local isTrivial = GetAvailableQuestInfo(index)
-			if not isTrivial or IsTrackingHidden() then
+			local isTrivial = IsActiveQuestTrivial(index)
+			if not isTrivial then
 				SelectAvailableQuest(index)
 			end
 		end

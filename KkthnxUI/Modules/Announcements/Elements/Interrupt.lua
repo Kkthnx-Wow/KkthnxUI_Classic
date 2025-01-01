@@ -89,7 +89,7 @@ function Module:InterruptAlert_Update(...)
 
 	local LoCAlert = true
 	if LoCAlert and eventType == "SPELL_AURA_APPLIED" and LOCspells[spellName] and destGUID == K.GUID then
-		local duration = select(5, AuraUtil_FindAuraByName(spellName, "player", "HARMFUL"))
+		local duration = select(5, AuraUtil.FindAuraByName(spellName, "player", "HARMFUL"))
 		if duration > 1.5 then
 			SendChatMessage(string_format("LoC - %s > %s (%ss %s)", sourceName .. "[" .. spellName .. "]", destName, duration, GetMinimapZoneText()), getAlertChannel())
 		end

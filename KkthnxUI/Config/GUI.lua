@@ -824,7 +824,7 @@ local Nameplate = function(self)
 	Window:CreateSwitch("Nameplate", "CastbarGlow", "Force Crucial Spells To Glow")
 
 	Window:CreateSection("Threat")
-	Window:CreateSwitch("Nameplate", "DPSRevertThreat", L["Revert Threat Color If Not Tank"])
+	-- Window:CreateSwitch("Nameplate", "DPSRevertThreat", L["Revert Threat Color If Not Tank"])
 	Window:CreateSwitch("Nameplate", "TankMode", L["Force TankMode Colored"])
 
 	Window:CreateSection("Miscellaneous")
@@ -916,7 +916,6 @@ local Tooltip = function(self)
 	-- Advanced section
 	Window:CreateSection("Advanced")
 	Window:CreateSwitch("Tooltip", "LFDRole", L["Show Roles Assigned Icon"])
-	Window:CreateSwitch("Tooltip", "SpecLevelByShift", L["Show Spec/ItemLevel by SHIFT"])
 	Window:CreateSwitch("Tooltip", "TargetBy", L["Show Player Targeted By"])
 	Window:CreateDropdown("Tooltip", "CursorMode", L["Follow Cursor"])
 end
@@ -1122,7 +1121,6 @@ local Raid = function(self)
 
 	if C["Raid"].RaidBuffsStyle.Value == "Standard" then
 		Window:CreateDropdown("Raid", "RaidBuffs", "Enable buffs display & filtering") -- Needs Locale
-		Window:CreateSwitch("Raid", "DesaturateBuffs", "Desaturate buffs that are not by me") -- Needs Locale
 	elseif C["Raid"].RaidBuffsStyle.Value == "Aura Track" then
 		Window:CreateSwitch("Raid", "AuraTrack", "Enable auras tracking module for healer (replace buffs)") -- Needs Locale
 		Window:CreateSwitch("Raid", "AuraTrackIcons", "Use squared icons instead of status bars") -- Needs Locale
@@ -1141,7 +1139,7 @@ local WorldMap = function(self)
 	Window:CreateSection(GENERAL)
 	Window:CreateSwitch("WorldMap", "Coordinates", L["Show Player/Mouse Coordinates"])
 	Window:CreateSwitch("WorldMap", "FadeWhenMoving", L["Fade Worldmap When Moving"])
-	Window:CreateSwitch("WorldMap", "SmallWorldMap", L["Show Smaller Worldmap"])
+	--Window:CreateSwitch("WorldMap", "SmallWorldMap", L["Show Smaller Worldmap"])
 
 	Window:CreateSection("WorldMap Reveal")
 	Window:CreateSwitch("WorldMap", "MapRevealGlow", L["Map Reveal Shadow"], L["MapRevealTip"])
