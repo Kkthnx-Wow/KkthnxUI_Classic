@@ -14,7 +14,7 @@ local ALERT_THRESHOLD = 30 -- Trigger alert below this percent
 local RECOVERY_THRESHOLD = 50 -- Reset alert after health rises above this percent
 local ALERT_COOLDOWN = 5 -- Time (in seconds) to prevent repeated alerts
 local VALID_PET_CLASSES = { ["HUNTER"] = true, ["WARLOCK"] = true }
-local debugEnabled = false -- Set to false to disable debug logging
+local debugEnabled = true -- Set to false to disable debug logging
 
 -- Timestamp variables to track cooldowns
 local lastPlayerAlertTime = 0
@@ -42,9 +42,9 @@ local function ShouldCheckPlayerHealth()
 end
 
 local function ShouldCheckPetHealth()
-	local inCombat = UnitAffectingCombat("player")
-	debugLog("Pet Health Check - InCombat: %s", tostring(inCombat))
-	return inCombat -- Pet health check only requires combat
+	local inCombat, hasPet = UnitAffectingCombat("player"), UnitExists("pet")
+	debugLog("Pet Health Check - InCombat: %s, HasPet: %s", tostring(inCombat), tostring(hasPet))
+	return inCombat and hasPet -- Pet health check requires combat and having a pet
 end
 
 local function HandleHealthAlert(unit, threshold, recoveryThreshold, alertFlag, lastAlertTime, messageCallback, soundCallback)
@@ -106,7 +106,7 @@ local function CheckPetHealth()
 	end
 
 	if not ShouldCheckPetHealth() then
-		debugLog("Skipping pet health check (not in combat)")
+		debugLog("Skipping pet health check (not in combat or has no pet exsits)")
 		return
 	end
 
