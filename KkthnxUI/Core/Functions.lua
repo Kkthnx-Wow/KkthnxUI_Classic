@@ -696,7 +696,7 @@ do
 		end
 
 		-- Set the GameTooltip's owner and relative position to the 'self' object.
-		GameTooltip:SetOwner(self, "ANCHOR_NONE")
+		GameTooltip:SetOwner(self, self.anchor)
 		GameTooltip:SetPoint(K.GetAnchors(self))
 		GameTooltip:ClearLines()
 

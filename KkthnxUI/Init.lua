@@ -50,25 +50,19 @@ Engine[3] = {} -- L, Localization
 -- Assign the sub-tables to local variables K, C, and L for easier access
 local K, C, L = Engine[1], Engine[2], Engine[3]
 
-do -- Expansions
-	K.TBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC -- not used
-	K.Cata = WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC
-	K.Wrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
-	K.Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
-	K.Classic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+K.Classic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
-	local season = C_Seasons and C_Seasons.GetActiveSeason()
-	K.ClassicHC = season == 3 -- Hardcore
-	K.ClassicSOD = season == 2 -- Season of Discovery
-	K.ClassicAnniv = season == 11 -- Anniversary
-	K.ClassicAnnivHC = season == 12 -- Anniversary Hardcore
+local season = C_Seasons and C_Seasons.GetActiveSeason()
+K.ClassicHC = season == 3 -- Hardcore
+K.ClassicSOD = season == 2 -- Season of Discovery
+K.ClassicAnniv = season == 11 -- Anniversary
+K.ClassicAnnivHC = season == 12 -- Anniversary Hardcore
 
-	local IsHardcoreActive = C_GameRules and C_GameRules.IsHardcoreActive
-	K.IsHardcoreActive = IsHardcoreActive and IsHardcoreActive()
+local IsHardcoreActive = C_GameRules and C_GameRules.IsHardcoreActive
+K.IsHardcoreActive = IsHardcoreActive and IsHardcoreActive()
 
-	local IsEngravingEnabled = C_Engraving and C_Engraving.IsEngravingEnabled
-	K.IsEngravingEnabled = IsEngravingEnabled and IsEngravingEnabled()
-end
+local IsEngravingEnabled = C_Engraving and C_Engraving.IsEngravingEnabled
+K.IsEngravingEnabled = IsEngravingEnabled and IsEngravingEnabled()
 
 do
 	-- Lib Info
