@@ -14,7 +14,7 @@ local ALERT_THRESHOLD = 30 -- Trigger alert below this percent
 local RECOVERY_THRESHOLD = 50 -- Reset alert after health rises above this percent
 local ALERT_COOLDOWN = 5 -- Time (in seconds) to prevent repeated alerts
 local VALID_PET_CLASSES = { ["HUNTER"] = true, ["WARLOCK"] = true }
-local debugEnabled = true -- Set to false to disable debug logging
+local debugEnabled = false -- Set to false to disable debug logging
 
 -- Timestamp variables to track cooldowns
 local lastPlayerAlertTime = 0
