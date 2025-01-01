@@ -13,7 +13,7 @@ local CLASS_ICON_TCOORDS = CLASS_ICON_TCOORDS
 local CreateFrame = CreateFrame
 local GetRuneCooldown = GetRuneCooldown
 local IsInInstance = IsInInstance
-local MAX_BOSS_FRAMES = MAX_BOSS_FRAMES
+-- local MAX_BOSS_FRAMES = MAX_BOSS_FRAMES
 local PlaySound = PlaySound
 local SOUNDKIT = SOUNDKIT
 local UIParent = UIParent
@@ -34,8 +34,8 @@ local phaseIconTexCoords = {
 	[2] = { 34 / 128, 66 / 128, 1 / 64, 33 / 64 },
 }
 local filteredStyle = {
-	["arena"] = true,
-	["boss"] = true,
+	--["arena"] = true,
+	--["boss"] = true,
 	["nameplate"] = true,
 	["target"] = true,
 }
@@ -369,7 +369,8 @@ function Module.CustomFilter(element, unit, button, name, _, _, debuffType, _, _
 	local showDebuffType = C["Unitframe"].OnlyShowPlayerDebuff
 
 	-- Add comments to clarify the purpose of certain sections
-	if style == "nameplate" or style == "boss" or style == "arena" then
+	-- if style == "nameplate" or style == "boss" or style == "arena" then
+	if style == "nameplate" then
 		-- Filter out specific spells
 		if name and spellID == 209859 then -- Pass all bolster
 			return true
@@ -577,12 +578,8 @@ end
 local textScaleFrames = {
 	["player"] = true,
 	["target"] = true,
-	["focus"] = true,
 	["pet"] = true,
 	["targetoftarget"] = true,
-	["focustarget"] = true,
-	["boss"] = true,
-	["arena"] = true,
 }
 
 function Module:UpdateTextScale()
@@ -657,8 +654,6 @@ function Module:CreateUnits()
 		oUF:RegisterStyle("Player", Module.CreatePlayer)
 		oUF:RegisterStyle("Target", Module.CreateTarget)
 		oUF:RegisterStyle("ToT", Module.CreateTargetOfTarget)
-		oUF:RegisterStyle("Focus", Module.CreateFocus)
-		oUF:RegisterStyle("FocusTarget", Module.CreateFocusTarget)
 		oUF:RegisterStyle("Pet", Module.CreatePet)
 
 		oUF:SetActiveStyle("Player")
@@ -683,59 +678,10 @@ function Module:CreateUnits()
 		Pet:SetSize(C["Unitframe"].PetHealthWidth, C["Unitframe"].PetHealthHeight + C["Unitframe"].PetPowerHeight + 6)
 		K.Mover(Pet, "Pet", "Pet", { "TOPRIGHT", Player, "BOTTOMLEFT", -6, -6 }, Pet:GetWidth(), Pet:GetHeight())
 
-		oUF:SetActiveStyle("Focus")
-		local Focus = oUF:Spawn("focus", "oUF_Focus")
-		Focus:SetSize(C["Unitframe"].FocusHealthWidth, C["Unitframe"].FocusHealthHeight + C["Unitframe"].FocusPowerHeight + 6)
-		K.Mover(Focus, "FocusUF", "FocusUF", { "BOTTOMRIGHT", Player, "TOPLEFT", -60, 200 }, Focus:GetWidth(), Focus:GetHeight())
-
-		if not C["Unitframe"].HideFocusTarget then
-			oUF:SetActiveStyle("FocusTarget")
-			local FocusTarget = oUF:Spawn("focustarget", "oUF_FocusTarget")
-			FocusTarget:SetSize(C["Unitframe"].FocusTargetHealthWidth, C["Unitframe"].FocusTargetHealthHeight + C["Unitframe"].FocusTargetPowerHeight + 6)
-			K.Mover(FocusTarget, "FocusTarget", "FocusTarget", { "TOPLEFT", Focus, "BOTTOMRIGHT", 6, -6 }, FocusTarget:GetWidth(), FocusTarget:GetHeight())
-		end
-
 		K:RegisterEvent("PLAYER_TARGET_CHANGED", Module.PLAYER_TARGET_CHANGED)
-		K:RegisterEvent("PLAYER_FOCUS_CHANGED", Module.PLAYER_FOCUS_CHANGED)
 		K:RegisterEvent("UNIT_FACTION", Module.UNIT_FACTION)
 
 		Module:UpdateTextScale()
-	end
-
-	if C["Boss"].Enable then
-		oUF:RegisterStyle("Boss", Module.CreateBoss)
-		oUF:SetActiveStyle("Boss")
-
-		local Boss = {}
-		for i = 1, MAX_BOSS_FRAMES do
-			Boss[i] = oUF:Spawn("boss" .. i, "oUF_Boss" .. i)
-			Boss[i]:SetSize(C["Boss"].HealthWidth, C["Boss"].HealthHeight + C["Boss"].PowerHeight + 6)
-
-			local bossMoverWidth, bossMoverHeight = C["Boss"].HealthWidth, C["Boss"].HealthHeight + C["Boss"].PowerHeight + 6
-			if i == 1 then
-				Boss[i].mover = K.Mover(Boss[i], "BossFrame" .. i, "Boss1", { "BOTTOMRIGHT", UIParent, "RIGHT", -250, 140 }, bossMoverWidth, bossMoverHeight)
-			else
-				Boss[i].mover = K.Mover(Boss[i], "BossFrame" .. i, "Boss" .. i, { "TOPLEFT", Boss[i - 1], "BOTTOMLEFT", 0, -C["Boss"].YOffset }, bossMoverWidth, bossMoverHeight)
-			end
-		end
-	end
-
-	if C["Arena"].Enable then
-		oUF:RegisterStyle("Arena", Module.CreateArena)
-		oUF:SetActiveStyle("Arena")
-
-		local Arena = {}
-		for i = 1, 5 do
-			Arena[i] = oUF:Spawn("arena" .. i, "oUF_Arena" .. i)
-			Arena[i]:SetSize(C["Arena"].HealthWidth, C["Arena"].HealthHeight + C["Arena"].PowerHeight + 6)
-
-			local arenaMoverWidth, arenaMoverHeight = C["Arena"].HealthWidth, C["Arena"].HealthHeight + C["Arena"].PowerHeight + 6
-			if i == 1 then
-				Arena[i].mover = K.Mover(Arena[i], "ArenaFrame" .. i, "Arena1", { "BOTTOMRIGHT", UIParent, "RIGHT", -250, 140 }, arenaMoverWidth, arenaMoverHeight)
-			else
-				Arena[i].mover = K.Mover(Arena[i], "ArenaFrame" .. i, "Arena" .. i, { "TOPLEFT", Arena[i - 1], "BOTTOMLEFT", 0, -C["Arena"].YOffset }, arenaMoverWidth, arenaMoverHeight)
-			end
-		end
 	end
 
 	local partyMover
@@ -975,11 +921,6 @@ local function CreateTargetSound(_, unit)
 	else
 		PlaySound(SOUNDKIT.INTERFACE_SOUND_LOST_TARGET_UNIT)
 	end
-end
-
--- Function that plays a sound when the player changes their focus
-function Module:PLAYER_FOCUS_CHANGED()
-	CreateTargetSound(_, "focus")
 end
 
 -- Function that plays a sound when the player changes their target

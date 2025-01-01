@@ -120,7 +120,6 @@ C["Announcements"] = {
 	InstAlertOnly = true,
 	InterruptAlert = false,
 	ItemAlert = false,
-	KillingBlow = false,
 	OnlyCompleteRing = false,
 	OwnDispell = true,
 	OwnInterrupt = true,
@@ -621,17 +620,6 @@ C["Unitframe"] = {
 	TargetDebuffs = true,
 	TargetDebuffsPerRow = 6,
 
-	-- Focus
-	FocusBuffs = true,
-	FocusCastbar = true,
-	FocusCastbarHeight = 24,
-	FocusCastbarIcon = true,
-	FocusCastbarWidth = 208,
-	FocusDebuffs = true,
-	FocusHealthHeight = 32,
-	FocusHealthWidth = 180,
-	FocusPowerHeight = 14,
-
 	-- TargetOfTarget
 	TargetTargetHealthHeight = 18,
 	TargetTargetHealthWidth = 100,
@@ -647,14 +635,6 @@ C["Unitframe"] = {
 	HidePetLevel = false,
 	HidePetName = false,
 	HidePet = false,
-
-	-- FocusTarget
-	FocusTargetHealthHeight = 18,
-	FocusTargetHealthWidth = 100,
-	FocusTargetPowerHeight = 10,
-	HideFocusTargetLevel = false,
-	HideFocusTargetName = false,
-	HideFocusTarget = false,
 
 	HealthbarColor = {
 		Options = {
@@ -692,44 +672,6 @@ C["Party"] = {
 	ShowPlayer = true,
 	Smooth = false,
 	TargetHighlight = false,
-	HealthbarColor = {
-		Options = {
-			["Dark"] = "Dark",
-			["Value"] = "Value",
-			["Class"] = "Class",
-		},
-		Value = "Class",
-	},
-}
-
-C["Boss"] = {
-	CastbarIcon = true,
-	Castbars = true,
-	Enable = true,
-	Smooth = false,
-	HealthHeight = 24,
-	HealthWidth = 150,
-	PowerHeight = 12,
-	YOffset = 54,
-	HealthbarColor = {
-		Options = {
-			["Dark"] = "Dark",
-			["Value"] = "Value",
-			["Class"] = "Class",
-		},
-		Value = "Class",
-	},
-}
-
-C["Arena"] = {
-	CastbarIcon = true,
-	Castbars = true,
-	Enable = true,
-	Smooth = false,
-	HealthHeight = 20,
-	HealthWidth = 134,
-	PowerHeight = 10,
-	YOffset = 54,
 	HealthbarColor = {
 		Options = {
 			["Dark"] = "Dark",

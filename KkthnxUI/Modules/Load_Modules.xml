@@ -15,6 +15,7 @@
    <Script file="Blizzard\Core.lua" />
    <Script file="Blizzard\Elements\MirrorBars.lua" />
    <Script file="Blizzard\Elements\TimerTracker.lua" />
+   <Script file="Blizzard\Elements\Fixes.lua" />
    <!-- <Script file="Blizzard\Elements\AltPowerBar.lua" />
    <Script file="Blizzard\Elements\ColorPicker.lua" />
    <Script file="Blizzard\Elements\Fixes.lua" />
@@ -51,9 +52,8 @@
    <Include file="Auras\AuraTemplate.xml" />
    <Script file="Auras\Core.lua" />
    <Script file="Auras\Elements\AuraWatch.lua" />
-   <!-- <Script file="Auras\Elements\AuraWatch.lua" />
    <Script file="Auras\Elements\Reminder.lua" />
-   <Script file="Auras\Elements\Totems.lua" />
+   <!-- <Script file="Auras\Elements\Totems.lua" />
    <Include file="Auras\Lumos\Lumos.xml" /> -->
    <!-- Maps -->
    <Script file="Maps\MiniMap.lua" />
@@ -69,7 +69,6 @@
    <Script file="UnitFrames\Plugins\oUF_GCD.lua" />
    <Script file="UnitFrames\Plugins\oUF_RaidDebuffs.lua" />
    <Script file="UnitFrames\Plugins\oUF_Swing.lua" />
-   <Script file="UnitFrames\Plugins\oUF_Trinkets.lua" />
    <Script file="UnitFrames\Plugins\oUF_EnergyManaRegen.lua" />
    <!-- Unitframes -->
    <Script file="UnitFrames\Core.lua" />
@@ -81,10 +80,6 @@
    <Script file="UnitFrames\Units\Target.lua" />
    <Script file="UnitFrames\Units\TargetOfTarget.lua" />
    <Script file="UnitFrames\Units\Pet.lua" />
-   <Script file="UnitFrames\Units\Focus.lua" />
-   <Script file="UnitFrames\Units\FocusTarget.lua" />
-   <Script file="UnitFrames\Units\Boss.lua" />
-   <Script file="UnitFrames\Units\Arena.lua" />
    <Script file="UnitFrames\Units\Nameplates.lua" />
    <Script file="UnitFrames\Groups\Party.lua" />
    <Script file="UnitFrames\Groups\PartyPet.lua" />
@@ -147,7 +142,9 @@
    <Include file="Skins\Blizzard\FrameXML\CharacterFrame.lua" />
    <Include file="Skins\Blizzard\FrameXML\ChatBubbles.lua" />
    <Include file="Skins\Blizzard\FrameXML\ChatFrame.lua" />
+   <Include file="Skins\Blizzard\FrameXML\SpellBookFrame.lua" />
    <Include file="Skins\Blizzard\FrameXML\Fonts.lua" />
+   <Include file="Skins\Blizzard\FrameXML\ObjectiveTracker.lua" />
    <!-- <Include file="Skins\Blizzard\FrameXML\LossOfControlFrame.lua" />
    <Include file="Skins\Blizzard\FrameXML\Menu.lua" />
    <Include file="Skins\Blizzard\FrameXML\ObjectiveTracker.lua" />

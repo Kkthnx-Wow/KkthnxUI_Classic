@@ -2,9 +2,6 @@ local K, C = KkthnxUI[1], KkthnxUI[2]
 
 local mediaFolder = K.MediaFolder
 C["Media"] = {
-	["Sounds"] = {
-		KillingBlow = mediaFolder .. "Sounds\\KillingBlow.ogg",
-	},
 	["Backdrops"] = {
 		ColorBackdrop = { 0.060, 0.060, 0.060, 0.9 },
 	},

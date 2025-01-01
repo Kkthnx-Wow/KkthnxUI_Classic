@@ -450,7 +450,7 @@ function Module:ResetUnit(btn)
 end
 
 --	Fix compare tooltips(by Blizzard)(../FrameXML/GameTooltip.lua)
-function Module:AnchorShoppingTooltips(_, secondaryItemShown)
+function Module:GameTooltip_ComparisonFix(_, secondaryItemShown)
 	local tooltip = self.tooltip
 	local shoppingTooltip1 = tooltip.shoppingTooltips[1]
 	local shoppingTooltip2 = tooltip.shoppingTooltips[2]
@@ -486,6 +486,7 @@ function Module:OnEnable()
 	hooksecurefunc("GameTooltip_ShowStatusBar", Module.GameTooltip_ShowStatusBar)
 	hooksecurefunc("GameTooltip_ShowProgressBar", Module.GameTooltip_ShowProgressBar)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", Module.GameTooltip_SetDefaultAnchor)
+	-- hooksecurefunc("GameTooltip_AnchorComparisonTooltips", Module.GameTooltip_ComparisonFix)
 
 	GameTooltip:HookScript("OnTooltipSetItem", Module.FixRecipeItemNameWidth)
 	ItemRefTooltip:HookScript("OnTooltipSetItem", Module.FixRecipeItemNameWidth)
@@ -601,16 +602,6 @@ Module:RegisterTooltips("KkthnxUI", function()
 		end
 	end)
 
-	if C_AddOns.IsAddOnLoaded("BattlePetBreedID") then
-		hooksecurefunc("BPBID_SetBreedTooltip", function(parent)
-			if parent == FloatingBattlePetTooltip then
-				Module.ReskinTooltip(BPBID_BreedTooltip2)
-			else
-				Module.ReskinTooltip(BPBID_BreedTooltip)
-			end
-		end)
-	end
-
 	-- MDT and DT
 	if MDT and MDT.ShowInterface then
 		local styledMDT
@@ -631,46 +622,4 @@ end)
 
 Module:RegisterTooltips("Blizzard_EventTrace", function()
 	Module.ReskinTooltip(EventTraceTooltip)
-end)
-
-Module:RegisterTooltips("Blizzard_Collections", function()
-	PetJournalPrimaryAbilityTooltip:HookScript("OnShow", Module.ReskinTooltip)
-	PetJournalSecondaryAbilityTooltip:HookScript("OnShow", Module.ReskinTooltip)
-	PetJournalPrimaryAbilityTooltip.Delimiter1:SetHeight(1)
-	PetJournalPrimaryAbilityTooltip.Delimiter1:SetColorTexture(0, 0, 0)
-	PetJournalPrimaryAbilityTooltip.Delimiter2:SetHeight(1)
-	PetJournalPrimaryAbilityTooltip.Delimiter2:SetColorTexture(0, 0, 0)
-end)
-
-Module:RegisterTooltips("Blizzard_GarrisonUI", function()
-	local gt = {
-		GarrisonMissionMechanicTooltip,
-		GarrisonMissionMechanicFollowerCounterTooltip,
-		GarrisonShipyardMapMissionTooltip,
-		GarrisonBonusAreaTooltip,
-		GarrisonBuildingFrame.BuildingLevelTooltip,
-		GarrisonFollowerAbilityWithoutCountersTooltip,
-		GarrisonFollowerMissionAbilityWithoutCountersTooltip,
-	}
-	for _, f in pairs(gt) do
-		f:HookScript("OnShow", Module.ReskinTooltip)
-	end
-end)
-
-Module:RegisterTooltips("Blizzard_PVPUI", function()
-	ConquestTooltip:HookScript("OnShow", Module.ReskinTooltip)
-end)
-
-Module:RegisterTooltips("Blizzard_Contribution", function()
-	ContributionBuffTooltip:HookScript("OnShow", Module.ReskinTooltip)
-	ContributionBuffTooltip.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-	ContributionBuffTooltip.Border:SetAlpha(0)
-end)
-
-Module:RegisterTooltips("Blizzard_EncounterJournal", function()
-	EncounterJournalTooltip:HookScript("OnShow", Module.ReskinTooltip)
-	EncounterJournalTooltip.Item1.icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-	EncounterJournalTooltip.Item1.IconBorder:SetAlpha(0)
-	EncounterJournalTooltip.Item2.icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-	EncounterJournalTooltip.Item2.IconBorder:SetAlpha(0)
 end)

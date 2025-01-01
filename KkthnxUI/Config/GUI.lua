@@ -3,7 +3,6 @@ local GUI = K["GUI"]
 
 local COLORS = COLORS
 local FILTERS = FILTERS
-local FOCUS = FOCUS
 local INTERRUPT = INTERRUPT
 local PET = PET
 local PLAYER = PLAYER
@@ -260,27 +259,6 @@ local function UpdateUnitTargetSize()
 	end
 end
 
-local function UpdateUnitFocusSize()
-	local width = C["Unitframe"].FocusHealthWidth
-	local healthHeight = C["Unitframe"].FocusHealthHeight
-	local powerHeight = C["Unitframe"].FocusPowerHeight
-	local height = healthHeight + powerHeight + 6
-
-	if not _G.oUF_Focus then
-		return
-	end
-
-	_G.oUF_Focus:SetSize(width, height)
-	_G.oUF_Focus.Health:SetHeight(healthHeight)
-	_G.oUF_Focus.Power:SetHeight(powerHeight)
-
-	if C["Unitframe"].PortraitStyle.Value ~= "NoPortraits" then
-		if _G.KKUI_FocusPortrait then
-			_G.KKUI_FocusPortrait:SetSize(healthHeight + powerHeight + 6, healthHeight + powerHeight + 6)
-		end
-	end
-end
-
 local function UpdateUnitPartySize()
 	local width = C["Party"].HealthWidth
 	local healthHeight = C["Party"].HealthHeight
@@ -492,7 +470,6 @@ local Announcements = function(self)
 
 	Window:CreateSection(L["Combat"])
 	Window:CreateSwitch("Announcements", "SaySapped", L["Announce When Sapped"], "Automatically announces in chat when you are sapped in PvP.")
-	Window:CreateSwitch("Announcements", "KillingBlow", L["Show Your Killing Blow Info"], "Displays a notification when you land a killing blow.")
 	Window:CreateSwitch("Announcements", "PvPEmote", L["Auto Emote On Your Killing Blow"], "Automatically performs an emote when you land a killing blow in PvP.")
 	Window:CreateSwitch("Announcements", "HealthAlert", L["Announce When Low On Health"], "Alerts when your health drops below a critical threshold.")
 
@@ -1004,23 +981,6 @@ local Unitframe = function(self)
 	Window:CreateSlider("Unitframe", "TargetTargetHealthWidth", L["Target of Target Frame Width"], 80, 300, 1)
 	Window:CreateSlider("Unitframe", "TargetTargetPowerHeight", "Target of Target Power Height", 10, 50, 1)
 
-	Window:CreateSection(FOCUS)
-	Window:CreateSlider("Unitframe", "FocusPowerHeight", "Focus Power Bar Height", 10, 40, 1, nil, UpdateUnitFocusSize)
-	Window:CreateSlider("Unitframe", "FocusHealthHeight", L["Focus Frame Height"], 20, 75, 1, nil, UpdateUnitFocusSize)
-	Window:CreateSlider("Unitframe", "FocusHealthWidth", L["Focus Frame Width"], 100, 300, 1, nil, UpdateUnitFocusSize)
-	Window:CreateSwitch("Unitframe", "FocusBuffs", "Show Focus Frame Buffs")
-	Window:CreateSwitch("Unitframe", "FocusCastbar", "Enable Focus CastBar")
-	Window:CreateSwitch("Unitframe", "FocusCastbarIcon", "Enable Focus CastBar" .. " Icon")
-	Window:CreateSwitch("Unitframe", "FocusDebuffs", "Show Focus Frame Debuffs")
-
-	Window:CreateSection("Focus Target")
-	Window:CreateSwitch("Unitframe", "HideFocusTarget", "Hide Focus Target Frame")
-	Window:CreateSwitch("Unitframe", "HideFocusTargetLevel", "Hide Focus Target Level")
-	Window:CreateSwitch("Unitframe", "HideFocusTargetName", "Hide Focus Target Name")
-	Window:CreateSlider("Unitframe", "FocusTargetHealthHeight", "Focus Target Frame Height", 10, 50, 1)
-	Window:CreateSlider("Unitframe", "FocusTargetHealthWidth", "Focus Target Frame Width", 80, 300, 1)
-	Window:CreateSlider("Unitframe", "FocusTargetPowerHeight", "Focus Target Power Height", 10, 50, 1)
-
 	Window:CreateSection("Unitframe Misc")
 	Window:CreateDropdown("Unitframe", "HealthbarColor", L["Health Color Format"])
 	Window:CreateDropdown("Unitframe", "PortraitStyle", L["Unitframe Portrait Style"], nil, "It is highly recommanded to NOT use 3D portraits as you could see a drop in FPS")
@@ -1050,44 +1010,6 @@ local Party = function(self)
 
 	Window:CreateSection(COLORS)
 	Window:CreateDropdown("Party", "HealthbarColor", L["Health Color Format"])
-end
-
-local Boss = function(self)
-	local Window = self:CreateWindow(L["Boss"])
-
-	Window:CreateSection(GENERAL)
-	Window:CreateSwitch("Boss", "Enable", enableTextColor .. L["Enable Boss"], "Toggle Boss Module On/Off")
-	Window:CreateSwitch("Boss", "Castbars", L["Show Castbars"])
-	Window:CreateSwitch("Boss", "CastbarIcon", "Show Castbars Icon")
-	Window:CreateSwitch("Boss", "Smooth", L["Smooth Bar Transition"])
-
-	Window:CreateSection(L["Sizes"])
-	Window:CreateSlider("Boss", "HealthHeight", "Health Height", 20, 50, 1)
-	Window:CreateSlider("Boss", "HealthWidth", "Health Width", 120, 180, 1)
-	Window:CreateSlider("Boss", "PowerHeight", "Power Height", 10, 30, 1)
-	Window:CreateSlider("Boss", "YOffset", "Vertical Offset From One Another" .. K.GreyColor .. "(54)|r", 40, 60, 1)
-
-	Window:CreateSection(COLORS)
-	Window:CreateDropdown("Boss", "HealthbarColor", L["Health Color Format"])
-end
-
-local Arena = function(self)
-	local Window = self:CreateWindow(L["Arena"])
-
-	Window:CreateSection(GENERAL)
-	Window:CreateSwitch("Arena", "Enable", enableTextColor .. L["Enable Arena"], "Toggle Arena Module On/Off")
-	Window:CreateSwitch("Arena", "Castbars", L["Show Castbars"])
-	Window:CreateSwitch("Arena", "CastbarIcon", "Show Castbars Icon")
-	Window:CreateSwitch("Arena", "Smooth", L["Smooth Bar Transition"])
-
-	Window:CreateSection(L["Sizes"])
-	Window:CreateSlider("Arena", "HealthHeight", "Health Height", 20, 50, 1)
-	Window:CreateSlider("Arena", "HealthWidth", "Health Width", 120, 180, 1)
-	Window:CreateSlider("Arena", "PowerHeight", "Power Height", 10, 30, 1)
-	Window:CreateSlider("Arena", "YOffset", "Vertical Offset From One Another" .. K.GreyColor .. "(54)|r", 40, 60, 1)
-
-	Window:CreateSection(COLORS)
-	Window:CreateDropdown("Arena", "HealthbarColor", L["Health Color Format"])
 end
 
 local Raid = function(self)
@@ -1150,11 +1072,9 @@ end
 
 GUI:AddWidgets(ActionBar)
 GUI:AddWidgets(Announcements)
-GUI:AddWidgets(Arena)
 GUI:AddWidgets(AuraWatch)
 GUI:AddWidgets(Auras)
 GUI:AddWidgets(Automation)
-GUI:AddWidgets(Boss)
 GUI:AddWidgets(Chat)
 GUI:AddWidgets(DataText)
 GUI:AddWidgets(General)

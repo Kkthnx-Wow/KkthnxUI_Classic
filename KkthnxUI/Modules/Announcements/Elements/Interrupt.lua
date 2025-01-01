@@ -87,7 +87,7 @@ function Module:InterruptAlert_Update(...)
 		return
 	end
 
-	local LoCAlert = true
+	local LoCAlert = false
 	if LoCAlert and eventType == "SPELL_AURA_APPLIED" and LOCspells[spellName] and destGUID == K.GUID then
 		local duration = select(5, AuraUtil.FindAuraByName(spellName, "player", "HARMFUL"))
 		if duration > 1.5 then

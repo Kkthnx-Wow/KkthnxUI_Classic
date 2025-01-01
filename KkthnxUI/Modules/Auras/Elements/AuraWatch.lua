@@ -225,7 +225,7 @@ local function tooltipOnEnter(self)
 	elseif self.type == 3 then
 		GameTooltip:SetInventoryItem("player", self.spellID)
 	elseif self.type == 4 then
-		GameTooltip:SetUnitAura(self.unit, self.index, self.filter)
+		GameTooltip:SetUnitAura(self.unitID, self.id, self.filter)
 	end
 
 	GameTooltip:Show()

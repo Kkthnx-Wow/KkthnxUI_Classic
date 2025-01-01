@@ -14,9 +14,9 @@ local function isDeveloper()
 end
 K.isDeveloper = isDeveloper()
 
-if not K.isDeveloper then
-	return
-end
+-- if not K.isDeveloper then
+-- 	return
+-- end
 
 function K.AddToDevTool(data, name)
 	if DevTool then
@@ -246,12 +246,21 @@ do
 	local LevelUpDisplay = CreateFrame("Frame", "LevelUpDisplayFrame")
 	LevelUpDisplay:RegisterEvent("PLAYER_LEVEL_UP")
 
+	-- Reference to the currently displayed frame
+	local currentFrame = nil
+
 	-- Function to create and show the level-up message
-	local function ShowLevelUpMessage(level)
+	local function ShowLevelUpMessage(level, statGains)
+		-- Hide any existing frame to prevent overlap
+		if currentFrame and currentFrame:IsShown() then
+			currentFrame:Hide()
+		end
+
 		-- Create the main frame for the level-up display
 		local frame = CreateFrame("Frame", nil, UIParent)
-		frame:SetSize(418, 130)
+		frame:SetSize(600, 150) -- Adjusted width to accommodate horizontal layout
 		frame:SetPoint("CENTER", 0, 400)
+		currentFrame = frame -- Save reference to the current frame
 
 		-- Background texture
 		local background = frame:CreateTexture(nil, "BACKGROUND")
@@ -279,15 +288,41 @@ do
 
 		-- "You've Reached" text
 		local headerText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-		headerText:SetPoint("CENTER", 0, 26)
-		headerText:SetFont("Fonts\\FRIZQT__.TTF", 32, "OUTLINE")
+		headerText:SetPoint("CENTER", 0, 40)
+		headerText:SetFont("Fonts\\FRIZQT__.TTF", 30, "OUTLINE")
 		headerText:SetText("|cFFFFFFFFYou've Reached|r") -- White text
 
 		-- "Level X" text
 		local levelText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-		levelText:SetPoint("CENTER", 0, -30)
+		levelText:SetPoint("CENTER", 0, -12)
 		levelText:SetFont("Fonts\\FRIZQT__.TTF", 50, "OUTLINE")
 		levelText:SetText(string.format("|cFFFFD700Level %d|r", level)) -- Gold text
+
+		-- Display stat increases horizontally
+		local statFrame = CreateFrame("Frame", nil, frame)
+		statFrame:SetSize(600, 30) -- Container for stat texts
+		statFrame:SetPoint("BOTTOM", 0, 5)
+
+		local font = "Fonts\\FRIZQT__.TTF"
+		local fontSize = 16
+		local statTexts = {}
+
+		for stat, value in pairs(statGains) do
+			if value > 0 then
+				local statText = string.format("|cFF00FF00+%d %s|r", value, stat)
+				table.insert(statTexts, statText)
+			end
+		end
+
+		if #statTexts > 0 then
+			local statString = table.concat(statTexts, ", ")
+			local statFontString = statFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			statFontString:SetFont(font, fontSize, "OUTLINE")
+			statFontString:SetText(statString)
+			statFontString:SetPoint("CENTER", statFrame, "CENTER", 0, 0)
+		else
+			print("No stats to display.")
+		end
 
 		-- Fade-out animation
 		local fadeOutAnimation = frame:CreateAnimationGroup()
@@ -304,20 +339,37 @@ do
 		-- Show the frame and start the animation
 		frame:Show()
 		fadeOutAnimation:Play()
+
+		-- Perform the "CHEER" emote
+		if math.random() < 0.5 then
+			DoEmote("CHEER")
+		end
 	end
 
 	-- Event handler
 	LevelUpDisplay:SetScript("OnEvent", function(_, event, ...)
 		if event == "PLAYER_LEVEL_UP" then
-			local newLevel = ...
-			ShowLevelUpMessage(newLevel)
+			local level, _, _, _, _, strengthDelta, agilityDelta, staminaDelta, intellectDelta = ...
+			local statGains = {
+				Strength = strengthDelta or 0,
+				Agility = agilityDelta or 0,
+				Stamina = staminaDelta or 0,
+				Intellect = intellectDelta or 0,
+			}
+			ShowLevelUpMessage(level, statGains)
 		end
 	end)
 
 	-- Slash command for testing
 	SLASH_LEVELUPDISPLAY1 = "/leveluptest"
 	SlashCmdList["LEVELUPDISPLAY"] = function(msg)
-		local testLevel = tonumber(msg) or 60 -- Default to level 60 if no argument is given
-		ShowLevelUpMessage(testLevel)
+		local testLevel = tonumber(msg) or math.random(2, 60)
+		local statGains = {
+			Strength = math.random(0, 5),
+			Agility = math.random(0, 5),
+			Stamina = math.random(0, 5),
+			Intellect = math.random(0, 5),
+		}
+		ShowLevelUpMessage(testLevel, statGains)
 	end
 end

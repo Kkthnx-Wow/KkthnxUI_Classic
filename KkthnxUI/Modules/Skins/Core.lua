@@ -68,7 +68,7 @@ end
 function Module:OnEnable()
 	local loadSkinModules = {
 		"LoadDefaultSkins",
-
+		"QuestTracker",
 		"ReskinBartender4",
 		"ReskinNekometer",
 		-- "ReskinBigWigs",
