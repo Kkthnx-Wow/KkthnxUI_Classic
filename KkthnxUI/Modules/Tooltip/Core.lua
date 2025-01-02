@@ -449,31 +449,32 @@ function Module:ResetUnit(btn)
 	end
 end
 
---	Fix compare tooltips(by Blizzard)(../FrameXML/GameTooltip.lua)
-function Module:GameTooltip_ComparisonFix(_, secondaryItemShown)
-	local tooltip = self.tooltip
-	local shoppingTooltip1 = tooltip.shoppingTooltips[1]
-	local shoppingTooltip2 = tooltip.shoppingTooltips[2]
-	local point = shoppingTooltip1:GetPoint(2)
+-- Fix comparison error on cursor
+function Module:GameTooltip_ComparisonFix(anchorFrame, shoppingTooltip1, shoppingTooltip2, _, secondaryItemShown)
+	local point = shoppingTooltip1:GetPoint(1) -- Check the first point
+	if not point then
+		return
+	end
+
 	if secondaryItemShown then
-		if point == "TOP" then
+		if point and point == "TOPLEFT" then
 			shoppingTooltip1:ClearAllPoints()
+			shoppingTooltip1:SetPoint("TOPLEFT", anchorFrame, "TOPRIGHT", 2, 0)
 			shoppingTooltip2:ClearAllPoints()
-			shoppingTooltip1:SetPoint("TOPLEFT", self.anchorFrame, "TOPRIGHT", 4, -10)
-			shoppingTooltip2:SetPoint("TOPLEFT", shoppingTooltip1, "TOPRIGHT", 4, 0)
-		elseif point == "RIGHT" then
+			shoppingTooltip2:SetPoint("TOPLEFT", shoppingTooltip1, "TOPRIGHT", 2, 0)
+		elseif point and point == "TOPRIGHT" then
 			shoppingTooltip1:ClearAllPoints()
+			shoppingTooltip1:SetPoint("TOPRIGHT", anchorFrame, "TOPLEFT", -2, 0)
 			shoppingTooltip2:ClearAllPoints()
-			shoppingTooltip1:SetPoint("TOPRIGHT", self.anchorFrame, "TOPLEFT", -4, -10)
-			shoppingTooltip2:SetPoint("TOPRIGHT", shoppingTooltip1, "TOPLEFT", -4, 0)
+			shoppingTooltip2:SetPoint("TOPRIGHT", shoppingTooltip1, "TOPLEFT", -2, 0)
 		end
 	else
-		if point == "LEFT" then
+		if point and point == "TOPLEFT" then
 			shoppingTooltip1:ClearAllPoints()
-			shoppingTooltip1:SetPoint("TOPLEFT", self.anchorFrame, "TOPRIGHT", 4, -10)
-		elseif point == "RIGHT" then
+			shoppingTooltip1:SetPoint("TOPLEFT", anchorFrame, "TOPRIGHT", 2, 0)
+		elseif point and point == "TOPRIGHT" then
 			shoppingTooltip1:ClearAllPoints()
-			shoppingTooltip1:SetPoint("TOPRIGHT", self.anchorFrame, "TOPLEFT", -4, -10)
+			shoppingTooltip1:SetPoint("TOPRIGHT", anchorFrame, "TOPLEFT", -2, 0)
 		end
 	end
 end
@@ -486,7 +487,7 @@ function Module:OnEnable()
 	hooksecurefunc("GameTooltip_ShowStatusBar", Module.GameTooltip_ShowStatusBar)
 	hooksecurefunc("GameTooltip_ShowProgressBar", Module.GameTooltip_ShowProgressBar)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", Module.GameTooltip_SetDefaultAnchor)
-	-- hooksecurefunc("GameTooltip_AnchorComparisonTooltips", Module.GameTooltip_ComparisonFix)
+	hooksecurefunc("GameTooltip_AnchorComparisonTooltips", Module.GameTooltip_ComparisonFix)
 
 	GameTooltip:HookScript("OnTooltipSetItem", Module.FixRecipeItemNameWidth)
 	ItemRefTooltip:HookScript("OnTooltipSetItem", Module.FixRecipeItemNameWidth)

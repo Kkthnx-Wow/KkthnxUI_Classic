@@ -8,17 +8,8 @@ local select, pairs = select, pairs
 
 -- Caching frequently used functions and variables
 local GetXPExhaustion = GetXPExhaustion
-local IsInGroup, IsWatchingHonorAsXP = IsInGroup, IsWatchingHonorAsXP
-local UnitHonor, UnitHonorLevel, UnitHonorMax = UnitHonor, UnitHonorLevel, UnitHonorMax
+local IsInGroup = IsInGroup
 local UnitXP, UnitXPMax = UnitXP, UnitXPMax
-local C_AzeriteItem_FindActiveAzeriteItem = C_AzeriteItem.FindActiveAzeriteItem
--- local C_AzeriteItem_GetAzeriteItemXPInfo = C_AzeriteItem.GetAzeriteItemXPInfo
--- local C_AzeriteItem_GetPowerLevel = C_AzeriteItem.GetPowerLevel
--- local C_GossipInfo_GetFriendshipReputation = C_GossipInfo.GetFriendshipReputation
--- local C_MajorFactions_GetMajorFactionData = C_MajorFactions.GetMajorFactionData
--- local C_MajorFactions_HasMaximumRenown = C_MajorFactions.HasMaximumRenown
--- local C_Reputation_GetFactionParagonInfo = C_Reputation.GetFactionParagonInfo
--- local C_Reputation_IsFactionParagon, C_Reputation_IsMajorFaction = C_Reputation.IsFactionParagon, C_Reputation.IsMajorFaction
 local GameTooltip = GameTooltip
 
 -- Experience
@@ -39,42 +30,11 @@ end
 
 local sendExperienceText = "Send experience to chat|r"
 
--- Reputation
-local function RepGetValues(curValue, minValue, maxValue)
-	local maximum = maxValue - minValue
-	local current, diff = curValue - minValue, maximum
-
-	if diff == 0 then
-		diff = 1
-	end -- prevent a division by zero
-
-	if current == maximum then
-		return 1, 1, 100, true
-	else
-		return current, maximum, current / diff * 100
-	end
-end
-
-local sendReputationText = "Send reputation to chat|r"
-
--- Honor
-local CurrentHonor, MaxHonor, CurrentLevel, PercentHonor, RemainingHonor
-
--- Azerite
-local azeriteItem, currentLevel, curXP, maxXP
-
-local function IsAzeriteAvailable()
-	local item = C_AzeriteItem_FindActiveAzeriteItem()
-	local equipped = item and item:IsEquipmentSlot()
-
-	return equipped
-end
-
 -- Bar string
 local barDisplayString = ""
 local altKeyText = K.InfoColor .. ALT_KEY_TEXT .. " "
 
-local function OnExpBarEvent(self, event, unit)
+local function OnExpBarEvent(self)
 	if not XPIsLevelMax() then
 		CurrentXP, XPToLevel, RestedXP = UnitXP("player"), UnitXPMax("player"), (GetXPExhaustion() or 0)
 
@@ -303,21 +263,30 @@ end
 local lastMessageTime = 0
 local COOLDOWN_DURATION = 10 -- Cooldown duration in seconds
 
-local function OnExpRepMouseUp(self, button)
+local function OnExpRepMouseUp(_, button)
 	if IsAltKeyDown() and button == "RightButton" then
 		local currentTime = GetTime()
 		if currentTime - lastMessageTime >= COOLDOWN_DURATION then
+			-- Ensure the player is in a group
 			if not IsInGroup() then
 				K.Print(ERR_QUEST_PUSH_NOT_IN_PARTY_S)
 				return
 			end
 
+			-- Check if the player is not at max level
 			if not XPIsLevelMax() then
-				if RemainXP then
-					local expPercent = (RemainXP / RemainTotal) * 100
-					local expMessage = string_format("%.2f%% XP left til I level", expPercent)
-					SendChatMessage(expMessage, "PARTY")
+				local currentXP, xpToNextLevel = UnitXP("player"), UnitXPMax("player")
+
+				-- Ensure xpToNextLevel is not 0 to avoid division by zero
+				if xpToNextLevel <= 0 then
+					xpToNextLevel = 1
 				end
+
+				-- Calculate remaining XP and percentage
+				local remainingXPPercent = ((xpToNextLevel - currentXP) / xpToNextLevel) * 100
+				local nextLevel = UnitLevel("player") + 1
+				local xpMessage = string.format("%.2f%% experience left until I reach level %d", remainingXPPercent, nextLevel)
+				SendChatMessage(xpMessage, "PARTY")
 			end
 			lastMessageTime = currentTime
 		else
@@ -328,22 +297,18 @@ end
 
 local ExpRep_EventList = {
 	-- ALL
-	-- "PLAYER_ENTERING_WORLD",
-	"PLAYER_LEVEL_UP",
+	"PLAYER_ENTERING_WORLD",
 	-- Experience Events
+	"PLAYER_LEVEL_UP",
 	"UPDATE_EXHAUSTION",
 	"PLAYER_XP_UPDATE",
 	"ENABLE_XP_GAIN",
 	"DISABLE_XP_GAIN",
+	"UNIT_INVENTORY_CHANGED",
 	-- Reputation
 	"UPDATE_FACTION",
 	"COMBAT_TEXT_UPDATE",
 	"QUEST_FINISHED",
-	-- "MAJOR_FACTION_RENOWN_LEVEL_CHANGED",
-	-- "MAJOR_FACTION_UNLOCKED",
-	--Honor
-	-- "HONOR_XP_UPDATE",
-	"PLAYER_FLAGS_CHANGED",
 }
 
 local function SetupExpRepScript(bar)
