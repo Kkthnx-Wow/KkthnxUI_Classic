@@ -56,6 +56,12 @@ function Module:UpdateBarBorderColor(button)
 	end
 end
 
+local function OverrideNormalTextureAndAtlas(self, texture)
+	if texture and texture ~= 0 then
+		self:SetNormalTexture(0)
+	end
+end
+
 function Module:StyleActionButton(button)
 	if not button then
 		return
@@ -66,39 +72,41 @@ function Module:StyleActionButton(button)
 	end
 
 	local buttonName = button:GetName()
-	local icon = button.icon
-	local cooldown = button.cooldown
+	local icon = button.icon or _G[buttonName .. "Icon"]
+	local cooldown = button.cooldown or _G[buttonName .. "Cooldown"]
 	local hotkey = button.HotKey
 	local count = button.Count
-	local name = button.Name
-	local flash = button.Flash
-	local border = button.Border
-	local normal = button.NormalTexture
-	local normal2 = button:GetNormalTexture()
-	local slotbg = button.SlotBackground
-	local pushed = button.PushedTexture
-	local checked = button.CheckedTexture
-	local highlight = button.HighlightTexture
+	local name = button.Name or _G[buttonName .. "Name"]
+	local flash = button.Flash or _G[buttonName .. "Flash"]
+	local border = button.Border or _G[buttonName .. "Border"]
+	local normal = button.GetNormalTexture and button:GetNormalTexture()
+	local slotbg = button.SlotBackground or _G[buttonName .. "FloatingBG"]
+	local pushed = button.PushedTexture or button:GetPushedTexture()
+	local checked = button.CheckedTexture or button:GetCheckedTexture()
+	local highlight = button.HighlightTexture or button:GetHighlightTexture()
 	local newActionTexture = button.NewActionTexture
 	local spellHighlight = button.SpellHighlightTexture
 	local iconMask = button.IconMask
 	local petShine = _G[buttonName .. "Shine"]
-	local autoCastable = button.AutoCastable
+	local autoCastable = button.AutoCastable or _G[buttonName .. "AutoCastable"]
 
 	if normal then
-		normal:SetAlpha(0)
-	end
-
-	if normal2 then
-		normal2:SetAlpha(0)
+		normal:SetTexture(0)
+		-- Hook the function to both SetNormalTexture and SetNormalAtlas methods
+		hooksecurefunc(button, "SetNormalTexture", OverrideNormalTextureAndAtlas)
+		hooksecurefunc(button, "SetNormalAtlas", OverrideNormalTextureAndAtlas)
 	end
 
 	if flash then
-		flash:SetTexture(nil)
+		flash:SetColorTexture(220 / 255, 68 / 255, 54 / 255, 0.65 / 255)
+		flash:SetAllPoints()
 	end
 
 	if newActionTexture then
-		newActionTexture:SetTexture(nil)
+		newActionTexture:SetDrawLayer("OVERLAY", 2)
+		newActionTexture:ClearAllPoints()
+		newActionTexture:SetPoint("TOPLEFT", -5, 5)
+		newActionTexture:SetPoint("BOTTOMRIGHT", 5, -5)
 	end
 
 	if border then
@@ -107,6 +115,7 @@ function Module:StyleActionButton(button)
 
 	if slotbg then
 		slotbg:Hide()
+		slotbg:SetAlpha(0)
 	end
 
 	if iconMask then
@@ -118,13 +127,16 @@ function Module:StyleActionButton(button)
 	end
 
 	if petShine then
-		petShine:SetAllPoints()
+		petShine:ClearAllPoints()
+		petShine:SetPoint("TOPLEFT", 1, -1)
+		petShine:SetPoint("BOTTOMRIGHT", -1, 1)
 	end
 
 	if autoCastable then
-		autoCastable:SetTexCoord(0.217, 0.765, 0.217, 0.765)
-		autoCastable:SetDrawLayer("OVERLAY", 3)
-		autoCastable:SetAllPoints()
+		autoCastable:SetDrawLayer("OVERLAY", 2)
+		autoCastable:ClearAllPoints()
+		autoCastable:SetPoint("TOPLEFT", -12, 12)
+		autoCastable:SetPoint("BOTTOMRIGHT", 12, -12)
 	end
 
 	if icon then
@@ -133,11 +145,12 @@ function Module:StyleActionButton(button)
 			icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 		end
 
-		if not button.__bg then
+		if not button.__bgCreated then
 			button.__bg = CreateFrame("Frame", nil, button, "BackdropTemplate")
 			button.__bg:SetAllPoints(button)
 			button.__bg:SetFrameLevel(button:GetFrameLevel())
 			button.__bg:CreateBorder(nil, nil, nil, nil, nil, nil, K.MediaFolder .. "Skins\\UI-Slot-Background", nil, nil, nil, { 1, 1, 1 })
+			button.__bgCreated = true
 		end
 	end
 
@@ -147,30 +160,29 @@ function Module:StyleActionButton(button)
 	end
 
 	if pushed then
-		pushed:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
-		pushed:SetDesaturated(true)
-		pushed:SetVertexColor(246 / 255, 196 / 255, 66 / 255)
-		pushed:SetPoint("TOPLEFT", button, "TOPLEFT", 0, -0)
-		pushed:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -0, 0)
-		pushed:SetBlendMode("ADD")
+		button:SetPushedTexture("Interface\\Buttons\\CheckButtonHilight")
+		button:GetPushedTexture():SetBlendMode("ADD")
+		button:GetPushedTexture():SetAllPoints()
 	end
 
 	if checked then
-		checked:SetTexture("Interface\\Buttons\\CheckButtonHilight")
-		checked:SetPoint("TOPLEFT", button, "TOPLEFT", 0, -0)
-		checked:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -0, 0)
-		checked:SetBlendMode("ADD")
+		button:SetCheckedTexture("Interface\\Buttons\\CheckButtonHilight")
+		button:GetCheckedTexture():SetBlendMode("ADD")
+		button:GetCheckedTexture():SetAllPoints()
 	end
 
 	if highlight then
-		highlight:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
-		highlight:SetPoint("TOPLEFT", button, "TOPLEFT", 0, -0)
-		highlight:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -0, 0)
-		highlight:SetBlendMode("ADD")
+		button:SetHighlightTexture(button:IsObjectType("CheckButton") and "Interface\\Buttons\\CheckButtonHilight" or "Interface\\Buttons\\ButtonHilight-Square")
+		button:GetHighlightTexture():SetBlendMode("ADD")
+		button:GetHighlightTexture():SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
+		button:GetHighlightTexture():SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 0, 0)
 	end
 
 	if spellHighlight then
-		spellHighlight:SetAllPoints()
+		spellHighlight:SetDrawLayer("OVERLAY", 2)
+		spellHighlight:ClearAllPoints()
+		spellHighlight:SetPoint("TOPLEFT", -5, 5)
+		spellHighlight:SetPoint("BOTTOMRIGHT", 5, -5)
 	end
 
 	if hotkey then
@@ -203,18 +215,4 @@ function Module:ReskinBars()
 
 	-- extra action button
 	Module:StyleActionButton(ExtraActionButton1)
-
-	-- -- spell flyout
-	-- SpellFlyout.Background:SetAlpha(0)
-	-- local numFlyouts = 1
-	-- local function checkForFlyoutButtons()
-	-- 	local button = _G["SpellFlyoutButton" .. numFlyouts]
-	-- 	while button do
-	-- 		Module:StyleActionButton(button)
-	-- 		numFlyouts = numFlyouts + 1
-	-- 		button = _G["SpellFlyoutButton" .. numFlyouts]
-	-- 	end
-	-- end
-	-- SpellFlyout:HookScript("OnShow", checkForFlyoutButtons)
-	-- SpellFlyout:HookScript("OnHide", checkForFlyoutButtons)
 end
