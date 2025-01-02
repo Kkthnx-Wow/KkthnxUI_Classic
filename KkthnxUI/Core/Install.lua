@@ -83,7 +83,7 @@ function Module:ForceDefaultCVars()
 		{ "profanityFilter", 0 },
 		{ "removeChatDelay", 1 },
 		{ "screenshotQuality", 10 },
-		{ "scriptErrors", 1 },
+		{ "scriptErrors", 0 }, -- Forcing this off until blizzard fixes their attempt to call global 'FCF_DockUpdate' (a nil value) on classic era
 		{ "showArenaEnemyFrames", 0 },
 		{ "showLootSpam", 1 },
 		{ "showTutorials", 0 },
