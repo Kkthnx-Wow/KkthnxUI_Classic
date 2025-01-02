@@ -72,23 +72,22 @@ function Module:StyleActionButton(button)
 	end
 
 	local buttonName = button:GetName()
-	local icon = button.icon or _G[buttonName .. "Icon"]
-	local cooldown = button.cooldown or _G[buttonName .. "Cooldown"]
-	local hotkey = button.HotKey
-	local count = button.Count
-	local name = button.Name or _G[buttonName .. "Name"]
+
+	local autoCastable = _G[buttonName .. "AutoCastable"]
+	local border = button.Border
+	local checked = button:GetCheckedTexture()
+	local cooldown = button.cooldown
 	local flash = button.Flash or _G[buttonName .. "Flash"]
-	local border = button.Border or _G[buttonName .. "Border"]
-	local normal = button.GetNormalTexture and button:GetNormalTexture()
-	local slotbg = button.SlotBackground or _G[buttonName .. "FloatingBG"]
-	local pushed = button.PushedTexture or button:GetPushedTexture()
-	local checked = button.CheckedTexture or button:GetCheckedTexture()
-	local highlight = button.HighlightTexture or button:GetHighlightTexture()
+	local floatingBG = _G[buttonName .. "FloatingBG"]
+	local highlight = button:GetHighlightTexture()
+	local hotkey = button.HotKey
+	local icon = button.icon
 	local newActionTexture = button.NewActionTexture
-	local spellHighlight = button.SpellHighlightTexture
-	local iconMask = button.IconMask
+	local normal = button:GetNormalTexture()
 	local petShine = _G[buttonName .. "Shine"]
-	local autoCastable = button.AutoCastable or _G[buttonName .. "AutoCastable"]
+	local pushed = button:GetPushedTexture()
+	local spellHighlight = button.SpellHighlightTexture
+	local style = button.style
 
 	if normal then
 		normal:SetTexture(0)
@@ -110,20 +109,16 @@ function Module:StyleActionButton(button)
 	end
 
 	if border then
-		border:SetTexture(nil)
+		border:SetTexture(0)
 	end
 
-	if slotbg then
-		slotbg:Hide()
-		slotbg:SetAlpha(0)
+	if floatingBG then
+		floatingBG:Hide()
+		floatingBG:SetAlpha(0)
 	end
 
-	if iconMask then
-		iconMask:Hide()
-	end
-
-	if button.style then
-		button.style:SetAlpha(0)
+	if style then
+		style:SetAlpha(0)
 	end
 
 	if petShine then
@@ -133,10 +128,10 @@ function Module:StyleActionButton(button)
 	end
 
 	if autoCastable then
-		autoCastable:SetDrawLayer("OVERLAY", 2)
+		autoCastable:SetDrawLayer("OVERLAY", 3)
 		autoCastable:ClearAllPoints()
-		autoCastable:SetPoint("TOPLEFT", -12, 12)
-		autoCastable:SetPoint("BOTTOMRIGHT", 12, -12)
+		autoCastable:SetPoint("TOPLEFT", -10, 10)
+		autoCastable:SetPoint("BOTTOMRIGHT", 10, -10)
 	end
 
 	if icon then
