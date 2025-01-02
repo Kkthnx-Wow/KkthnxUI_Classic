@@ -394,7 +394,7 @@ function Module:ChatCopy_Create()
 			RandomRoll(1, 100) -- Simulates the /roll command (default 1-100 range)
 		elseif btn == "RightButton" then
 			-- Perform an emote for a humorous roll
-			local roll = math.random(1, 100)
+			local roll = -math.random(1, 100)
 			SendChatMessage("rolls " .. roll .. " (1-100)", "EMOTE")
 		end
 	end)

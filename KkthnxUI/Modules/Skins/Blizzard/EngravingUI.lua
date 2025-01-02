@@ -136,17 +136,17 @@ end
 
 function Module:AddRunesHelpInfo()
 	local EngravingFrame = _G.EngravingFrame
-	if not EngravingFrame and EngravingFrame.Border then
+	if not EngravingFrame and EngravingFrame.FilterDropdown then
 		return
 	end
 
 	local helpInfo = CreateFrame("Button", nil, EngravingFrame)
-	helpInfo:SetPoint("TOPRIGHT", EngravingFrame.Border, 20, -5)
-	helpInfo:SetSize(40, 40)
+	helpInfo:SetPoint("RIGHT", EngravingFrame.FilterDropdown, 28, 0)
+	helpInfo:SetSize(22, 22)
 	helpInfo.Icon = helpInfo:CreateTexture(nil, "ARTWORK")
 	helpInfo.Icon:SetAllPoints()
-	helpInfo.Icon:SetTexture(616343)
-	helpInfo:SetHighlightTexture(616343)
+	helpInfo.Icon:SetAtlas("newplayerchat-chaticon-newcomer")
+	helpInfo:SetHighlightTexture("newplayerchat-chaticon-newcomer")
 	helpInfo.title = "Engraving Tip"
 	K.AddTooltip(helpInfo, "ANCHOR_RIGHT", "|nLeft-click a rune to automatically engrave it to the slot.|n|nRight-click to cast the rune.", "info")
 end

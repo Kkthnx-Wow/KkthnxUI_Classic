@@ -42,7 +42,6 @@ cargBags.itemKeys["bindOn"] = function(i)
 	end
 
 	local tip = K.ScanTooltip
-	print(tip)
 	if not tip then
 		return
 	end

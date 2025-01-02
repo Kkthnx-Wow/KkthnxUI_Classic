@@ -13,7 +13,7 @@ local Module = K:GetModule("Skins")
 -- local MAX_WATCHABLE_QUESTS = MAX_WATCHABLE_QUESTS or 5
 -- local headerString = QUESTS_LABEL .. " %s/%s"
 
--- local frame
+local frame
 
 -- Module.SharedWindowData = {
 -- 	area = "override",

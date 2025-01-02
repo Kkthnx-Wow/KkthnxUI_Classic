@@ -343,6 +343,7 @@ do
 		-- Perform the "CHEER" emote
 		if math.random() < 0.5 then
 			DoEmote("CHEER")
+			SendChatMessage("has reached level " .. level .. "!", "EMOTE")
 		end
 	end
 
