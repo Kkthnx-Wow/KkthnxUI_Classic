@@ -11,6 +11,7 @@
    <Script file="DataText\Elements\Guild.lua" />
    <Script file="DataText\Elements\Friends.lua" />
    <Script file="DataText\Elements\Coords.lua" />
+   <Script file="DataText\Elements\Spec.lua" />
    <!-- Blizzard -->
    <Script file="Blizzard\Core.lua" />
    <Script file="Blizzard\Elements\MirrorBars.lua" />

@@ -124,6 +124,10 @@ tinsert(C.defaultThemes, function()
 
 			icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 			icon:SetAllPoints()
+
+			-- if slot.subicon then
+			-- 	slot.subicon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+			-- end
 		end
 	end
 

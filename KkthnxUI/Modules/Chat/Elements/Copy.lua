@@ -309,6 +309,8 @@ function Module:ChatCopy_Create()
 		local anchor, _, xoff, yoff = "ANCHOR_RIGHT", self:GetParent(), 10, 5
 		GameTooltip:SetOwner(self, anchor, xoff, yoff)
 		GameTooltip:ClearLines()
+		GameTooltip:AddLine(CALENDAR_COPY_EVENT .. " " .. CHAT)
+		GameTooltip:AddLine(" ")
 		GameTooltip:AddDoubleLine(leftButtonString .. L["Left Click"], "Copy Chat", 1, 1, 1)
 		GameTooltip:AddDoubleLine(rightButtonString .. L["Right Click"], "Chat Menu", 1, 1, 1)
 
@@ -349,12 +351,69 @@ function Module:ChatCopy_Create()
 		local anchor, _, xoff, yoff = "ANCHOR_RIGHT", self:GetParent(), 10, 5
 		GameTooltip:SetOwner(self, anchor, xoff, yoff)
 		GameTooltip:ClearLines()
+		GameTooltip:AddLine(OPTIONS_MENU)
+		GameTooltip:AddLine(" ")
 		GameTooltip:AddDoubleLine(leftButtonString .. L["Left Click"], L["Toggle Quick Menu"], 1, 1, 1)
 		GameTooltip:AddDoubleLine(rightButtonString .. L["Right Click"], L["Toggle KkthnxUI Config"], 1, 1, 1)
 		GameTooltip:Show()
 	end)
 
 	kkuiconfig:SetScript("OnLeave", function(self)
+		K.UIFrameFadeOut(self, 1, self:GetAlpha(), 0.25)
+
+		if not GameTooltip:IsForbidden() then
+			GameTooltip:Hide()
+		end
+	end)
+
+	-- Create Configbutton
+	-- Create a variable to store the last click time
+	local lastClickTime = 0
+	local cooldown = 2 -- Cooldown time in seconds
+
+	local kkuiroll = CreateFrame("Button", "kkuiroll", UIParent)
+	kkuiroll:SetPoint("BOTTOM", kkuiconfig, "TOP", 0, 6)
+	kkuiroll:SkinButton()
+	kkuiroll:SetSize(16, 16)
+	kkuiroll:SetAlpha(0.25)
+
+	kkuiroll.Texture = kkuiroll:CreateTexture(nil, "ARTWORK")
+	kkuiroll.Texture:SetAllPoints()
+	kkuiroll.Texture:SetAtlas("charactercreate-icon-dice")
+	kkuiroll:RegisterForClicks("AnyUp")
+	kkuiroll:SetScript("OnClick", function(_, btn)
+		local currentTime = GetTime()
+		if currentTime - lastClickTime < cooldown then
+			K.Print("Please wait before rolling again.")
+			return
+		end
+
+		lastClickTime = currentTime
+
+		if btn == "LeftButton" then
+			RandomRoll(1, 100) -- Simulates the /roll command (default 1-100 range)
+		elseif btn == "RightButton" then
+			-- Perform an emote for a humorous roll
+			local roll = math.random(1, 100)
+			SendChatMessage("rolls " .. roll .. " (1-100)", "EMOTE")
+		end
+	end)
+
+	kkuiroll:SetScript("OnEnter", function(self)
+		K.UIFrameFadeIn(self, 0.25, self:GetAlpha(), 1)
+
+		local anchor, _, xoff, yoff = "ANCHOR_RIGHT", self:GetParent(), 10, 5
+		GameTooltip:SetOwner(self, anchor, xoff, yoff)
+		GameTooltip:ClearLines()
+		GameTooltip:AddLine(FAST .. " " .. ROLL)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddDoubleLine(leftButtonString .. L["Left Click"], "Roll a random number between 1 and 100", 1, 1, 1)
+		GameTooltip:AddDoubleLine(rightButtonString .. L["Right Click"], "Guaranteed to roll a perfect 100!", 1, 1, 1)
+
+		GameTooltip:Show()
+	end)
+
+	kkuiroll:SetScript("OnLeave", function(self)
 		K.UIFrameFadeOut(self, 1, self:GetAlpha(), 0.25)
 
 		if not GameTooltip:IsForbidden() then

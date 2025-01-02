@@ -349,12 +349,13 @@ do
 	-- Event handler
 	LevelUpDisplay:SetScript("OnEvent", function(_, event, ...)
 		if event == "PLAYER_LEVEL_UP" then
-			local level, _, _, _, _, strengthDelta, agilityDelta, staminaDelta, intellectDelta = ...
+			local level, _, _, _, _, strengthDelta, agilityDelta, staminaDelta, intellectDelta, spiritDelta = ...
 			local statGains = {
 				Strength = strengthDelta or 0,
 				Agility = agilityDelta or 0,
 				Stamina = staminaDelta or 0,
 				Intellect = intellectDelta or 0,
+				Spirit = spiritDelta or 0,
 			}
 			ShowLevelUpMessage(level, statGains)
 		end
@@ -369,6 +370,7 @@ do
 			Agility = math.random(0, 5),
 			Stamina = math.random(0, 5),
 			Intellect = math.random(0, 5),
+			Spirit = math.random(0, 5),
 		}
 		ShowLevelUpMessage(testLevel, statGains)
 	end
