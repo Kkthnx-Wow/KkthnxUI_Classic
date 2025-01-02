@@ -14,8 +14,6 @@ local list = {
 		{ AuraID = 13750, UnitID = "player" }, -- 冲动
 		{ AuraID = 13877, UnitID = "player" }, -- 剑刃乱舞
 	},
-	["Focus Aura"] = { -- 焦点光环组
-	},
 	["Spell Cooldown"] = { -- 冷却计时组
 		{ SlotID = 13 }, -- 饰品1
 		{ SlotID = 14 }, -- 饰品2

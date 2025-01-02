@@ -12,8 +12,6 @@ local list = {
 		--{AuraID = 30823, UnitID = "player"},	-- 萨满之怒
 		{ AuraID = 16188, UnitID = "player", Flash = true }, -- 自然迅捷
 	},
-	["Focus Aura"] = { -- 焦点光环组
-	},
 	["Spell Cooldown"] = { -- 冷却计时组
 		{ SlotID = 13 }, -- 饰品1
 		{ SlotID = 14 }, -- 饰品2

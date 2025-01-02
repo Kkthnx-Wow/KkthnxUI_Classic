@@ -306,3 +306,66 @@ do
 		end
 	end)
 end
+
+do
+	local playerGUID = UnitGUID("player")
+
+	-- Create a frame for displaying critical hit numbers
+	local critFrame = CreateFrame("Frame", "CritFrame", UIParent)
+	critFrame:SetSize(400, 100)
+	critFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 200)
+	critFrame:Hide()
+
+	critFrame.text = critFrame:CreateFontString(nil, "OVERLAY")
+	critFrame.text:SetFont("Fonts\\FRIZQT__.TTF", 32, "OUTLINE")
+	critFrame.text:SetTextColor(1, 0, 0) -- Red color
+	critFrame.text:SetPoint("CENTER")
+
+	local function ShowCritAnimation(spellName, amount)
+		local message = string.format("|cffffffff%s|r CRIT FOR %d", spellName, amount)
+		critFrame.text:SetText(message)
+		critFrame:Show()
+
+		-- Create animation group
+		local animGroup = critFrame:CreateAnimationGroup()
+
+		-- Create translation animation (move up)
+		local moveUp = animGroup:CreateAnimation("Translation")
+		moveUp:SetOffset(0, 75) -- Move up by 75 pixels
+		moveUp:SetDuration(1.5) -- Increase speed by reducing duration to 1.5 seconds
+		moveUp:SetSmoothing("OUT")
+
+		-- Create fade out animation
+		local fadeOut = animGroup:CreateAnimation("Alpha")
+		fadeOut:SetFromAlpha(1)
+		fadeOut:SetToAlpha(0)
+		fadeOut:SetDuration(1.5) -- Increase speed by reducing duration to 1.5 seconds
+		fadeOut:SetStartDelay(1.5) -- Increase start delay to 1.5 seconds
+		fadeOut:SetSmoothing("OUT")
+
+		animGroup:SetScript("OnFinished", function()
+			critFrame:Hide()
+		end)
+
+		animGroup:Play()
+	end
+
+	local f = CreateFrame("Frame")
+	f:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	f:SetScript("OnEvent", function(self, event)
+		local _, subevent, _, sourceGUID, _, _, _, destGUID, destName = CombatLogGetCurrentEventInfo()
+		local spellId, amount, critical
+
+		if subevent == "SWING_DAMAGE" then
+			amount, _, _, _, _, _, critical = select(12, CombatLogGetCurrentEventInfo())
+			spellId = 6603 -- Auto Attack spell ID
+		elseif subevent == "SPELL_DAMAGE" then
+			spellId, _, _, amount, _, _, _, _, _, critical = select(12, CombatLogGetCurrentEventInfo())
+		end
+
+		if critical and sourceGUID == playerGUID then
+			local spellName = GetSpellInfo(spellId) or "Auto Attack"
+			ShowCritAnimation(spellName, amount)
+		end
+	end)
+end

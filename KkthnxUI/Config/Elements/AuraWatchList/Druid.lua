@@ -17,8 +17,6 @@ local list = {
 		--{AuraID = 33763, UnitID = "player"},	-- 生命绽放
 		--{AuraID = 33357, UnitID = "player"},	-- 急奔
 	},
-	["Focus Aura"] = { -- 焦点光环组
-	},
 	["Spell Cooldown"] = { -- 冷却计时组
 		{ SlotID = 13 }, -- 饰品1
 		{ SlotID = 14 }, -- 饰品2

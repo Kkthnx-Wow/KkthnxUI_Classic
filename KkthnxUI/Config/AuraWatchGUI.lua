@@ -99,9 +99,11 @@ local function createLabel(parent, text, tip)
 end
 
 local function AW_CreateEditbox(parent, text, x, y, tip, width, height)
-	local height = height or 24
-	local width = width or 90
+	-- Set default values for width and height if not provided
+	width = width or 90
+	height = height or 24
 
+	-- Create the edit box
 	local eb = CreateFrame("EditBox", nil, parent)
 	eb:SetSize(width, height)
 	eb:SetPoint("TOPLEFT", x, y)
@@ -109,13 +111,17 @@ local function AW_CreateEditbox(parent, text, x, y, tip, width, height)
 	eb:SetTextInsets(5, 5, 0, 0)
 	eb:SetFontObject(K.UIFont)
 	eb:SetMaxLetters(255)
+
+	-- Create a label for the edit box
 	createLabel(eb, text, tip)
 
+	-- Create a background for the edit box
 	eb.bg = CreateFrame("Frame", nil, eb, "BackdropTemplate")
 	eb.bg:SetAllPoints(eb)
 	eb.bg:SetFrameLevel(eb:GetFrameLevel())
 	eb.bg:CreateBorder()
 
+	-- Set scripts for clearing focus
 	eb:SetScript("OnEscapePressed", editBoxClearFocus)
 	eb:SetScript("OnEnterPressed", editBoxClearFocus)
 
@@ -156,9 +162,11 @@ local function AW_CreateCheckBox(parent, text, x, y, tip)
 end
 
 local function AW_CreateDropdown(parent, text, x, y, data, tip, width, height)
-	local width = width or 90
-	local height = height or 24
+	-- Set default values for width and height if not provided
+	width = width or 90
+	height = height or 24
 
+	-- Create the dropdown frame
 	local dd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 	dd:SetSize(width, height)
 	dd:SetPoint("TOPLEFT", x, y)
@@ -168,11 +176,13 @@ local function AW_CreateDropdown(parent, text, x, y, data, tip, width, height)
 	dd.Text:SetPoint("RIGHT", -30, 0)
 	dd.options = {}
 
+	-- Create the dropdown button
 	local bu = CreateFrame("Button", nil, dd)
 	bu:SetPoint("RIGHT", -4, 0)
 	K.ReskinArrow(bu, "down")
 	bu:SetSize(16, 16)
 
+	-- Create the dropdown list
 	local list = CreateFrame("Frame", nil, dd, "BackdropTemplate")
 	list:SetPoint("TOP", dd, "BOTTOM", 0, -6)
 	list:CreateBorder()
@@ -183,6 +193,7 @@ local function AW_CreateDropdown(parent, text, x, y, data, tip, width, height)
 	bu:SetScript("OnClick", buttonOnClick)
 	dd.button = bu
 
+	-- Populate the dropdown options
 	local opt, index = {}, 0
 	for i, j in pairs(data) do
 		opt[i] = CreateFrame("Button", nil, list, "BackdropTemplate")
@@ -521,28 +532,22 @@ local function CreatePanel()
 
 	-- Main
 	local groups = {
-		-- L["Player Aura"], -- 1 PlayerBuff
-		L["Special Aura"], -- 2 SPECIAL
-		-- L["Target Aura"], -- 3 TargetDebuff
-		L["Warning"], -- 4 Warning
-		L["Focus Aura"], -- 5 FOCUS
-		L["Spell Cooldown"], -- 6 CD
-		L["Enchant Aura"], -- 7 Enchant
-		L["Raid Buff"], -- 8 RaidBuff
-		L["Raid Debuff"], -- 9 RaidDebuff
-		L["InternalCD"], -- 10 InternalCD
+		L["Special Aura"], -- 1 SPECIAL
+		L["Warning"], -- 2 Warning
+		L["Spell Cooldown"], -- 3 CD
+		L["Enchant Aura"], -- 4 Enchant
+		L["Raid Buff"], -- 5 RaidBuff
+		L["Raid Debuff"], -- 6 RaidDebuff
+		L["InternalCD"], -- 7 InternalCD
 	}
 
 	local preSet = {
-		--[1] = { 1, false },
 		[1] = { 1, true },
-		-- [3] = { 2, true },
 		[2] = { 2, false },
 		[3] = { 3, false },
 		[4] = { 1, false },
 		[5] = { 1, false },
 		[6] = { 1, false },
-		[7] = { 1, false },
 	}
 
 	local tabs = {}
@@ -746,7 +751,7 @@ local function CreatePanel()
 		tabs[i]:SetScript("OnLeave", tabOnLeave)
 	end
 
-	for i = 1, 8 do
+	for i = 1, 7 do
 		createGroupSwitcher(tabs[i].Page, i)
 	end
 

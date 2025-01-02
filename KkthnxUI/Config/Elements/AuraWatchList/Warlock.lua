@@ -9,8 +9,6 @@ local list = {
 	["Special Aura"] = { -- 玩家重要光环组
 		{ AuraID = 28610, UnitID = "pet" }, -- 防护暗影结界
 	},
-	["Focus Aura"] = { -- 焦点光环组
-	},
 	["Spell Cooldown"] = { -- 冷却计时组
 		{ SlotID = 13 }, -- 饰品1
 		{ SlotID = 14 }, -- 饰品2

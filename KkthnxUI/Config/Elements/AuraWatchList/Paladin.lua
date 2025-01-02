@@ -16,8 +16,6 @@ local list = {
 		--{AuraID = 31895, UnitID = "player"},	-- 公正圣印
 		--{AuraID = 348704, UnitID = "player"},	-- 复仇圣印
 	},
-	["Focus Aura"] = { -- 焦点光环组
-	},
 	["Spell Cooldown"] = { -- 冷却计时组
 		{ SlotID = 13 }, -- 饰品1
 		{ SlotID = 14 }, -- 饰品2

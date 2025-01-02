@@ -103,8 +103,6 @@ local function ConvertTable()
 	for _, v in pairs(C.AuraWatchList[K.Class]) do
 		if v.Name == "Special Aura" then
 			InsertData(2, v.List)
-		elseif v.Name == "Focus Aura" then
-			InsertData(5, v.List)
 		elseif v.Name == "Spell Cooldown" then
 			InsertData(6, v.List)
 		end

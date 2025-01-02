@@ -15,8 +15,6 @@ local list = {
 		{ AuraID = 23920, UnitID = "player" }, -- 法术反射
 		{ AuraID = 18499, UnitID = "player" }, -- 狂暴之怒
 	},
-	["Focus Aura"] = { -- 焦点光环组
-	},
 	["Spell Cooldown"] = { -- 冷却计时组
 		{ SlotID = 13 }, -- 饰品1
 		{ SlotID = 14 }, -- 饰品2

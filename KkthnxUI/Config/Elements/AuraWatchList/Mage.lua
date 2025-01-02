@@ -16,8 +16,6 @@ local list = {
 		{ AuraID = 12042, UnitID = "player" }, -- 奥术强化
 		{ AuraID = 12472, UnitID = "player" }, -- 冰冷血脉
 	},
-	["Focus Aura"] = { -- 焦点光环组
-	},
 	["Spell Cooldown"] = { -- 冷却计时组
 		{ SlotID = 13 }, -- 饰品1
 		{ SlotID = 14 }, -- 饰品2

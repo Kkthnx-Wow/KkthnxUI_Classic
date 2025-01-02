@@ -6,7 +6,6 @@ local UIParent = UIParent
 local AuraWatchList = {}
 local groups = {
 	["Special Aura"] = { "LEFT", 6, "ICON", 30, { "BOTTOMRIGHT", UIParent, "BOTTOM", -160, 432 } },
-	["Focus Aura"] = { "RIGHT", 6, "ICON", 35, { "BOTTOMLEFT", UIParent, "LEFT", 5, -230 } },
 	["Spell Cooldown"] = { "UP", 6, "BAR", 20, { "BOTTOMRIGHT", UIParent, "BOTTOM", -486, 120 }, 150 },
 	["Enchant Aura"] = { "LEFT", 6, "ICON", 36, { "BOTTOMRIGHT", UIParent, "BOTTOM", -160, 468 } },
 	["Raid Buff"] = { "LEFT", 6, "ICON", 42, { "CENTER", UIParent, "CENTER", -220, 300 } },

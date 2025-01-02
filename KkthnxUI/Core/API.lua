@@ -62,15 +62,18 @@ end
 
 -- Create Border
 local function CreateBorder(bFrame, ...)
+	-- Validate the frame parameter
 	if not bFrame or type(bFrame) ~= "table" then
 		return nil, "Invalid frame provided"
 	end
 
+	-- Unpack parameters with default values
 	local bSubLevel, bLayer, bSize, bTexture, bOffset, bColor, bgTexture, bgSubLevel, bgLayer, bgPoint, bgColor = ...
 	local General, Media = C.General, C.Media
 	local BorderValue = General.BorderStyle.Value or "KkthnxUI"
 	local BorderSize = bSize or (BorderValue == "KkthnxUI" and 12 or 10)
 
+	-- Create border if it doesn't exist
 	if not bFrame.KKUI_Border then
 		local BorderTexture = bTexture or ("Interface\\AddOns\\KkthnxUI\\Media\\Border\\" .. BorderValue .. "\\Border.tga")
 		local BorderOffset = bOffset or -4
@@ -87,6 +90,7 @@ local function CreateBorder(bFrame, ...)
 		bFrame.KKUI_Border = kkui_border
 	end
 
+	-- Create background if it doesn't exist
 	if not bFrame.KKUI_Background then
 		local BackgroundTexture = bgTexture or Media.Textures.White8x8Texture
 		local BackgroundSubLevel = bgSubLevel or "BACKGROUND"
@@ -109,12 +113,15 @@ end
 
 -- Create Backdrop
 local function CreateBackdrop(bFrame, ...)
+	-- Validate the frame parameter
 	if not bFrame or type(bFrame) ~= "table" then
 		return nil, "Invalid frame provided"
 	end
 
+	-- Unpack parameters with default values
 	local bPointa, bPointb, bPointc, bPointd, bSubLevel, bLayer, bSize, bTexture, bOffset, bColor, bAlpha, bgTexture, bgSubLevel, bgLayer, bgPoint, bgColor = ...
 
+	-- Create background if it doesn't exist
 	if not bFrame.KKUI_Background then
 		-- Assign default values if not provided
 		local BorderPoints = {
@@ -124,7 +131,7 @@ local function CreateBackdrop(bFrame, ...)
 			bPointd or 0,
 		}
 
-		local kkui_backdrop = CreateFrame("Frame", "$parentBackdrop", bFrame)
+		local kkui_backdrop = CreateFrame("Frame", "$parentBackdrop", bFrame, "BackdropTemplate")
 		kkui_backdrop:SetPoint("TOPLEFT", bFrame, "TOPLEFT", BorderPoints[1], BorderPoints[2])
 		kkui_backdrop:SetPoint("BOTTOMRIGHT", bFrame, "BOTTOMRIGHT", BorderPoints[3], BorderPoints[4])
 
@@ -263,52 +270,34 @@ local function StripTextures(object, kill)
 	end
 end
 
--- Create Texture
-local function CreateTexture(button, noTexture, texturePath, desaturated, vertexColor, setPoints)
-	if not noTexture then
-		local texture = button:CreateTexture()
-		texture:SetTexture(texturePath)
-		texture:SetPoint("TOPLEFT", button, "TOPLEFT", setPoints, -setPoints)
-		texture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -setPoints, setPoints)
-		texture:SetBlendMode("ADD")
-
-		if desaturated then
-			texture:SetDesaturated(true)
-		end
-
-		if vertexColor then
-			texture:SetVertexColor(unpack(vertexColor))
-		end
-
-		return texture
-	end
-end
-
 -- Style Button
-local function StyleButton(button, noHover, noPushed, noChecked, setPoints)
-	-- setPoints default value is 0
-	setPoints = setPoints or 0
-
-	-- Create highlight, pushed, and checked textures for the button if they do not exist
+local function StyleButton(button, noHover, noPushed, noChecked, noCooldown)
+	-- Create highlight texture for the button if it does not exist
 	if button.SetHighlightTexture and not noHover then
-		button.hover = CreateTexture(button, noHover, "Interface\\Buttons\\ButtonHilight-Square", false, nil, setPoints)
-		button:SetHighlightTexture(button.hover)
+		button:SetHighlightTexture(button:IsObjectType("CheckButton") and "Interface\\Buttons\\CheckButtonHilight" or "Interface\\Buttons\\ButtonHilight-Square")
+		button:GetHighlightTexture():SetBlendMode("ADD")
+		button:GetHighlightTexture():SetAllPoints()
 	end
 
+	-- Create pushed texture for the button if it does not exist
 	if button.SetPushedTexture and not noPushed then
-		button.pushed = CreateTexture(button, noPushed, "Interface\\Buttons\\ButtonHilight-Square", true, { 246 / 255, 196 / 255, 66 / 255 }, setPoints)
-		button:SetPushedTexture(button.pushed)
+		button:SetPushedTexture("Interface\\Buttons\\CheckButtonHilight")
+		button:GetPushedTexture():SetBlendMode("ADD")
+		button:GetPushedTexture():SetAllPoints()
 	end
 
+	-- Create checked texture for the button if it does not exist
 	if button.SetCheckedTexture and not noChecked then
-		button.checked = CreateTexture(button, noChecked, "Interface\\Buttons\\CheckButtonHilight", false, nil, setPoints)
-		button:SetCheckedTexture(button.checked)
+		button:SetCheckedTexture("Interface\\Buttons\\CheckButtonHilight")
+		button:GetCheckedTexture():SetBlendMode("ADD")
+		button:GetCheckedTexture():SetAllPoints()
 	end
 
+	-- Adjust cooldown texture if it exists
 	local name = button.GetName and button:GetName()
 	local cooldown = name and _G[name .. "Cooldown"]
 
-	if cooldown then
+	if cooldown and not noCooldown then
 		cooldown:ClearAllPoints()
 		cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
 		cooldown:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)

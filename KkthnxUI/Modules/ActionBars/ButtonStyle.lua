@@ -167,10 +167,9 @@ function Module:StyleActionButton(button)
 	end
 
 	if highlight then
-		button:SetHighlightTexture(button:IsObjectType("CheckButton") and "Interface\\Buttons\\CheckButtonHilight" or "Interface\\Buttons\\ButtonHilight-Square")
+		button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
 		button:GetHighlightTexture():SetBlendMode("ADD")
-		button:GetHighlightTexture():SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
-		button:GetHighlightTexture():SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 0, 0)
+		button:GetHighlightTexture():SetAllPoints()
 	end
 
 	if spellHighlight then
