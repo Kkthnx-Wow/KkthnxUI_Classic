@@ -535,13 +535,14 @@ local happinessColors = {
 local function CreatePetHappinessFrame()
 	local frame = CreateFrame("Frame", "KkthnxUI_PetHappiness", UIParent)
 	frame:SetSize(400, 50)
-	frame:SetPoint("CENTER", 0, 100)
+	frame:SetPoint("CENTER", 0, 400)
 	frame:EnableMouse(false)
 	frame:SetFrameStrata("HIGH")
 	frame:Hide()
 
 	frame.text = frame:CreateFontString(nil, "OVERLAY")
-	frame.text:SetFont(K.GetFont(), 26, "OUTLINE")
+	frame.text:SetFontObject(K.UIFontOutline)
+	frame.text:SetFont(select(1, frame.text:GetFont()), 26, select(3, frame.text:GetFont()))
 	frame.text:SetPoint("CENTER")
 
 	local fadeGroup = frame:CreateAnimationGroup()
@@ -556,7 +557,7 @@ local function CreatePetHappinessFrame()
 	fadeOut:SetToAlpha(0)
 	fadeOut:SetDuration(0.7)
 	fadeOut:SetOrder(2)
-	fadeOut:SetStartDelay(2)
+	fadeOut:SetStartDelay(3)
 
 	fadeGroup:SetScript("OnFinished", function()
 		frame:Hide()
@@ -580,7 +581,7 @@ local function CheckPetHappiness(_, unit)
 	local happiness = GetPetHappiness()
 	if not lastHappiness or lastHappiness ~= happiness then
 		local color = happinessColors[happiness]
-		local message = format(happinessMessages[happiness], UnitName(unit))
+		local message = format(happinessMessages[happiness], UnitName(unit) or PET)
 
 		happinessFrame.text:SetText(message)
 		happinessFrame.text:SetTextColor(unpack(color))
@@ -588,7 +589,7 @@ local function CheckPetHappiness(_, unit)
 		happinessFrame.FadeGroup:Play()
 
 		-- Print to chat as well
-		print(K.Title, format(message, K.SystemColor))
+		K.Print(message)
 
 		lastHappiness = happiness
 	end
