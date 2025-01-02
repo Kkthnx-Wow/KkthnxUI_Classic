@@ -375,6 +375,7 @@ C["Misc"] = {
 	-- RMRune = false,
 	DBMCount = "10",
 	-- MarkerBarSize = 22,
+	PetHappiness = true,
 	AFKCamera = false,
 	AutoBubbles = false,
 	ColorPicker = false,

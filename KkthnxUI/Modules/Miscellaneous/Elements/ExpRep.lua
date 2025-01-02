@@ -313,13 +313,11 @@ local function OnExpRepMouseUp(self, button)
 			end
 
 			if not XPIsLevelMax() then
-				local expPercent = string_format("%.2f%%", PercentXP)
-				local barsLeft = RemainBars
-				local expMessage = string_format("Current XP: %s, Remaining XP: %s, Percent XP: %s, Bars Left: %.2f", K.ShortValue(CurrentXP), RemainXP, expPercent, barsLeft)
-				if RestedXP > 0 then
-					expMessage = expMessage .. string_format(", Rested XP: %s", K.ShortValue(RestedXP))
+				if RemainXP then
+					local expPercent = (RemainXP / RemainTotal) * 100
+					local expMessage = string_format("%.2f%% XP left til I level", expPercent)
+					SendChatMessage(expMessage, "PARTY")
 				end
-				SendChatMessage(expMessage, "PARTY")
 			end
 			lastMessageTime = currentTime
 		else

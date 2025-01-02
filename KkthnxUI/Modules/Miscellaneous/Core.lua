@@ -533,7 +533,7 @@ local happinessColors = {
 }
 
 local function CreatePetHappinessFrame()
-	local frame = CreateFrame("Frame", "KkthnxUI_PetHappiness", UIParent)
+	local frame = CreateFrame("Frame", "KKUI_PetHappiness", UIParent)
 	frame:SetSize(400, 50)
 	frame:SetPoint("CENTER", 0, 400)
 	frame:EnableMouse(false)
@@ -579,29 +579,45 @@ local function CheckPetHappiness(_, unit)
 	end
 
 	local happiness = GetPetHappiness()
-	if not lastHappiness or lastHappiness ~= happiness then
-		local color = happinessColors[happiness]
-		local message = format(happinessMessages[happiness], UnitName(unit) or PET)
+	if not happiness or not happinessMessages[happiness] then
+		-- Exit gracefully if happiness is invalid
+		return
+	end
 
-		happinessFrame.text:SetText(message)
-		happinessFrame.text:SetTextColor(unpack(color))
+	if not lastHappiness or lastHappiness ~= happiness then
+		local color = happinessColors[happiness] or { 1, 1, 1 } -- Default to white color
+		local petName = UnitName("pet") or PET -- Use "pet" as fallback
+		local messageTemplate = happinessMessages[happiness]
+
+		-- Format the pet name with white color
+		local petNameColored = "|cffffffff" .. petName .. "|r"
+
+		-- Format the full message with happiness color
+		local colorCode = string.format("|cff%02x%02x%02x", color[1] * 255, color[2] * 255, color[3] * 255)
+		local fullMessage = string.format(messageTemplate, petNameColored)
+		local chatMessage = colorCode .. fullMessage .. "|r"
+
+		-- Set up the frame text with white-colored pet name
+		happinessFrame.text:SetText(colorCode .. string.format(messageTemplate, petNameColored) .. "|r")
+		happinessFrame.text:SetTextColor(1, 1, 1) -- Use white text color for the frame overall
+
+		-- Show the frame
 		happinessFrame:Show()
 		happinessFrame.FadeGroup:Play()
 
-		-- Print to chat as well
-		K.Print(message)
+		-- Print to chat with color
+		K.Print(chatMessage)
 
 		lastHappiness = happiness
 	end
 end
 
-local ConfigPetHappiness = true
 function Module:TogglePetHappiness()
 	if K.Class ~= "HUNTER" then
 		return
 	end
 
-	if ConfigPetHappiness then
+	if C["Misc"].PetHappiness then
 		K:RegisterEvent("UNIT_HAPPINESS", CheckPetHappiness)
 	else
 		K:UnregisterEvent("UNIT_HAPPINESS", CheckPetHappiness)

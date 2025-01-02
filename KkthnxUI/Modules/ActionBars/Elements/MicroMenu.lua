@@ -155,7 +155,7 @@ function Module:CreateMicroMenu()
 		{ "SpellbookMicroButton" },
 		{ "TalentMicroButton" },
 		{ "QuestLogMicroButton" },
-		{ "SocialsMicroButton" },
+		{ "GuildMicroButton" },
 		{ "WorldMapMicroButton" },
 		{ "HelpMicroButton" },
 		{ "MainMenuMicroButton" },

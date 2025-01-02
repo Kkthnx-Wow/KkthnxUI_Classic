@@ -359,6 +359,10 @@ local function UpdateGroupLoot()
 	K:GetModule("Loot"):UpdateLootRollFrames()
 end
 
+local function TogglePetHappiness()
+	K:GetModule("Miscellaneous"):TogglePetHappiness()
+end
+
 -- Sliders > minvalue, maxvalue, stepvalue
 local ActionBar = function(self)
 	local Window = self:CreateWindow(L["ActionBar"])
@@ -753,6 +757,11 @@ local Misc = function(self)
 	Window:CreateSwitch("Misc", "EasyMarking", L["EasyMarking by Ctrl + LeftClick"])
 	Window:CreateSwitch("Misc", "ShowWowHeadLinks", L["Show Wowhead Links Above Questlog Frame"])
 	Window:CreateSwitch("Misc", "SlotDurability", L["Show Slot Durability %"])
+
+	if K.Class == "HUNTER" then
+		Window:CreateSection(PET)
+		Window:CreateSwitch("Misc", "PetHappiness", "Display Pet Happiness Alerts To Stay Updated On Your Pet's Mood", nil, TogglePetHappiness)
+	end
 
 	Window:CreateSection("Camera")
 	Window:CreateSlider("Misc", "MaxCameraZoom", newFeatureIcon .. "Max Camera Zoom Level", 1, 2.6, 0.1, nil, UpdateMaxZoomLevel)

@@ -54,6 +54,7 @@ do
 				Enum.ItemWeaponSubclass.Wand,
 			},
 			{ Enum.ItemArmorSubclass.Plate, Enum.ItemArmorSubclass.Shield },
+			true,
 		}
 	elseif Class == "MAGE" then
 		Unusable = {

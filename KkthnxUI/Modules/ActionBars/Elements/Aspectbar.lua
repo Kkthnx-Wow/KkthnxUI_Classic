@@ -45,7 +45,7 @@ function Module:CreateAspectButton(spellID, index)
 	button:StyleButton()
 
 	button.Icon = button:CreateTexture(nil, "ARTWORK")
-	button.Icon:SetAllPoints(button)
+	button.Icon:SetAllPoints()
 	button.Icon:SetTexCoord(unpack(K.TexCoords))
 	button.Icon:SetTexture(texture)
 	K.AddTooltip(button, "ANCHOR_TOP", name)
@@ -79,7 +79,7 @@ function Module:UpdateAspectAnchor()
 	for _, value in pairs(aspectButtons) do
 		value[1]:ClearAllPoints()
 		if not prevButton then
-			value[1]:SetPoint("TOPLEFT", 3, -3)
+			value[1]:SetPoint("TOPLEFT", 0, 0)
 		else
 			if C["ActionBar"].BarAspectVerticle then
 				value[1]:SetPoint("TOP", prevButton, "BOTTOM", 0, -6)
@@ -133,7 +133,7 @@ function Module:UpdateAspectStatus()
 
 	local size = C["ActionBar"].BarAspectSize
 	local num = #aspects
-	local width, height = size * 7 + 3 * 14, size + 3 * 2
+	local width, height = size * num + 3 * (num + 1), size
 	if C["ActionBar"].BarAspectVerticle then
 		aspectFrame:SetSize(height, width)
 		aspectFrame.mover:SetSize(height, width)
@@ -173,7 +173,7 @@ function Module:CreateAspectbar()
 
 	local size = C["ActionBar"].BarAspectSize or 50
 	local num = #aspects
-	local width, height = size * 7 + 3 * 14, size + 3 * 2
+	local width, height = size * num + 3 * (num + 1), size
 
 	aspectFrame = CreateFrame("Frame", "KKUI_AspectFrame", UIParent)
 	if C["ActionBar"].BarAspectVerticle then
