@@ -133,16 +133,16 @@ function Module:OnEnable()
 	end
 
 	local loadMiscModules = {
-		"CreateAlreadyKnown",
 		"CreateBossEmote",
-		"CreateCustomWaypoint",
 		"CreateDurabilityFrameMove",
-		"CreateErrorFrameToggle",
 		"CreateGUIGameMenuButton",
 		"CreateMinimapButtonToggle",
 		"CreateTicketStatusFrameMove",
 		"CreateTradeTargetInfo",
+		"UpdateErrorBlockerState",
 		"UpdateMaxCameraZoom",
+		"TogglePetHappiness",
+		"ToggleTaxiDismount",
 		-- "CreateObjectiveSizeUpdate",
 		-- "CreateQuestSizeUpdate",
 	}
@@ -158,13 +158,6 @@ function Module:OnEnable()
 	end
 
 	hooksecurefunc("QuestInfo_Display", Module.CreateQuestXPPercent)
-
-	if not BNToastFrame.mover then
-		BNToastFrame.mover = K.Mover(BNToastFrame, "BNToastFrame", "BNToastFrame", { "BOTTOMLEFT", UIParent, "BOTTOMLEFT", 4, 270 }, BNToastFrame:GetSize())
-	else
-		BNToastFrame.mover:SetSize(BNToastFrame:GetSize())
-	end
-	hooksecurefunc(BNToastFrame, "SetPoint", Module.PostBNToastMove)
 
 	enableAutoBubbles()
 	modifyDeleteDialog()
@@ -358,38 +351,6 @@ function Module:CreateBossEmote()
 	end
 end
 
--- Error Frame Toggle Setup
-local function SetupErrorFrameToggle(event)
-	if event == "PLAYER_REGEN_DISABLED" then
-		_G.UIErrorsFrame:UnregisterEvent("UI_ERROR_MESSAGE")
-		K:RegisterEvent("PLAYER_REGEN_ENABLED", SetupErrorFrameToggle)
-	else
-		_G.UIErrorsFrame:RegisterEvent("UI_ERROR_MESSAGE")
-		K:UnregisterEvent(event, SetupErrorFrameToggle)
-	end
-end
-
-function Module:CreateErrorFrameToggle()
-	if C["General"].NoErrorFrame then
-		K:RegisterEvent("PLAYER_REGEN_DISABLED", SetupErrorFrameToggle)
-	else
-		K:UnregisterEvent("PLAYER_REGEN_DISABLED", SetupErrorFrameToggle)
-	end
-end
-
--- -- Create Quest Size Update
--- function Module:CreateQuestSizeUpdate()
--- 	QuestTitleFont:SetFont(QuestTitleFont:GetFont(), C["Skins"].QuestFontSize + 3, "")
--- 	QuestFont:SetFont(QuestFont:GetFont(), C["Skins"].QuestFontSize + 1, "")
--- 	QuestFontNormalSmall:SetFont(QuestFontNormalSmall:GetFont(), C["Skins"].QuestFontSize, "")
--- end
-
--- -- Create Objective Size Update
--- function Module:CreateObjectiveSizeUpdate()
--- 	ObjectiveFont:SetFontObject(K.UIFont)
--- 	ObjectiveFont:SetFont(ObjectiveFont:GetFont(), C["Skins"].ObjectiveFontSize, select(3, ObjectiveFont:GetFont()))
--- end
-
 -- TradeFrame Hook
 function Module:CreateTradeTargetInfo()
 	local infoText = K.CreateFontString(TradeFrame, 16, "", "")
@@ -476,117 +437,177 @@ do
 	K:RegisterEvent("RESURRECT_REQUEST", soundOnResurrect)
 end
 
-function Module:CreateCustomWaypoint()
-	if hash_SlashCmdList["/WAY"] or hash_SlashCmdList["/GO"] then
+local blockedErrorMessages = {
+	[ERR_ABILITY_COOLDOWN] = true,
+	[ERR_ATTACK_MOUNTED] = true,
+	[ERR_OUT_OF_ENERGY] = true,
+	[ERR_OUT_OF_FOCUS] = true,
+	[ERR_OUT_OF_HEALTH] = true,
+	[ERR_OUT_OF_MANA] = true,
+	[ERR_OUT_OF_RAGE] = true,
+	[ERR_OUT_OF_RANGE] = true,
+	[ERR_OUT_OF_RUNES] = true,
+	[ERR_OUT_OF_HOLY_POWER] = true,
+	[ERR_OUT_OF_RUNIC_POWER] = true,
+	[ERR_OUT_OF_SOUL_SHARDS] = true,
+	[ERR_OUT_OF_ARCANE_CHARGES] = true,
+	[ERR_OUT_OF_COMBO_POINTS] = true,
+	[ERR_OUT_OF_CHI] = true,
+	[ERR_OUT_OF_POWER_DISPLAY] = true,
+	[ERR_SPELL_COOLDOWN] = true,
+	[ERR_ITEM_COOLDOWN] = true,
+	[SPELL_FAILED_BAD_IMPLICIT_TARGETS] = true,
+	[SPELL_FAILED_BAD_TARGETS] = true,
+	[SPELL_FAILED_CASTER_AURASTATE] = true,
+	[SPELL_FAILED_NO_COMBO_POINTS] = true,
+	[SPELL_FAILED_SPELL_IN_PROGRESS] = true,
+	[SPELL_FAILED_TARGET_AURASTATE] = true,
+	[ERR_NO_ATTACK_TARGET] = true,
+}
+
+local isErrorFrameRegistered = true
+function Module:HandleCombatErrors(_, errorText)
+	if InCombatLockdown() and blockedErrorMessages[errorText] then
+		if isErrorFrameRegistered then
+			UIErrorsFrame:UnregisterEvent(self)
+			isErrorFrameRegistered = false
+		end
+	else
+		if not isErrorFrameRegistered then
+			UIErrorsFrame:RegisterEvent(self)
+			isErrorFrameRegistered = true
+		end
+	end
+end
+
+local ConfigBlockErrors = true
+function Module:UpdateErrorBlockerState()
+	if ConfigBlockErrors then
+		K:RegisterEvent("UI_ERROR_MESSAGE", Module.HandleCombatErrors)
+	else
+		isErrorFrameRegistered = true
+		UIErrorsFrame:RegisterEvent("UI_ERROR_MESSAGE")
+		K:UnregisterEvent("UI_ERROR_MESSAGE", Module.HandleCombatErrors)
+	end
+end
+
+-- Auto dismount on Taxi
+local ConfigAutoDismount = true
+function Module:ToggleTaxiDismount()
+	local lastTaxiIndex
+
+	local function retryTaxi()
+		if InCombatLockdown() then
+			return
+		end
+		if lastTaxiIndex then
+			TakeTaxiNode(lastTaxiIndex)
+			lastTaxiIndex = nil
+		end
+	end
+
+	hooksecurefunc("TakeTaxiNode", function(index)
+		if not ConfigAutoDismount then
+			return
+		end
+		if not IsMounted() then
+			return
+		end
+
+		Dismount()
+		lastTaxiIndex = index
+		C_Timer.After(0.5, retryTaxi)
+	end)
+end
+
+local happinessMessages = {
+	[1] = "Your pet %s is very unhappy!",
+	[2] = "Your pet %s is content",
+	[3] = "Your pet %s is very happy",
+}
+
+local happinessColors = {
+	[1] = { 1, 0, 0 }, -- Red for unhappy
+	[2] = { 1, 0.8, 0 }, -- Orange for content
+	[3] = { 0, 1, 0 }, -- Green for happy
+}
+
+local function CreatePetHappinessFrame()
+	local frame = CreateFrame("Frame", "KkthnxUI_PetHappiness", UIParent)
+	frame:SetSize(400, 50)
+	frame:SetPoint("CENTER", 0, 100)
+	frame:EnableMouse(false)
+	frame:SetFrameStrata("HIGH")
+	frame:Hide()
+
+	frame.text = frame:CreateFontString(nil, "OVERLAY")
+	frame.text:SetFont(K.GetFont(), 26, "OUTLINE")
+	frame.text:SetPoint("CENTER")
+
+	local fadeGroup = frame:CreateAnimationGroup()
+	local fadeIn = fadeGroup:CreateAnimation("Alpha")
+	fadeIn:SetFromAlpha(0)
+	fadeIn:SetToAlpha(1)
+	fadeIn:SetDuration(0.3)
+	fadeIn:SetOrder(1)
+
+	local fadeOut = fadeGroup:CreateAnimation("Alpha")
+	fadeOut:SetFromAlpha(1)
+	fadeOut:SetToAlpha(0)
+	fadeOut:SetDuration(0.7)
+	fadeOut:SetOrder(2)
+	fadeOut:SetStartDelay(2)
+
+	fadeGroup:SetScript("OnFinished", function()
+		frame:Hide()
+	end)
+
+	frame.FadeGroup = fadeGroup
+	return frame
+end
+
+local happinessFrame
+local lastHappiness
+local function CheckPetHappiness(_, unit)
+	if unit ~= "pet" then
 		return
 	end
 
-	local debugMode = false
-	local pointString = K.InfoColor .. "|Hworldmap:%d:%d:%d|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a%s (%s, %s)%s]|h|r"
-
-	-- Debugging function
-	local function DebugPrint(...)
-		if debugMode then
-			print("|cFF00FF00[DEBUG]:|r", ...)
-		end
+	if not happinessFrame then
+		happinessFrame = CreatePetHappinessFrame()
 	end
 
-	-- Ensures coordinates are valid and within bounds
-	local function GetCorrectCoord(coord)
-		DebugPrint("Validating coordinate:", coord)
-		coord = tonumber(coord)
-		if coord then
-			return math.max(0, math.min(100, coord))
-		end
+	local happiness = GetPetHappiness()
+	if not lastHappiness or lastHappiness ~= happiness then
+		local color = happinessColors[happiness]
+		local message = format(happinessMessages[happiness], UnitName(unit))
+
+		happinessFrame.text:SetText(message)
+		happinessFrame.text:SetTextColor(unpack(color))
+		happinessFrame:Show()
+		happinessFrame.FadeGroup:Play()
+
+		-- Print to chat as well
+		print(K.Title, format(message, K.SystemColor))
+
+		lastHappiness = happiness
+	end
+end
+
+local ConfigPetHappiness = true
+function Module:TogglePetHappiness()
+	if K.Class ~= "HUNTER" then
+		return
 	end
 
-	-- Formats the clickable waypoint message
-	local function FormatClickableWaypoint(mapID, x, y, mapName, desc)
-		local descriptionPart = desc and (" " .. desc) or ""
-		local formatted = format(pointString, mapID, x * 100, y * 100, mapName, x, y, descriptionPart)
-		DebugPrint("Formatted clickable waypoint message:", formatted)
-		return formatted
-	end
-
-	-- Sets the waypoint and supertracks it
-	local function SetWaypoint(mapID, x, y, desc)
-		local mapName = C_Map.GetMapInfo(mapID) and C_Map.GetMapInfo(mapID).name or "Unknown"
-		DebugPrint("Setting waypoint - MapID:", mapID, "X:", x, "Y:", y, "Description:", desc or "No description")
-
-		local message = FormatClickableWaypoint(mapID, x, y, mapName, desc)
-		print(message)
-
-		C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100))
-		C_SuperTrack.SetSuperTrackedUserWaypoint(true)
-	end
-
-	-- Parses the input message for mapID, coordinates, and description
-	local function ParseInput(msg)
-		DebugPrint("Parsing input:", msg)
-
-		-- Match input with map ID format
-		local mapID, x, y, desc = msg:match("#(%d+)%s*([%d%.]+),?%s*([%d%.]+)%s*(.*)")
-		if not mapID then
-			-- Match input without map ID
-			x, y, desc = msg:match("([%d%.]+),?%s*([%d%.]+)%s*(.*)")
-			if x and y then
-				-- Default to player's current map
-				mapID = C_Map.GetBestMapForUnit("player")
-				if not mapID then
-					print("Unable to determine the current map. Please try again.")
-					DebugPrint("Failed to retrieve map ID")
-					return
-				end
-			end
-		end
-
-		if not x or not y then
-			print("Invalid input. Usage: /way [#<mapID>] <x>,<y> [description]")
-			DebugPrint("Input validation failed. MapID:", mapID, "X:", x, "Y:", y)
-			return
-		end
-
-		x = GetCorrectCoord(x)
-		y = GetCorrectCoord(y)
-		mapID = tonumber(mapID)
-
-		if not (x and y and mapID) then
-			print("Coordinates must be between 0 and 100, and mapID must be valid.")
-			DebugPrint("Coordinate validation failed. MapID:", mapID, "X:", x, "Y:", y)
-			return
-		end
-
-		DebugPrint("Parsed values - MapID:", mapID, "X:", x, "Y:", y, "Description:", desc or "No description")
-		return mapID, x, y, desc
-	end
-
-	-- Handles slash command inputs
-	local function HandleSlashCommand(msg, command)
-		DebugPrint("Handling /" .. command .. " command with input:", msg)
-		local mapID, x, y, desc = ParseInput(msg)
-		if mapID then
-			SetWaypoint(mapID, x, y, desc)
-		else
-			DebugPrint("Parsing failed for input:", msg)
+	if ConfigPetHappiness then
+		K:RegisterEvent("UNIT_HAPPINESS", CheckPetHappiness)
+	else
+		K:UnregisterEvent("UNIT_HAPPINESS", CheckPetHappiness)
+		if happinessFrame then
+			happinessFrame:Hide()
 		end
 	end
-
-	-- Registers the /way and /go slash commands
-	local function RegisterSlashCommands()
-		DebugPrint("Registering /way and /go slash commands")
-
-		SlashCmdList["KKUI_WAY"] = function(msg)
-			HandleSlashCommand(msg, "way")
-		end
-		SLASH_KKUI_WAY1 = "/way"
-
-		SlashCmdList["KKUI_GO"] = function(msg)
-			HandleSlashCommand(msg, "go")
-		end
-		SLASH_KKUI_GO1 = "/go"
-	end
-
-	RegisterSlashCommands()
 end
 
 -- Update Max Camera Zoom

@@ -219,11 +219,7 @@ local function OrderedNext(t, state)
 	Key = OrderedIndex[NextIndex]
 
 	if Key then
-		-- print("Key: ", Key)
-		-- print("Value: ", t[Key])
 		return Key, t[Key]
-	else
-		-- print("Iteration ended")
 	end
 end
 
@@ -1278,7 +1274,7 @@ local ColorOnMouseUp = function(self, button)
 			CPF.Button = self
 			CPF.swatchFunc = K.Noop
 
-			CPF.Content.ColorPicker:SetColorRGB(CurrentR, CurrentG, CurrentB)
+			CPF:SetColorRGB(CurrentR, CurrentG, CurrentB)
 
 			CPF.Group = self.Group
 			CPF.Option = self.Option

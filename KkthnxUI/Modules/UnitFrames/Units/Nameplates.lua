@@ -79,6 +79,7 @@ function Module:UpdatePlateCVars()
 	end
 
 	local settings = {
+		nameplateMaxDistance = 20,
 		namePlateMinScale = C["Nameplate"].MinScale,
 		namePlateMaxScale = C["Nameplate"].MinScale,
 		nameplateMinAlpha = C["Nameplate"].MinAlpha,

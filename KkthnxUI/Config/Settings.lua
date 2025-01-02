@@ -102,6 +102,10 @@ C["ActionBar"] = {
 	Bar8PerRow = 12,
 	Bar8Fade = false,
 
+	BarAspect = true,
+	BarAspectSize = 25,
+	BarAspectVerticle = true,
+
 	BarFadeGlobal = true,
 	BarFadeAlpha = 0.1,
 	BarFadeDelay = 0,

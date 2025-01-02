@@ -384,7 +384,7 @@ function Module:OnEnable()
 	Module.movers = {}
 	local loadActionBarModules = {
 		"CreateBars",
-		-- "CreateExtrabar",
+		"CreateAspectbar",
 		"CreateLeaveVehicle",
 		"CreatePetbar",
 		"CreateStancebar",
@@ -412,8 +412,8 @@ function Module:OnEnable()
 	Module:ReassignBindings()
 	--end
 	K:RegisterEvent("UPDATE_BINDINGS", Module.ReassignBindings)
-	K:RegisterEvent("PET_BATTLE_CLOSE", Module.ReassignBindings)
-	K:RegisterEvent("PET_BATTLE_OPENING_DONE", Module.ClearBindings)
+	-- K:RegisterEvent("PET_BATTLE_CLOSE", Module.ReassignBindings)
+	-- K:RegisterEvent("PET_BATTLE_OPENING_DONE", Module.ClearBindings)
 
 	if AdiButtonAuras then
 		AdiButtonAuras:RegisterLAB("LibActionButton-1.0")

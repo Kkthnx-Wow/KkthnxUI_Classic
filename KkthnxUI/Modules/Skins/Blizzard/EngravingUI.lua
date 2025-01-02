@@ -81,7 +81,7 @@ end
 
 function Module:OnEquipmentChanged(slotID)
 	if C_Engraving.IsEquipmentSlotEngravable(slotID) then
-		self:UpdateEngravingUI()
+		Module:UpdateEngravingUI()
 	end
 end
 
@@ -142,7 +142,7 @@ function Module:AddRunesHelpInfo()
 
 	local helpInfo = CreateFrame("Button", nil, EngravingFrame)
 	helpInfo:SetPoint("RIGHT", EngravingFrame.FilterDropdown, 28, 0)
-	helpInfo:SetSize(22, 22)
+	helpInfo:SetSize(20, 20)
 	helpInfo.Icon = helpInfo:CreateTexture(nil, "ARTWORK")
 	helpInfo.Icon:SetAllPoints()
 	helpInfo.Icon:SetAtlas("newplayerchat-chaticon-newcomer")

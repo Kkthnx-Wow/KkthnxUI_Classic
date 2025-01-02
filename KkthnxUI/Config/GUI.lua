@@ -343,6 +343,14 @@ local function UpdateActionBarStance()
 	K:GetModule("ActionBar"):UpdateStanceBar()
 end
 
+local function UpdateActionBarAspect()
+	K:GetModule("ActionBar"):UpdateAspectStatus()
+end
+
+local function ToggleBarAspect()
+	K:GetModule("ActionBar"):ToggleAspectBar()
+end
+
 local function UpdateActionBarVehicleButton()
 	K:GetModule("ActionBar"):UpdateVehicleButton()
 end
@@ -431,6 +439,11 @@ local ActionBar = function(self)
 	Window:CreateSlider("ActionBar", "BarStancePerRow", "Button PerRow", 1, 12, 1, nil, UpdateActionBarStance)
 	Window:CreateSlider("ActionBar", "BarStanceFont", "Button FontSize", 8, 20, 1, nil, UpdateActionBarStance)
 	Window:CreateSwitch("ActionBar", "BarStanceFade", "Enable Fade for Stance Bar", "Allows the Stance Bar to fade based on the specified conditions", UpdateABFaderState)
+
+	Window:CreateSection("ActionBar Aspect")
+	Window:CreateSwitch("ActionBar", "BarAspect", enableTextColor .. "Enable AspectBar", nil, ToggleBarAspect)
+	Window:CreateSlider("ActionBar", "BarAspectSize", "Button Size", 20, 80, 1, nil, UpdateActionBarAspect)
+	Window:CreateSwitch("ActionBar", "BarAspectVerticle", "Aspect Verticle", nil, UpdateActionBarAspect)
 
 	Window:CreateSection("ActionBar Vehicle")
 	Window:CreateSlider("ActionBar", "VehButtonSize", "Button Size", 20, 80, 1, nil, UpdateActionBarVehicleButton)

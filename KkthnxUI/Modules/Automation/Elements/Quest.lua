@@ -5,16 +5,16 @@ local next, ipairs, select = next, ipairs, select
 local C_GossipInfo_GetOptions = C_GossipInfo.GetOptions
 local C_GossipInfo_SelectOption = C_GossipInfo.SelectOption
 local GetInstanceInfo, GetQuestID = GetInstanceInfo, GetQuestID
-local GetNumActiveQuests, GetActiveTitle, GetActiveQuestID, SelectActiveQuest = GetNumActiveQuests, GetActiveTitle, GetActiveQuestID, SelectActiveQuest
+local GetNumActiveQuests, GetActiveTitle, SelectActiveQuest = GetNumActiveQuests, GetActiveTitle, SelectActiveQuest
 local GetNumAutoQuestPopUps, GetAutoQuestPopUp, ShowQuestOffer, ShowQuestComplete = GetNumAutoQuestPopUps, GetAutoQuestPopUp, ShowQuestOffer, ShowQuestComplete
-local GetNumAvailableQuests, GetAvailableQuestInfo, SelectAvailableQuest = GetNumAvailableQuests, GetAvailableQuestInfo, SelectAvailableQuest
-local GetNumQuestChoices, GetQuestReward, GetItemInfo, GetQuestItemInfo = GetNumQuestChoices, GetQuestReward, GetItemInfo, GetQuestItemInfo
+local GetNumAvailableQuests, SelectAvailableQuest = GetNumAvailableQuests, SelectAvailableQuest
+local GetNumQuestChoices, GetQuestReward, GetQuestItemInfo = GetNumQuestChoices, GetQuestReward, GetQuestItemInfo
 local GetNumTrackingTypes = C_Minimap.GetNumTrackingTypes
 local GetTrackingInfo = C_Minimap.GetTrackingInfo
 local IsAltKeyDown = IsAltKeyDown
-local IsQuestCompletable, GetNumQuestItems, GetQuestItemLink, QuestIsFromAreaTrigger = IsQuestCompletable, GetNumQuestItems, GetQuestItemLink, QuestIsFromAreaTrigger
+local IsQuestCompletable, GetNumQuestItems, GetQuestItemLink = IsQuestCompletable, GetNumQuestItems, GetQuestItemLink
 local MINIMAP_TRACKING_TRIVIAL_QUESTS = MINIMAP_TRACKING_TRIVIAL_QUESTS
-local QuestGetAutoAccept, AcceptQuest, CloseQuest, CompleteQuest, AcknowledgeAutoAcceptQuest = QuestGetAutoAccept, AcceptQuest, CloseQuest, CompleteQuest, AcknowledgeAutoAcceptQuest
+local AcceptQuest, CloseQuest, CompleteQuest = AcceptQuest, CloseQuest, CompleteQuest
 local QuestLabelPrepend = Enum.GossipOptionRecFlags.QuestLabelPrepend
 local UnitGUID, IsShiftKeyDown, GetItemInfoFromHyperlink = UnitGUID, IsShiftKeyDown, GetItemInfoFromHyperlink
 
@@ -218,7 +218,7 @@ end)
 QuickQuest:Register("QUEST_ACCEPT_CONFIRM", AcceptQuest)
 
 QuickQuest:Register("QUEST_ACCEPTED", function(questID)
-	if QuestFrame:IsShown() and QuestGetAutoAccept() then
+	if QuestFrame:IsShown() then
 		CloseQuest()
 	end
 end)

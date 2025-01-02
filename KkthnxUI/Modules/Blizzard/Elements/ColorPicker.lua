@@ -14,7 +14,7 @@ function Module:EnhancedPicker_UpdateColor()
 	r = translateColor(r)
 	g = translateColor(g)
 	b = translateColor(b)
-	_G.ColorPickerFrame.Content.ColorPicker:SetColorRGB(r, g, b)
+	_G.ColorPickerFrame:SetColorRGB(r, g, b)
 end
 
 function Module:CreateColorPicker()
@@ -30,9 +30,10 @@ function Module:CreateColorPicker()
 	colorBar:SetSize(1, 22)
 	colorBar:SetPoint("BOTTOM", 0, 38)
 
+	local fixShamanColor = { r = 0.20, g = 0.35, b = 0.60, colorStr = "ff335999" }
 	local count = 0
 	for class, name in pairs(LOCALIZED_CLASS_NAMES_MALE) do
-		local value = K.ClassColors[class]
+		local value = class == "SHAMAN" and fixShamanColor or K.ClassColors[class]
 		if value then
 			local bu = CreateFrame("Button", nil, colorBar, "BackdropTemplate")
 			bu:SetSize(22, 22)
