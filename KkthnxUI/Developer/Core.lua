@@ -242,14 +242,38 @@ Features:
 end
 
 do
-	-- Define the spells to thank for
-	local buffsToThank = {
-		[1126] = true, -- Mark of the Wild (Druid)
-		[1459] = true, -- Arcane Intellect (Mage)
-		[1243] = true, -- Power Word: Fortitude (Priest)
-		[6756] = true, -- Gift of the Wild (Druid)
-		[782] = true, -- Thorns (Druid) -- Add only if desired
+	-- Function to build buffs to thank for
+	local function BuildBuffsToThank(spellList)
+		local buffsToThank = {}
+		for _, spellID in ipairs(spellList) do
+			local spellName = GetSpellInfo(spellID)
+			if spellName then
+				buffsToThank[spellName] = true
+			end
+		end
+		return buffsToThank
+	end
+
+	local spellList = {
+		-- Druid
+		1126, -- Mark of the Wild
+
+		-- Mage
+		1459, -- Arcane Intellect
+
+		-- Priest
+		1243, -- Power Word: Fortitude
+
+		-- Paladin
+		19740, -- Blessing of Might
+		19742, -- Blessing of Wisdom
+		20217, -- Blessing of Kings
+
+		-- Warlock
+		5697, -- Unending Breath
 	}
+
+	local buffsToThank = BuildBuffsToThank(spellList)
 
 	-- Create a table to track cooldowns for each caster
 	local lastThanked = {}
@@ -267,8 +291,11 @@ do
 
 		-- Ensure the destination is exactly the player and the event is relevant
 		if destName == playerName and (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "SPELL_AURA_APPLIED") then
+			-- Fetch the buff name
+			local spellName = GetSpellInfo(spellID)
+
 			-- Check if the spell is in our thank list
-			if buffsToThank[spellID] then
+			if buffsToThank[spellName] then
 				-- Get the current time
 				local currentTime = GetTime()
 
@@ -276,9 +303,6 @@ do
 				if not lastThanked[sourceName] or (currentTime - lastThanked[sourceName]) > 60 then
 					-- Randomize the delay between 1-2 seconds
 					local delay = math.random(1, 20) / 10 -- Generates 1.0 to 2.0 seconds
-
-					-- Fetch the buff name
-					local spellName = GetSpellInfo(spellID)
 
 					-- Delay the thank-you emote
 					C_Timer.After(delay, function()
@@ -293,15 +317,9 @@ do
 				end
 			else
 				-- Spell is not in the thank list
-				local spellName = GetSpellInfo(spellID) or "Unknown Spell"
 				print("Buff not in the thank list!")
 				print("Source:", sourceName, "Buff:", spellName, "(Spell ID:", spellID, ")")
 				print("Consider adding this buff to your thank list. Tell the developer.")
-			end
-		else
-			-- Debug only if destination is not the player
-			if destName ~= playerName then
-				-- print("Ignored event. DestName:", destName, "SubEvent:", subEvent)
 			end
 		end
 	end)

@@ -12,14 +12,18 @@ local TUTORIAL_TITLE47 = TUTORIAL_TITLE47
 
 local emojiExampleIcon = "|TInterface\\Addons\\KkthnxUI\\Media\\Chat\\Emojis\\StuckOutTongueClosedEyes:0:0:4|t"
 local enableTextColor = "|cff00cc4c"
-local newFeatureIcon = "|TInterface\\Addons\\KkthnxUI\\Media\\Nameplates\\star:14:14:-2|t"
+local newFeatureIcon = "|TInterface\\Addons\\KkthnxUI\\Media\\Nameplates\\star:14:14:-2:1|t"
 
 local function updateBagSize()
 	K:GetModule("Bags"):UpdateBagSize()
 end
 
-local function UpdateBagSortOrder()
-	C_Container.SetSortBagsRightToLeft(not C["Inventory"].ReverseSort)
+-- local function UpdateBagSortOrder()
+-- 	C_Container.SetSortBagsRightToLeft(not C["Inventory"].ReverseSort)
+-- end
+
+local function UpdateErrorBlocker()
+	K:GetModule("Miscellaneous"):UpdateErrorBlockerState()
 end
 
 local function UpdateBagStatus()
@@ -149,9 +153,9 @@ local function UpdateChatBubble()
 	end
 end
 
-local function UpdateMarkerGrid()
-	K:GetModule("Miscellaneous"):RaidTool_UpdateGrid()
-end
+-- local function UpdateMarkerGrid()
+-- 	K:GetModule("Miscellaneous"):RaidTool_UpdateGrid()
+-- end
 
 function UpdateActionbar()
 	K:GetModule("ActionBar"):UpdateBarVisibility()
@@ -197,13 +201,13 @@ local function UpdateTotemBar()
 	K:GetModule("Auras"):TotemBar_Init()
 end
 
-local function UpdateQuestFontSize()
-	K:GetModule("Miscellaneous"):CreateQuestSizeUpdate()
-end
+-- local function UpdateQuestFontSize()
+-- 	K:GetModule("Miscellaneous"):CreateQuestSizeUpdate()
+-- end
 
-local function UpdateObjectiveFontSize()
-	K:GetModule("Miscellaneous"):CreateObjectiveSizeUpdate()
-end
+-- local function UpdateObjectiveFontSize()
+-- 	K:GetModule("Miscellaneous"):CreateObjectiveSizeUpdate()
+-- end
 
 local function UpdateCustomUnitList()
 	K:GetModule("Unitframes"):CreateUnitTable()
@@ -522,7 +526,8 @@ local Automation = function(self)
 
 	Window:CreateSection("Miscellaneous Options")
 	-- Window:CreateSwitch("Automation", "AutoCollapse", L["Auto Collapse Objective Tracker"], "Automatically collapses the objective tracker when entering an instance.")
-	Window:CreateSwitch("Automation", "AutoGoodbye", L["Say Goodbye After Dungeon Completion"], "Automatically says 'Goodbye' to the group when the dungeon is completed.")
+	-- Window:CreateSwitch("Automation", "AutoGoodbye", L["Say Goodbye After Dungeon Completion"], "Automatically says 'Goodbye' to the group when the dungeon is completed.")
+	Window:CreateSwitch("Automation", "AutoDismountTaxi", newFeatureIcon .. "Automatically Dismount When Taking A Taxi", "Automatically dismounts the player when taking a taxi to ensure smooth travel transitions, retrying if in combat.")
 	Window:CreateSwitch("Automation", "AutoOpenItems", L["Auto Open Items In Your Inventory"], "Automatically opens items in your inventory that contain loot.")
 	Window:CreateSwitch("Automation", "AutoRelease", L["Auto Release in Battlegrounds & Arenas"], "Automatically releases your spirit upon death in battlegrounds or arenas.")
 	Window:CreateSwitch("Automation", "AutoSkipCinematic", L["Auto Skip All Cinematics/Movies"], "Automatically skips cinematics and movies during gameplay.")
@@ -678,7 +683,7 @@ local General = function(self)
 	Window:CreateSection(GENERAL)
 	Window:CreateSwitch("General", "MinimapIcon", "Enable Minimap Icon", nil, toggleMinimapIcon)
 	Window:CreateSwitch("General", "MoveBlizzardFrames", L["Move Blizzard Frames"])
-	Window:CreateSwitch("General", "NoErrorFrame", L["Disable Blizzard Error Frame Combat"])
+	Window:CreateSwitch("General", "CombatErrors", newFeatureIcon .. "Block Specific Error Messages During Combat", nil, UpdateErrorBlocker)
 
 	Window:CreateDropdown("General", "GlowMode", "Button Glow Mode")
 
@@ -760,7 +765,7 @@ local Misc = function(self)
 
 	if K.Class == "HUNTER" then
 		Window:CreateSection(PET)
-		Window:CreateSwitch("Misc", "PetHappiness", "Display Pet Happiness Alerts To Stay Updated On Your Pet's Mood", nil, TogglePetHappiness)
+		Window:CreateSwitch("Misc", "PetHappiness", newFeatureIcon .. "Display Pet Happiness Alerts To Stay Updated On Your Pet's Mood", nil, TogglePetHappiness)
 	end
 
 	Window:CreateSection("Camera")

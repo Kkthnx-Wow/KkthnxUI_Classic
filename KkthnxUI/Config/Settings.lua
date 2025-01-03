@@ -149,8 +149,10 @@ C["Announcements"] = {
 -- Automation
 C["Automation"] = {
 	-- AutoCollapse = false,
+	-- AutoGoodbye = false,
+	-- AutoSetRole = false,
 	AutoDeclineDuels = false,
-	AutoGoodbye = false,
+	AutoDismountTaxi = false,
 	AutoInvite = false,
 	AutoOpenItems = false,
 	AutoQuest = false,
@@ -158,18 +160,17 @@ C["Automation"] = {
 	AutoResurrect = false,
 	AutoResurrectThank = false,
 	AutoReward = false,
-	AutoSetRole = false,
 	AutoSkipCinematic = false,
 	AutoSummon = false,
 	NoBadBuffs = false,
 	WhisperInvite = "inv+",
-	WhisperInviteRestriction = true, -- Testing
+	WhisperInviteRestriction = true, -- Missing in GUI.lua
 }
 
 C["Inventory"] = {
 	AutoSell = true,
 	BagBar = true,
-	BagBarMouseover = false,
+	-- BagBarMouseover = false, -- Missing in GUI.lua
 	BagBarSize = 32,
 	BagsBindOnEquip = false,
 	BagsItemLevel = false,
@@ -191,9 +192,9 @@ C["Inventory"] = {
 	IconSize = 36,
 	ItemFilter = true,
 	JustBackpack = false,
-	BagSortMode = 1,
+	-- BagSortMode = 1, -- Missing in GUI.lua
 	ShowNewItem = true,
-	SpecialBagsColor = false,
+	SpecialBagsColor = false, -- Missing in GUI.lua
 	UpgradeIcon = true,
 	iLvlToShow = 1,
 	GrowthDirection = {
@@ -286,7 +287,6 @@ C["AuraWatch"] = {
 	Enable = true,
 	ClickThrough = false,
 	IconScale = 1,
-	DeprecatedAuras = false,
 }
 
 -- General
@@ -294,12 +294,10 @@ C["General"] = {
 	AutoScale = true,
 	ColorTextures = false,
 	MinimapIcon = false,
-	MissingTalentAlert = true,
 	MoveBlizzardFrames = false,
-	NoErrorFrame = false,
+	CombatErrors = false,
 	TexturesColor = { 1, 1, 1 },
 	UIScale = 0.71,
-	UseGlobal = false,
 	Texture = "KkthnxUI",
 	SmoothAmount = 0.25,
 	BorderStyle = {
@@ -416,7 +414,6 @@ C["Nameplate"] = {
 	DotSpellList = {
 		Spells = {},
 	},
-	AKSProgress = false,
 	AuraSize = 28,
 	CastTarget = false,
 	CastbarGlow = true,

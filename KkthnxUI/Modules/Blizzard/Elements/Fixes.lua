@@ -51,7 +51,8 @@ do
 	-- Event handler function to manage specific events
 	local function OnEvent(self, event, ...)
 		if event == "PLAYER_ENTERING_WORLD" or event == "CVAR_UPDATE" then
-			EnsureScriptErrorsDisabled()
+			-- Ensure 'scriptErrors' is always disabled, introduces a small delay to allow the CVars to updateReason
+			C_Timer.After(0.5, EnsureScriptErrorsDisabled)
 		end
 	end
 

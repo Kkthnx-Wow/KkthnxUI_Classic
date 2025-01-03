@@ -52,8 +52,47 @@ function Module:RegisterMisc(name, func)
 	end
 end
 
+-- Enable Module and Initialize Miscellaneous Modules
+function Module:OnEnable()
+	for name, func in next, KKUI_MISC_MODULE do
+		if name and type(func) == "function" then
+			func()
+		end
+	end
+
+	local loadMiscModules = {
+		"CreateAutoBubbles",
+		"CreateBossEmote",
+		"CreateDurabilityFrameMove",
+		"CreateGUIGameMenuButton",
+		"CreateMinimapButtonToggle",
+		"CreateQuickDeleteDialog",
+		"CreateTicketStatusFrameMove",
+		"CreateTradeTargetInfo",
+		"TogglePetHappiness",
+		"ToggleTaxiDismount",
+		"UpdateErrorBlockerState",
+		"UpdateMaxCameraZoom",
+
+		-- "CreateObjectiveSizeUpdate",
+		-- "CreateQuestSizeUpdate",
+	}
+
+	for _, funcName in ipairs(loadMiscModules) do
+		local func = self[funcName]
+		if type(func) == "function" then
+			local success, err = pcall(func, self)
+			if not success then
+				error("Error in " .. funcName .. ": " .. tostring(err), 2)
+			end
+		end
+	end
+
+	hooksecurefunc("QuestInfo_Display", Module.CreateQuestXPPercent)
+end
+
 -- Enable Auto Chat Bubbles
-local function enableAutoBubbles()
+function Module:CreateAutoBubbles()
 	if C["Misc"].AutoBubbles then
 		local function updateBubble()
 			local name, instType = GetInstanceInfo()
@@ -69,7 +108,7 @@ K:RegisterEvent("READY_CHECK", function()
 end)
 
 -- Modify Delete Dialog
-local function modifyDeleteDialog()
+function Module:CreateQuickDeleteDialog()
 	local confirmationText = DELETE_GOOD_ITEM:gsub("[\r\n]", "@")
 	local _, confirmationType = strsplit("@", confirmationText, 2)
 
@@ -122,53 +161,6 @@ local function modifyDeleteDialog()
 			end
 		end
 	end)
-end
-
--- Enable Module and Initialize Miscellaneous Modules
-function Module:OnEnable()
-	for name, func in next, KKUI_MISC_MODULE do
-		if name and type(func) == "function" then
-			func()
-		end
-	end
-
-	local loadMiscModules = {
-		"CreateBossEmote",
-		"CreateDurabilityFrameMove",
-		"CreateGUIGameMenuButton",
-		"CreateMinimapButtonToggle",
-		"CreateTicketStatusFrameMove",
-		"CreateTradeTargetInfo",
-		"UpdateErrorBlockerState",
-		"UpdateMaxCameraZoom",
-		"TogglePetHappiness",
-		"ToggleTaxiDismount",
-		-- "CreateObjectiveSizeUpdate",
-		-- "CreateQuestSizeUpdate",
-	}
-
-	for _, funcName in ipairs(loadMiscModules) do
-		local func = self[funcName]
-		if type(func) == "function" then
-			local success, err = pcall(func, self)
-			if not success then
-				error("Error in " .. funcName .. ": " .. tostring(err), 2)
-			end
-		end
-	end
-
-	hooksecurefunc("QuestInfo_Display", Module.CreateQuestXPPercent)
-
-	enableAutoBubbles()
-	modifyDeleteDialog()
-end
-
--- BNToast Frame Mover Setup
-function Module:PostBNToastMove(_, anchor)
-	if anchor ~= BNToastFrame.mover then
-		BNToastFrame:ClearAllPoints()
-		BNToastFrame:SetPoint(BNToastFrame.mover.anchorPoint or "TOPLEFT", BNToastFrame.mover, BNToastFrame.mover.anchorPoint or "TOPLEFT")
-	end
 end
 
 -- Update Drag Cursor for Minimap
@@ -274,12 +266,20 @@ end
 -- Game Menu Setup
 function Module:CreateGUIGameMenuButton()
 	local gameMenuButton = CreateFrame("Button", "KKUI_GameMenuFrame", GameMenuFrame, "GameMenuButtonTemplate")
+	gameMenuButton:SetHeight(26)
 	gameMenuButton:SetText(K.Title)
 	gameMenuButton:SetPoint("TOP", GameMenuButtonAddons, "BOTTOM", 0, -21)
+
+	gameMenuButton.Left:SetDesaturated(1)
+	gameMenuButton.Middle:SetDesaturated(1)
+	gameMenuButton.Right:SetDesaturated(1)
 
 	GameMenuFrame:HookScript("OnShow", function(self)
 		GameMenuButtonLogout:SetPoint("TOP", gameMenuButton, "BOTTOM", 0, -21)
 		self:SetHeight(self:GetHeight() + gameMenuButton:GetHeight() + 22)
+		if self:GetScale() ~= 1.2 then
+			self:SetScale(1.2)
+		end
 	end)
 
 	gameMenuButton:SetScript("OnClick", function()
@@ -480,9 +480,8 @@ function Module:HandleCombatErrors(_, errorText)
 	end
 end
 
-local ConfigBlockErrors = true
 function Module:UpdateErrorBlockerState()
-	if ConfigBlockErrors then
+	if C["General"].CombatErrors then
 		K:RegisterEvent("UI_ERROR_MESSAGE", Module.HandleCombatErrors)
 	else
 		isErrorFrameRegistered = true
@@ -492,7 +491,6 @@ function Module:UpdateErrorBlockerState()
 end
 
 -- Auto dismount on Taxi
-local ConfigAutoDismount = true
 function Module:ToggleTaxiDismount()
 	local lastTaxiIndex
 
@@ -507,9 +505,10 @@ function Module:ToggleTaxiDismount()
 	end
 
 	hooksecurefunc("TakeTaxiNode", function(index)
-		if not ConfigAutoDismount then
+		if not C["Automation"].AutoDismountTaxi then
 			return
 		end
+
 		if not IsMounted() then
 			return
 		end

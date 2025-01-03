@@ -227,28 +227,30 @@ function Module.PostCreateIcon(element, button)
 	parentFrame:SetAllPoints(button)
 	parentFrame:SetFrameLevel(button:GetFrameLevel() + 3)
 
-	button.Count = button.Count or K.CreateFontString(parentFrame, fontSize - 1, "", "OUTLINE", false, "BOTTOMRIGHT", 6, -3)
+	button.count = button.count or K.CreateFontString(parentFrame, fontSize - 1, "", "OUTLINE", false, "BOTTOMRIGHT", 6, -3)
 
-	--button.Cooldown.noOCC = true
-	-- button.Cooldown.noCooldownCount = true
-	-- button.Cooldown:SetReverse(true)
-	-- button.Cooldown:SetHideCountdownNumbers(true)
+	button.cd.noOCC = true
+	button.cd.noCooldownCount = true
+	button.cd:SetReverse(true)
+	button.cd:SetHideCountdownNumbers(true)
+
 	button.icon:SetAllPoints()
 	button.icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
+	button.cd:ClearAllPoints()
 	if element.__owner.mystyle == "nameplate" then
-		-- button.cooldown:SetAllPoints()
+		button.cd:SetAllPoints()
 		button:CreateShadow(true)
+		button.stealable:SetAtlas("communities-create-avatar-border-selected")
 	else
-		-- button.cooldown:SetPoint("TOPLEFT", 1, -1)
-		-- button.cooldown:SetPoint("BOTTOMRIGHT", -1, 1)
+		button.cd:SetPoint("TOPLEFT", 1, -1)
+		button.cd:SetPoint("BOTTOMRIGHT", -1, 1)
 		button:CreateBorder()
+		button.stealable:SetAtlas("Forge-ColorSwatchSelection")
 	end
 
 	button.overlay:SetTexture(nil)
 	button.stealable:SetParent(parentFrame)
-	button.stealable:SetAtlas("bags-newitem")
-	-- button:HookScript("OnMouseDown", AuraModule.RemoveSpellFromIgnoreList)
 
 	if not button.timer then
 		button.timer = K.CreateFontString(parentFrame, fontSize, "", "OUTLINE")
@@ -256,14 +258,6 @@ function Module.PostCreateIcon(element, button)
 
 	hooksecurefunc(button, "SetSize", Module.UpdateIconTexCoord)
 end
-
-Module.ReplacedSpellIcons = {
-	[368078] = 348567, -- Movement Speed
-	[368079] = 348567, -- Movement Speed
-	[368103] = 648208, -- Swiftness
-	[368243] = 237538, -- CD
-	[373785] = 236293, -- S4, Great Warlock Camouflage
-}
 
 local dispellType = {
 	["Magic"] = true,
@@ -296,9 +290,9 @@ function Module.PostUpdateIcon(element, _, button, _, _, duration, expiration, d
 		end
 	end
 
-	-- Show stealable indicator if applicable
-	if element.alwaysShowStealable and dispellType[debuffType] and not UnitIsPlayer(unit) and not button.isDebuff then
-		button.Stealable:Show()
+	-- -- Show stealable indicator if applicable
+	if dispellType[debuffType] and not UnitIsPlayer(style) and not button.isDebuff then
+		button.stealable:Show()
 	end
 
 	-- Handle cooldown and timer display
@@ -309,12 +303,6 @@ function Module.PostUpdateIcon(element, _, button, _, _, duration, expiration, d
 	else
 		button:SetScript("OnUpdate", nil)
 		button.timer:Hide()
-	end
-
-	-- Replace icon texture with custom texture if defined
-	local newTexture = Module.ReplacedSpellIcons[button.spellID]
-	if newTexture then
-		button.Icon:SetTexture(newTexture)
 	end
 end
 
