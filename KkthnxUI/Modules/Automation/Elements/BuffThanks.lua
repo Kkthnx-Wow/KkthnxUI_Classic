@@ -1,19 +1,12 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Automation")
 
--- Function to build buffs to thank for
-local function BuildBuffsToThank(spellList)
-	local buffsToThank = {}
-	for _, spellID in ipairs(spellList) do
-		local spellName = GetSpellInfo(spellID)
-		if spellName then
-			buffsToThank[spellName] = true
-		end
-	end
+-- Variables
+local isBuffThanksPaused = false
+local lastThanked = {}
+local pauseDuration = 10 -- Default pause duration in seconds
 
-	return buffsToThank
-end
-
+-- Buffs List
 local spellList = {
 	-- Druid
 	1126, -- Mark of the Wild
@@ -31,56 +24,88 @@ local spellList = {
 
 	-- Warlock
 	5697, -- Unending Breath
+
+	-- 5118, -- Debug
 }
+
+-- Helper Functions
+local function BuildBuffsToThank(spellList)
+	local buffsToThank = {}
+	for _, spellID in ipairs(spellList) do
+		local spellName = GetSpellInfo(spellID)
+		if spellName then
+			buffsToThank[spellName] = true
+		end
+	end
+	return buffsToThank
+end
 
 local buffsToThank = BuildBuffsToThank(spellList)
 
--- Create a table to track cooldowns for each caster
-local lastThanked = {}
+-- Core Buff Thanks Logic
+local function HandleBuffThanks()
+	if isBuffThanksPaused then
+		return
+	end
 
-function Module:SetupAutoBuffThanks()
-	-- Get combat log details
 	local _, subEvent, _, _, sourceName, _, _, _, destName, _, _, spellID = CombatLogGetCurrentEventInfo()
 
-	-- Ensure the destination is exactly the player and the event is relevant
 	if destName == K.Name and (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "SPELL_AURA_APPLIED") then
-		-- Fetch the buff name
 		local spellName = GetSpellInfo(spellID)
 
-		-- Check if the spell is in our thank list
 		if buffsToThank[spellName] then
-			-- Get the current time
 			local currentTime = GetTime()
 
-			-- Check if we have already thanked this player within the cooldown period
 			if not lastThanked[sourceName] or (currentTime - lastThanked[sourceName]) > 60 then
-				-- Randomize the delay between 1-2 seconds
-				local delay = math.random(1, 20) / 10 -- Generates 1.0 to 2.0 seconds
+				local delay = math.random(1, 20) / 10 -- Random delay between 1 and 2 seconds
 
-				-- Delay the thank-you emote
 				C_Timer.After(delay, function()
 					-- print("Thanking", sourceName, "for buff", spellName, "(Spell ID:", spellID, ")", "after", delay, "seconds")
 					DoEmote("THANK", sourceName)
 				end)
 
-				-- Update the cooldown tracker
 				lastThanked[sourceName] = currentTime
-			else
-				-- print("Cooldown active. Not thanking", sourceName)
 			end
-		else
-			-- -- Spell is not in the thank list
-			-- print("Buff not in the thank list!")
-			-- print("Source:", sourceName, "Buff:", spellName, "(Spell ID:", spellID, ")")
-			-- print("Consider adding this buff to your thank list. Tell the developer.")
 		end
 	end
 end
 
+-- Forward Declaration
+local HandlePlayerEnteringWorld
+
+-- Resume Buff Thanks After Pause
+local function ResumeBuffThanks()
+	-- print("BuffThanks resumed after initial pause.")
+	isBuffThanksPaused = false
+
+	-- Unregister PLAYER_ENTERING_WORLD after its purpose is served
+	K:UnregisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
+	-- print("PLAYER_ENTERING_WORLD event unregistered.")
+end
+
+-- Handle Login, Reload, or Zoning
+HandlePlayerEnteringWorld = function(_, isInitialLogin, isReloadingUi)
+	if isInitialLogin or isReloadingUi then
+		-- print("Login/Reload detected. Pausing BuffThanks for", pauseDuration, "seconds.")
+		isBuffThanksPaused = true
+
+		-- Resume BuffThanks after the configured pause duration
+		C_Timer.After(pauseDuration, ResumeBuffThanks)
+	else
+		-- print("Zoning detected. BuffThanks remains active.")
+		-- isBuffThanksPaused = false
+	end
+end
+
+-- Initialization
 function Module:CreateAutoBuffThanks()
 	if C["Automation"].BuffThanks then
-		K:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", Module.SetupAutoBuffThanks)
+		-- Register Events
+		K:RegisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
+		K:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", HandleBuffThanks)
 	else
-		K:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", Module.SetupAutoBuffThanks)
+		-- Unregister Events
+		K:UnregisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
+		K:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", HandleBuffThanks)
 	end
 end
