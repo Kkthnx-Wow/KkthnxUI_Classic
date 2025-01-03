@@ -19,6 +19,25 @@ local function Update_InspectPaperDollItemSlotButton(button)
 	button.KKUI_Border:SetVertexColor(1, 1, 1)
 end
 
+local function UpdateInspectModelFrameTexture()
+	local _, targetClass = UnitClass("target")
+	if targetClass then
+		if not InspectModelFrame.KKUI_Texture then
+			-- Create the texture only once
+			local texture = InspectModelFrame:CreateTexture(nil, "BACKGROUND")
+			texture:SetPoint("TOPLEFT", 0, 0)
+			texture:SetPoint("BOTTOMRIGHT", 0, -20) -- Stretch down by 20 pixels
+			InspectModelFrame.KKUI_Texture = texture
+		end
+
+		-- Set the texture properties
+		InspectModelFrame.KKUI_Texture:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Skins\\DressingRoom" .. targetClass)
+		InspectModelFrame.KKUI_Texture:SetTexCoord(0.00195312, 0.935547, 0.00195312, 0.978516)
+		InspectModelFrame.KKUI_Texture:SetHorizTile(false)
+		InspectModelFrame.KKUI_Texture:SetVertTile(false)
+	end
+end
+
 C.themes["Blizzard_InspectUI"] = function()
 	if not C["Skins"].BlizzardFrames then
 		return
@@ -38,4 +57,6 @@ C.themes["Blizzard_InspectUI"] = function()
 	end
 
 	hooksecurefunc("InspectPaperDollItemSlotButton_Update", Update_InspectPaperDollItemSlotButton)
+	UpdateInspectModelFrameTexture()
+	K:RegisterEvent("PLAYER_TARGET_CHANGED", UpdateInspectModelFrameTexture)
 end
