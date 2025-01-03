@@ -24,6 +24,7 @@ function Module:CreateRecycleBin()
 		["FeedbackUIButton"] = true,
 		["GameTimeFrame"] = true,
 		["GarrisonLandingPageMinimapButton"] = true,
+		["KKUI_CalendarButton"] = true,
 		["MiniMapBattlefieldFrame"] = true,
 		["MiniMapLFGFrame"] = true,
 		["MinimapBackdrop"] = true,

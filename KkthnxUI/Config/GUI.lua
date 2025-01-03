@@ -734,7 +734,7 @@ local Minimap = function(self)
 	-- General Section
 	Window:CreateSection(GENERAL)
 	Window:CreateSwitch("Minimap", "Enable", enableTextColor .. L["Enable Minimap"])
-	-- Window:CreateSwitch("Minimap", "Calendar", L["Show Minimap Calendar"], "If enabled, show minimap calendar icon on minimap.|nYou can simply click mouse middle button on minimap to toggle calendar even without this option.")
+	Window:CreateSwitch("Minimap", "Calendar", L["Show Minimap Calendar"], "If enabled, show minimap calendar icon on minimap.|nYou can simply click mouse middle button on minimap to toggle calendar even without this option.")
 
 	-- Features Section
 	Window:CreateSection("Features")

@@ -252,44 +252,53 @@ function Module:HideMinimapClock()
 	end
 end
 
-local GameTimeFrameStyled
+local calendarButton
+
+-- Function to calculate the current day
+local function GetCurrentDay()
+	local today = date("*t") -- Get the current system time as a table
+	return today.day -- Extract the day of the month
+end
+
+-- Function to create a custom calendar button
 function Module:ShowCalendar()
-	if C["Minimap"].Calendar then
-		if not GameTimeFrameStyled then
-			local GameTimeFrame = GameTimeFrame
-			local calendarText = GameTimeFrame:CreateFontString(nil, "OVERLAY")
+	if not C["Minimap"].Calendar then
+		if calendarButton then
+			calendarButton:Hide()
+		end
+		return
+	end
 
-			GameTimeFrame:SetParent(Minimap)
-			GameTimeFrame:SetFrameLevel(16)
-			GameTimeFrame:ClearAllPoints()
-			GameTimeFrame:SetPoint("TOPRIGHT", Minimap, -4, -4)
-			GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
-			GameTimeFrame:SetSize(22, 22)
+	if not calendarButton then
+		calendarButton = CreateFrame("Button", "KKUI_CalendarButton", Minimap)
+		calendarButton:SetSize(22, 22)
+		calendarButton:SetPoint("TOPRIGHT", Minimap, -4, -4)
 
-			-- calendarText:ClearAllPoints()
-			-- calendarText:SetPoint("CENTER", 0, -4)
-			-- calendarText:SetFontObject(K.UIFont)
-			-- calendarText:SetFont(select(1, calendarText:GetFont()), 12, select(3, calendarText:GetFont()))
-			-- calendarText:SetTextColor(0, 0, 0)
-			-- calendarText:SetShadowOffset(0, 0)
-			-- calendarText:SetAlpha(0.9)
+		local texturePath = "Interface\\AddOns\\KkthnxUI\\Media\\Minimap\\Calendar.blp"
+		calendarButton:SetNormalTexture(texturePath)
+		calendarButton:SetPushedTexture(texturePath)
 
-			-- hooksecurefunc("GameTimeFrame_SetDate", function()
-			-- 	GameTimeFrame:SetNormalTexture("Interface\\AddOns\\KkthnxUI\\Media\\Minimap\\Calendar.blp")
-			-- 	GameTimeFrame:SetPushedTexture("Interface\\AddOns\\KkthnxUI\\Media\\Minimap\\Calendar.blp")
-			-- 	GameTimeFrame:SetHighlightTexture(0)
-			-- 	GameTimeFrame:GetNormalTexture():SetTexCoord(0, 1, 0, 1)
-			-- 	GameTimeFrame:GetPushedTexture():SetTexCoord(0, 1, 0, 1)
-			-- 	calendarText:SetText(C_DateAndTime_GetCurrentCalendarTime().monthDay)
-			-- end)
-
-			GameTimeFrameStyled = true
+		local normalTexture = calendarButton:GetNormalTexture()
+		if normalTexture then
+			normalTexture:SetTexCoord(0, 1, 0, 1)
 		end
 
-		GameTimeFrame:Show()
-	else
-		GameTimeFrame:Hide()
+		local pushedTexture = calendarButton:GetPushedTexture()
+		if pushedTexture then
+			pushedTexture:SetTexCoord(0, 1, 0, 1)
+		end
+
+		local calendarText = calendarButton:CreateFontString(nil, "OVERLAY")
+		calendarText:SetFontObject(K.UIFont)
+		calendarText:SetFont(select(1, calendarText:GetFont()), 12, select(3, calendarText:GetFont()))
+		calendarText:SetTextColor(0.2, 0.2, 0.2) -- Set text color to black
+		calendarText:SetShadowOffset(0, 0)
+		calendarText:SetPoint("CENTER", 0, -4)
+		calendarText:SetText(GetCurrentDay()) -- Directly set the current day
+		calendarButton.calendarText = calendarText
 	end
+
+	calendarButton:Show()
 end
 
 function Module:TrackMenu_OnClick(spellID)

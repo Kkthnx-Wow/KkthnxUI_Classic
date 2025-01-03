@@ -344,7 +344,7 @@ C["Loot"] = {
 
 -- Minimap
 C["Minimap"] = {
-	-- Calendar = true,
+	Calendar = true,
 	EasyVolume = false,
 	Enable = true,
 	MailPulse = true,
