@@ -162,6 +162,7 @@ C["Automation"] = {
 	AutoReward = false,
 	AutoSkipCinematic = false,
 	AutoSummon = false,
+	BuffThanks = false,
 	NoBadBuffs = false,
 	WhisperInvite = "inv+",
 	WhisperInviteRestriction = true, -- Missing in GUI.lua

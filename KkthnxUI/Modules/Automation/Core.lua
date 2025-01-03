@@ -13,6 +13,7 @@ function Module:OnEnable()
 		"CreateAutoResurrect",
 		"CreateAutoWhisperInvite",
 		"CreateSkipCinematic",
+		"CreateAutoBuffThanks",
 	}
 
 	for _, funcName in ipairs(loadAutomationModules) do

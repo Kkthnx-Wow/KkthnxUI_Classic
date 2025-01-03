@@ -242,90 +242,6 @@ Features:
 end
 
 do
-	-- Function to build buffs to thank for
-	local function BuildBuffsToThank(spellList)
-		local buffsToThank = {}
-		for _, spellID in ipairs(spellList) do
-			local spellName = GetSpellInfo(spellID)
-			if spellName then
-				buffsToThank[spellName] = true
-			end
-		end
-		return buffsToThank
-	end
-
-	local spellList = {
-		-- Druid
-		1126, -- Mark of the Wild
-
-		-- Mage
-		1459, -- Arcane Intellect
-
-		-- Priest
-		1243, -- Power Word: Fortitude
-
-		-- Paladin
-		19740, -- Blessing of Might
-		19742, -- Blessing of Wisdom
-		20217, -- Blessing of Kings
-
-		-- Warlock
-		5697, -- Unending Breath
-	}
-
-	local buffsToThank = BuildBuffsToThank(spellList)
-
-	-- Create a table to track cooldowns for each caster
-	local lastThanked = {}
-
-	-- Get the player's name
-	local playerName = UnitName("player")
-
-	-- Create a frame for handling events
-	local frame = CreateFrame("Frame")
-	frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-
-	frame:SetScript("OnEvent", function()
-		-- Get combat log details
-		local _, subEvent, _, _, sourceName, _, _, _, destName, _, _, spellID = CombatLogGetCurrentEventInfo()
-
-		-- Ensure the destination is exactly the player and the event is relevant
-		if destName == playerName and (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "SPELL_AURA_APPLIED") then
-			-- Fetch the buff name
-			local spellName = GetSpellInfo(spellID)
-
-			-- Check if the spell is in our thank list
-			if buffsToThank[spellName] then
-				-- Get the current time
-				local currentTime = GetTime()
-
-				-- Check if we have already thanked this player within the cooldown period
-				if not lastThanked[sourceName] or (currentTime - lastThanked[sourceName]) > 60 then
-					-- Randomize the delay between 1-2 seconds
-					local delay = math.random(1, 20) / 10 -- Generates 1.0 to 2.0 seconds
-
-					-- Delay the thank-you emote
-					C_Timer.After(delay, function()
-						-- print("Thanking", sourceName, "for buff", spellName, "(Spell ID:", spellID, ")", "after", delay, "seconds")
-						DoEmote("THANK", sourceName)
-					end)
-
-					-- Update the cooldown tracker
-					lastThanked[sourceName] = currentTime
-				else
-					-- print("Cooldown active. Not thanking", sourceName)
-				end
-			else
-				-- Spell is not in the thank list
-				print("Buff not in the thank list!")
-				print("Source:", sourceName, "Buff:", spellName, "(Spell ID:", spellID, ")")
-				print("Consider adding this buff to your thank list. Tell the developer.")
-			end
-		end
-	end)
-end
-
-do
 	local playerGUID = UnitGUID("player")
 
 	-- Create a frame for displaying critical hit numbers
@@ -349,15 +265,15 @@ do
 
 		-- Create translation animation (move up)
 		local moveUp = animGroup:CreateAnimation("Translation")
-		moveUp:SetOffset(0, 75) -- Move up by 75 pixels
-		moveUp:SetDuration(1.5) -- Increase speed by reducing duration to 1.5 seconds
+		moveUp:SetOffset(0, 100) -- Move up by 75 pixels
+		moveUp:SetDuration(1.4) -- Increase speed by reducing duration to 1.5 seconds
 		moveUp:SetSmoothing("OUT")
 
 		-- Create fade out animation
 		local fadeOut = animGroup:CreateAnimation("Alpha")
 		fadeOut:SetFromAlpha(1)
 		fadeOut:SetToAlpha(0)
-		fadeOut:SetDuration(1.5) -- Increase speed by reducing duration to 1.5 seconds
+		fadeOut:SetDuration(1.4) -- Increase speed by reducing duration to 1.5 seconds
 		fadeOut:SetStartDelay(1.5) -- Increase start delay to 1.5 seconds
 		fadeOut:SetSmoothing("OUT")
 

@@ -519,8 +519,14 @@ function Module:ToggleTaxiDismount()
 	end)
 end
 
+local emotionsIcons = {
+	[[|TInterface\PetPaperDollFrame\UI-PetHappiness:16:16:2:0:128:64:48:72:0:23|t]],
+	[[|TInterface\PetPaperDollFrame\UI-PetHappiness:16:16:2:0:128:64:24:48:0:23|t]],
+	[[|TInterface\PetPaperDollFrame\UI-PetHappiness:16:16:2:0:128:64:0:24:0:23|t]],
+}
+
 local happinessMessages = {
-	[1] = "Your pet %s is very unhappy!",
+	[1] = "Your pet %s is very unhappy",
 	[2] = "Your pet %s is content",
 	[3] = "Your pet %s is very happy",
 }
@@ -586,7 +592,7 @@ local function CheckPetHappiness(_, unit)
 	if not lastHappiness or lastHappiness ~= happiness then
 		local color = happinessColors[happiness] or { 1, 1, 1 } -- Default to white color
 		local petName = UnitName("pet") or PET -- Use "pet" as fallback
-		local messageTemplate = happinessMessages[happiness]
+		local messageTemplate = happinessMessages[happiness] .. emotionsIcons[happiness]
 
 		-- Format the pet name with white color
 		local petNameColored = "|cffffffff" .. petName .. "|r"

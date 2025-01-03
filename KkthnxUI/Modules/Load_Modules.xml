@@ -121,6 +121,7 @@
    <Script file="Automation\Elements\AutoOpen.lua" />
    <Script file="Automation\Elements\BadBuffs.lua" />
    <Script file="Automation\Elements\BestReward.lua" />
+   <Script file="Automation\Elements\BuffThanks.lua" />
    <Script file="Automation\Elements\DeclineDuel.lua" />
    <Script file="Automation\Elements\Invite.lua" />
    <Script file="Automation\Elements\Quest.lua" />
