@@ -452,6 +452,7 @@ local ActionBar = function(self)
 	Window:CreateSwitch("ActionBar", "BarAspect", enableTextColor .. "Enable AspectBar", nil, ToggleBarAspect)
 	Window:CreateSlider("ActionBar", "BarAspectSize", "Button Size", 20, 80, 1, nil, UpdateActionBarAspect)
 	Window:CreateSwitch("ActionBar", "BarAspectVerticle", "Aspect Verticle", nil, UpdateActionBarAspect)
+	Window:CreateSwitch("ActionBar", "BarAspectFade", "Enable Fade for Aspect Bar", "Allows Aspect Bar to fade based on the specified conditions", UpdateABFaderState)
 
 	Window:CreateSection("ActionBar Vehicle")
 	Window:CreateSlider("ActionBar", "VehButtonSize", "Button Size", 20, 80, 1, nil, UpdateActionBarVehicleButton)

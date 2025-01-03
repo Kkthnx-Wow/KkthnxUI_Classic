@@ -48,7 +48,16 @@ function Module:CreateAspectButton(spellID, index)
 	button.Icon:SetAllPoints()
 	button.Icon:SetTexCoord(unpack(K.TexCoords))
 	button.Icon:SetTexture(texture)
-	K.AddTooltip(button, "ANCHOR_TOP", name)
+
+	-- Enhanced tooltip
+	button:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_TOP")
+		GameTooltip:SetSpellByID(spellID)
+		GameTooltip:Show()
+	end)
+	button:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
 
 	button.CD = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
 	button.CD:SetAllPoints()
@@ -61,6 +70,20 @@ function Module:CreateAspectButton(spellID, index)
 	button.cover:SetAllPoints()
 	button.cover:SetTexCoord(unpack(K.TexCoords))
 	button.cover:SetTexture("Interface\\Icons\\Spell_Nature_WispSplode")
+
+	if C["ActionBar"].BarAspectFade then
+		if not button.isHooked then
+			button:HookScript("OnEnter", Module.Button_OnEnter)
+			button:HookScript("OnLeave", Module.Button_OnLeave)
+			button.isHooked = true
+		end
+	else
+		if button.isHooked then
+			button:SetScript("OnEnter", nil)
+			button:SetScript("OnLeave", nil)
+			button.isHooked = false
+		end
+	end
 
 	knownAspect[name] = true
 	tinsert(aspectButtons, { button, index, name })
@@ -175,7 +198,7 @@ function Module:CreateAspectbar()
 	local num = #aspects
 	local width, height = size * num + 3 * (num + 1), size
 
-	aspectFrame = CreateFrame("Frame", "KKUI_AspectFrame", UIParent)
+	aspectFrame = CreateFrame("Frame", "KKUI_ActionBarAspect", UIParent)
 	if C["ActionBar"].BarAspectVerticle then
 		aspectFrame:SetSize(height, width)
 	else
