@@ -65,7 +65,7 @@ function Module:OnEnable()
 		"CreateBossEmote",
 		"CreateDurabilityFrameMove",
 		"CreateGUIGameMenuButton",
-		"CreateMinimapButtonToggle",
+		"CreateMinimapButton",
 		"CreateQuickDeleteDialog",
 		"CreateTicketStatusFrameMove",
 		"CreateTradeTargetInfo",
@@ -164,35 +164,35 @@ function Module:CreateQuickDeleteDialog()
 end
 
 -- Update Drag Cursor for Minimap
-local function KKUI_UpdateDragCursor(self)
-	local mx, my = Minimap:GetCenter()
-	local px, py = GetCursorPosition()
+local function UpdateDragCursor(self)
+	local minimapCenterX, minimapCenterY = Minimap:GetCenter()
+	local cursorX, cursorY = GetCursorPosition()
 	local scale = Minimap:GetEffectiveScale()
-	px, py = px / scale, py / scale
+	cursorX, cursorY = cursorX / scale, cursorY / scale
 
-	local angle = atan2(py - my, px - mx)
-	local x, y, q = cos(angle), sin(angle), 1
+	local angle = atan2(cursorY - minimapCenterY, cursorX - minimapCenterX)
+	local x, y, quadrant = cos(angle), sin(angle), 1
 	if x < 0 then
-		q = q + 1
+		quadrant = quadrant + 1
 	end
 	if y > 0 then
-		q = q + 2
+		quadrant = quadrant + 2
 	end
 
-	local w = (Minimap:GetWidth() / 2) + 5
-	local h = (Minimap:GetHeight() / 2) + 5
-	local diagRadiusW = sqrt(2 * w ^ 2) - 10
-	local diagRadiusH = sqrt(2 * h ^ 2) - 10
-	x = max(-w, min(x * diagRadiusW, w))
-	y = max(-h, min(y * diagRadiusH, h))
+	local width = (Minimap:GetWidth() / 2) + 5
+	local height = (Minimap:GetHeight() / 2) + 5
+	local diagRadiusW = sqrt(2 * width ^ 2) - 10
+	local diagRadiusH = sqrt(2 * height ^ 2) - 10
+	x = max(-width, min(x * diagRadiusW, width))
+	y = max(-height, min(y * diagRadiusH, height))
 
 	self:ClearAllPoints()
 	self:SetPoint("CENTER", Minimap, "CENTER", x, y)
 end
 
 -- Click Minimap Button Functionality
-local function KKUI_ClickMinimapButton(_, btn)
-	if btn == "LeftButton" then
+local function OnMinimapButtonClick(_, button)
+	if button == "LeftButton" then
 		if SettingsPanel:IsShown() or ChatConfigFrame:IsShown() then
 			return
 		end
@@ -200,67 +200,64 @@ local function KKUI_ClickMinimapButton(_, btn)
 			UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_IN_COMBAT)
 			return
 		end
-		K["GUI"]:Toggle()
+		K.GUI:Toggle()
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION, "SFX")
 	end
 end
 
 -- Create Minimap Button
-function Module:CreateMinimapButtonToggle()
-	local mmb = CreateFrame("Button", "KKUI_MinimapButton", Minimap)
-	mmb:SetPoint("BOTTOMLEFT", -15, 20)
-	mmb:SetSize(32, 32)
-	mmb:SetMovable(true)
-	mmb:SetUserPlaced(true)
-	mmb:RegisterForDrag("LeftButton")
-	mmb:SetHighlightTexture(C["Media"].Textures.LogoSmallTexture)
-	mmb:GetHighlightTexture():SetSize(18, 9)
-	mmb:GetHighlightTexture():ClearAllPoints()
-	mmb:GetHighlightTexture():SetPoint("CENTER")
+function Module:CreateMinimapButton()
+	local minimapButton = CreateFrame("Button", "KKUI_MinimapButton", Minimap)
+	minimapButton:SetFrameStrata("MEDIUM")
+	minimapButton:SetPoint("BOTTOMLEFT", -15, 20)
+	minimapButton:SetSize(32, 32)
+	minimapButton:SetMovable(true)
+	minimapButton:SetUserPlaced(true)
+	minimapButton:RegisterForDrag("LeftButton")
 
-	local overlay = mmb:CreateTexture(nil, "OVERLAY")
+	local overlay = minimapButton:CreateTexture(nil, "OVERLAY")
 	overlay:SetSize(53, 53)
 	overlay:SetTexture(136430)
 	overlay:SetPoint("TOPLEFT")
 
-	local background = mmb:CreateTexture(nil, "BACKGROUND")
+	local background = minimapButton:CreateTexture(nil, "BACKGROUND")
 	background:SetSize(20, 20)
 	background:SetTexture(136467)
 	background:SetPoint("TOPLEFT", 7, -5)
 
-	local icon = mmb:CreateTexture(nil, "ARTWORK")
-	icon:SetSize(22, 11)
+	local icon = minimapButton:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(16, 16)
 	icon:SetPoint("CENTER")
 	icon:SetTexture(C["Media"].Textures.LogoSmallTexture)
 
-	mmb:SetScript("OnEnter", function()
-		GameTooltip:SetOwner(mmb, "ANCHOR_LEFT")
+	minimapButton:SetScript("OnEnter", function()
+		GameTooltip:SetOwner(minimapButton, "ANCHOR_LEFT")
 		GameTooltip:ClearLines()
-		GameTooltip:AddLine("KkthnxUI", 1, 1, 1)
+		GameTooltip:AddLine(K.Title, 1, 0.8, 0)
 		GameTooltip:AddLine(" ")
-		GameTooltip:AddLine("LeftButton: Toggle Config", 0.6, 0.8, 1)
+		GameTooltip:AddLine("|cff00ff00Left Click:|r Open Configuration", 0.8, 0.8, 0.8)
 		GameTooltip:Show()
 	end)
 
-	mmb:SetScript("OnLeave", GameTooltip_Hide)
-	mmb:RegisterForClicks("AnyUp")
-	mmb:SetScript("OnClick", KKUI_ClickMinimapButton)
-	mmb:SetScript("OnDragStart", function(self)
-		self:SetScript("OnUpdate", KKUI_UpdateDragCursor)
+	minimapButton:SetScript("OnLeave", GameTooltip_Hide)
+	minimapButton:RegisterForClicks("AnyUp")
+	minimapButton:SetScript("OnClick", OnMinimapButtonClick)
+	minimapButton:SetScript("OnDragStart", function(self)
+		self:SetScript("OnUpdate", UpdateDragCursor)
 	end)
-	mmb:SetScript("OnDragStop", function(self)
+	minimapButton:SetScript("OnDragStop", function(self)
 		self:SetScript("OnUpdate", nil)
 	end)
 
-	function Module:ToggleMinimapIcon()
-		if C["General"].MinimapIcon then
-			mmb:Show()
+	function Module:ToggleMinimapButton()
+		if C.General.MinimapIcon then
+			minimapButton:Show()
 		else
-			mmb:Hide()
+			minimapButton:Hide()
 		end
 	end
 
-	Module:ToggleMinimapIcon()
+	Module:ToggleMinimapButton()
 end
 
 -- Game Menu Setup
