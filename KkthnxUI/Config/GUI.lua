@@ -970,6 +970,7 @@ local Unitframe = function(self)
 	Window:CreateSwitch("Unitframe", "PlayerCastbar", L["Enable Player CastBar"])
 	Window:CreateSwitch("Unitframe", "PlayerCastbarIcon", L["Enable Player CastBar"] .. " Icon")
 	Window:CreateSwitch("Unitframe", "PlayerDebuffs", L["Show Player Frame Debuffs"])
+	Window:CreateSwitch("Unitframe", "EnergyManaRegen", "Enable Energy Mana Regen Ticker", "Enable or disable the Energy/Mana Regen feature, which displays a visual indicator for energy or mana regeneration ticks on the unit frame. This feature helps players monitor their resource regeneration more effectively.")
 	if C["Unitframe"].PortraitStyle.Value ~= "NoPortraits" then
 		Window:CreateSwitch("Unitframe", "ShowPlayerLevel", L["Show Player Frame Level"])
 	end

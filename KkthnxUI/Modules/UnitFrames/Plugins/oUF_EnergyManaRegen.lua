@@ -54,7 +54,7 @@ local Update = function(self, elapsed)
 			if Timer > 0 then
 				element.Spark:Show()
 				element:SetMinMaxValues(0, 2)
-				element.Spark:SetVertexColor(1, 1, 1, 1)
+				element.Spark:SetVertexColor(1, 1, 1, element.sparkAlpha or 1)
 				element:SetValue(Timer)
 				allowPowerEvent = true
 
@@ -63,7 +63,7 @@ local Update = function(self, elapsed)
 				-- if negative, it's mp5delay
 				element.Spark:Show()
 				element:SetMinMaxValues(0, Mp5Delay)
-				element.Spark:SetVertexColor(1, 1, 0, 1)
+				element.Spark:SetVertexColor(1, 1, 0, element.sparkAlpha or 1)
 
 				element:SetValue(math.abs(Timer))
 			end
@@ -133,10 +133,11 @@ local Enable = function(self, unit)
 
 		local spark = element.Spark
 		if spark and spark:IsObjectType("Texture") then
-			spark:SetTexture([[Interface\CastingBar\UI-CastingBar-Spark]])
+			spark:SetTexture(element.sparkTexture or [[Interface\CastingBar\UI-CastingBar-Spark]])
 			spark:SetBlendMode("ADD")
-			spark:SetPoint("TOPLEFT", element:GetStatusBarTexture(), "TOPRIGHT", -10, 10)
-			spark:SetPoint("BOTTOMRIGHT", element:GetStatusBarTexture(), "BOTTOMRIGHT", 10, -10)
+			spark:SetSize(element.sparkWidth or 10, element.sparkHeight or 10)
+			spark:SetAlpha(element.sparkAlpha or 1)
+			spark:SetPoint("CENTER", element:GetStatusBarTexture(), "RIGHT", 0, 0)
 		end
 
 		self:RegisterEvent("PLAYER_REGEN_ENABLED", EventHandler, true)

@@ -607,6 +607,7 @@ C["Unitframe"] = {
 	ShowHealPrediction = true,
 	ShowPlayerLevel = true,
 	Smooth = false,
+	EnergyManaRegen = true,
 
 	SwingBar = false,
 	SwingWidth = 274,

@@ -578,24 +578,21 @@ function Module:CreatePlayer()
 			texts[i] = K.CreateFontString(textFrame, (7 + i * 3), "z", "", "system", "CENTER", offsets[i][1], offsets[i][2])
 		end
 
-		local step, stepSpeed = 0, 0.33
-
+		local step, stepSpeed = 0, 0.35
 		local stepMaps = {
-			[1] = { true, false, false },
-			[2] = { true, true, false },
-			[3] = { true, true, true },
-			[4] = { false, true, true },
-			[5] = { false, false, true },
-			[6] = { false, false, false },
+			{ true, false, false },
+			{ true, true, false },
+			{ true, true, true },
+			{ false, true, true },
+			{ false, false, true },
+			{ false, false, false },
 		}
 
 		RestingIndicator:SetScript("OnUpdate", function(self, elapsed)
 			self.elapsed = (self.elapsed or 0) + elapsed
+
 			if self.elapsed > stepSpeed then
-				step = step + 1
-				if step == 7 then
-					step = 1
-				end
+				step = (step % 6) + 1
 
 				for i = 1, 3 do
 					texts[i]:SetShown(stepMaps[step][i])
@@ -607,20 +604,26 @@ function Module:CreatePlayer()
 
 		RestingIndicator:SetScript("OnHide", function()
 			step = 6
+			for i = 1, 3 do
+				texts[i]:SetShown(stepMaps[step][i])
+			end
 		end)
 
 		self.RestingIndicator = RestingIndicator
 	end
 
-	do
-		if K.Class ~= "WARRIOR" then
-			local ticker = CreateFrame("StatusBar", nil, Power)
-			ticker:SetFrameLevel(Power:GetFrameLevel() + 3)
-			ticker:SetAllPoints()
-			ticker.Spark = ticker:CreateTexture(nil, "OVERLAY")
+	if K.Class ~= "WARRIOR" and C["Unitframe"].EnergyManaRegen then
+		local ticker = CreateFrame("StatusBar", nil, Power)
+		ticker:SetFrameLevel(Power:GetFrameLevel() + 3)
+		ticker:SetAllPoints()
+		ticker.Spark = ticker:CreateTexture(nil, "OVERLAY")
 
-			self.EnergyManaRegen = ticker
-		end
+		ticker.sparkTexture = C["Media"].Textures.Spark128Texture
+		ticker.sparkWidth = 64
+		ticker.sparkHeight = Power:GetHeight()
+		ticker.sparkAlpha = 0.7
+
+		self.EnergyManaRegen = ticker
 	end
 
 	if C["Unitframe"].DebuffHighlight then
