@@ -3,14 +3,9 @@ local Module = K:NewModule("Blizzard")
 
 function Module:OnEnable()
 	local loadBlizzardModules = {
-		"CreateAlertFrames",
-		"CreateAltPowerbar",
 		"CreateColorPicker",
 		"CreateMirrorBars",
-		-- "CreateObjectiveFrame",
-		"CreateOrderHallIcon",
 		"CreateTimerTracker",
-		"CreateTutorialDisabling",
 		"CreateUIWidgets",
 	}
 

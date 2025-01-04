@@ -12,7 +12,6 @@ function Module:OnEnable()
 		"CreateAutoRelease",
 		"CreateAutoResurrect",
 		"CreateAutoWhisperInvite",
-		"CreateSkipCinematic",
 		"CreateAutoBuffThanks",
 	}
 

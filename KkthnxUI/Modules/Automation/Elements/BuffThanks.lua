@@ -2,9 +2,9 @@ local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Automation")
 
 -- Variables
-local isBuffThanksPaused = false
 local lastThanked = {}
-local pauseDuration = 10 -- Default pause duration in seconds
+local currentAuras = {}
+local previousAuras = {}
 
 -- Buffs List
 local spellList = {
@@ -24,9 +24,25 @@ local spellList = {
 
 	-- Warlock
 	5697, -- Unending Breath
-
-	-- 5118, -- Debug
 }
+
+-- List of targeted emotes for thanking
+local emoteList = {
+	"THANK",
+	"BOW",
+	"SALUTE",
+	"CLAP",
+	"CHEER",
+}
+
+-- Pick a random targeted emote from the list
+local function GetRandomTargetedEmote()
+	return emoteList[math.random(1, #emoteList)]
+end
+
+-- Credits
+-- The caching and comparison methods, as well as the performance optimization for clearing tables, were inspired by Goldpaw's ideas.
+-- Big thanks for these insights, which make this addon efficient and performant!
 
 -- Helper Functions
 local function BuildBuffsToThank(spellList)
@@ -42,58 +58,69 @@ end
 
 local buffsToThank = BuildBuffsToThank(spellList)
 
--- Core Buff Thanks Logic
-local function HandleBuffThanks()
-	if isBuffThanksPaused then
-		return
+-- Clear a table by setting all keys to nil
+local function ClearTable(tbl)
+	for k in pairs(tbl) do
+		tbl[k] = nil
 	end
+end
 
-	local _, subEvent, _, _, sourceName, _, _, _, destName, _, _, spellID = CombatLogGetCurrentEventInfo()
+-- Cache current player auras into a table
+local function CacheAuras(targetTable)
+	ClearTable(targetTable) -- Use optimized table clearing
+	for i = 1, 40 do
+		local name, _, _, _, _, _, _, _, _, spellID = UnitBuff("player", i)
+		if not name then
+			break
+		end
+		targetTable[spellID] = true
+	end
+end
 
-	if destName == K.Name and (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "SPELL_AURA_APPLIED") then
-		local spellName = GetSpellInfo(spellID)
+-- Compare current and previous auras and handle new buffs
+local function CompareAndHandleAuras()
+	for spellID, _ in pairs(currentAuras) do
+		if not previousAuras[spellID] then
+			-- Handle new buffs only
+			local name, _, _, _, _, _, _, caster = UnitBuff("player", spellID)
+			if name and buffsToThank[name] and caster and caster ~= UnitName("player") then
+				local currentTime = GetTime()
 
-		if buffsToThank[spellName] then
-			local currentTime = GetTime()
+				if not lastThanked[caster] or (currentTime - lastThanked[caster]) > 60 then
+					local delay = math.random(1, 20) / 10 -- Random delay between 1 and 2 seconds
+					local randomEmote = GetRandomTargetedEmote() -- Get a random targeted emote
 
-			if not lastThanked[sourceName] or (currentTime - lastThanked[sourceName]) > 60 then
-				local delay = math.random(1, 20) / 10 -- Random delay between 1 and 2 seconds
+					C_Timer.After(delay, function()
+						DoEmote(randomEmote, caster)
+					end)
 
-				C_Timer.After(delay, function()
-					-- print("Thanking", sourceName, "for buff", spellName, "(Spell ID:", spellID, ")", "after", delay, "seconds")
-					DoEmote("THANK", sourceName)
-				end)
-
-				lastThanked[sourceName] = currentTime
+					lastThanked[caster] = currentTime
+					print(randomEmote .. ":", caster, "for buff", name, "(Spell ID:", spellID, ")")
+				end
 			end
 		end
 	end
 end
 
--- Forward Declaration
-local HandlePlayerEnteringWorld
-
--- Resume Buff Thanks After Pause
-local function ResumeBuffThanks()
-	-- print("BuffThanks resumed after initial pause.")
-	isBuffThanksPaused = false
-
-	-- Unregister PLAYER_ENTERING_WORLD after its purpose is served
-	K:UnregisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
-	-- print("PLAYER_ENTERING_WORLD event unregistered.")
+-- Handle Login, Reload, or Zoning
+local function HandlePlayerEnteringWorld()
+	-- Cache auras on login or zoning
+	CacheAuras(previousAuras)
+	print("Cached auras on PLAYER_ENTERING_WORLD.")
 end
 
--- Handle Login, Reload, or Zoning
-HandlePlayerEnteringWorld = function(_, isInitialLogin, isReloadingUi)
-	if isInitialLogin or isReloadingUi then
-		-- print("Login/Reload detected. Pausing BuffThanks for", pauseDuration, "seconds.")
-		isBuffThanksPaused = true
+-- Handle Aura Changes
+local function HandleUnitAura(_, unit)
+	if unit == "player" then
+		-- Cache current auras, compare, and process
+		CacheAuras(currentAuras)
+		CompareAndHandleAuras()
 
-		-- Resume BuffThanks after the configured pause duration
-		C_Timer.After(pauseDuration, ResumeBuffThanks)
-	else
-		-- print("Zoning detected. BuffThanks remains active.")
-		-- isBuffThanksPaused = false
+		-- Swap tables to avoid re-creating them
+		ClearTable(previousAuras)
+		for k, v in pairs(currentAuras) do
+			previousAuras[k] = v
+		end
 	end
 end
 
@@ -102,10 +129,10 @@ function Module:CreateAutoBuffThanks()
 	if C["Automation"].BuffThanks then
 		-- Register Events
 		K:RegisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
-		K:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", HandleBuffThanks)
+		K:RegisterEvent("UNIT_AURA", HandleUnitAura, "player")
 	else
 		-- Unregister Events
 		K:UnregisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
-		K:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", HandleBuffThanks)
+		K:UnregisterEvent("UNIT_AURA", HandleUnitAura, "player")
 	end
 end

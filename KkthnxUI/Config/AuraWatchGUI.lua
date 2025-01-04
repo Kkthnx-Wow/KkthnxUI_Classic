@@ -370,19 +370,19 @@ local function CreatePanel()
 	local barTable = {}
 	local function SortBars(index)
 		local num, onLeft, onRight = 1, 1, 1
-		for k, bar in pairs(barTable[index]) do
-			local isInternalCD = (index == 10 and KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD[k])
-			local isAuraWatch = (index < 10 and KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[index][k])
-
-			if isInternalCD or isAuraWatch then
-				local posY = -10 - 35 * ((num > 1 and math_floor(num / 2)) == num / 2 and onRight or onLeft)
-				local posX = (num % 2 == 0) and 295 or 10
-				bar:SetPoint("TOPLEFT", posX, posY)
-
-				if num % 2 == 0 then
-					onRight = onRight + 1
-				else
+		for k in pairs(barTable[index]) do
+			if (index < 7 and KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[index][k]) or (index == 7 and KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD[k]) then
+				local bar = barTable[index][k]
+				if num == 1 then
+					bar:SetPoint("TOPLEFT", 10, -10)
+				elseif num > 1 and num / 2 ~= floor(num / 2) then
+					bar:SetPoint("TOPLEFT", 10, -10 - 35 * onLeft)
 					onLeft = onLeft + 1
+				elseif num == 2 then
+					bar:SetPoint("TOPLEFT", 295, -10)
+				elseif num > 2 and num / 2 == floor(num / 2) then
+					bar:SetPoint("TOPLEFT", 295, -10 - 35 * onRight)
+					onRight = onRight + 1
 				end
 				num = num + 1
 			end
@@ -391,6 +391,8 @@ local function CreatePanel()
 
 	local slotIndex = {
 		[6] = INVTYPE_WAIST,
+		[8] = INVTYPE_FEET,
+		[10] = INVTYPE_HAND,
 		[11] = INVTYPE_FINGER .. "1",
 		[12] = INVTYPE_FINGER .. "2",
 		[13] = INVTYPE_TRINKET .. "1",
@@ -411,12 +413,12 @@ local function CreatePanel()
 
 	local function AddAura(parent, index, data)
 		local typeID, spellID, unitID, caster, stack, amount, timeless, combat, text, flash = unpack(data)
-		local name, _, texture = C_Spell.GetSpellName(spellID)
+		local name, _, texture = GetSpellInfo(spellID)
 		if typeID == "SlotID" then
 			texture = GetInventoryItemTexture("player", spellID)
 			name = slotIndex[spellID]
 		elseif typeID == "TotemID" then
-			texture = "Interface\\ICONS\\Spell_Shaman_TotemRecall"
+			texture = "Interface\\ICONS\\Spell_Totem_WardOfDraining"
 			name = L["TotemSlot"] .. spellID
 		end
 
@@ -468,7 +470,7 @@ local function CreatePanel()
 
 	local function AddInternal(parent, index, data)
 		local intID, duration, trigger, unit, itemID = unpack(data)
-		local name, _, texture = C_Spell.GetSpellName(intID)
+		local name, _, texture = GetSpellInfo(intID)
 		if itemID then
 			name = GetItemInfo(itemID)
 		end
@@ -544,7 +546,7 @@ local function CreatePanel()
 	local preSet = {
 		[1] = { 1, true },
 		[2] = { 2, false },
-		[3] = { 3, false },
+		[3] = { 1, false },
 		[4] = { 1, false },
 		[5] = { 1, false },
 		[6] = { 1, false },
@@ -590,14 +592,14 @@ local function CreatePanel()
 		tabs[i]:SetSize(130, 28)
 		tabs[i]:CreateBorder()
 		local label = K.CreateFontString(tabs[i], 15, group, "", "system", "LEFT", 10, 0)
-		if i == 10 then
+		if i == 7 then
 			label:SetTextColor(0, 0.8, 0.3)
 		end
 		tabs[i].Page = createPage(group)
 		tabs[i].List = AW_CreateScroll(tabs[i].Page, 575, 200, L["AuraWatch List"])
 
 		local Option = {}
-		if i < 10 then
+		if i < 7 then
 			for _, v in pairs(KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[i]) do
 				AddAura(tabs[i].List.child, i, v)
 			end
@@ -611,7 +613,7 @@ local function CreatePanel()
 			Option[8] = AW_CreateCheckBox(tabs[i].Page, L["Combat"], 200, -95, L["Combat Intro"])
 			Option[9] = AW_CreateEditbox(tabs[i].Page, L["Text"], 340, -90, L["Text Intro"])
 			Option[10] = AW_CreateCheckBox(tabs[i].Page, L["Flash"], 280, -95, L["Flash Intro"])
-			Option[11] = AW_CreateDropdown(tabs[i].Page, L["Slot*"], 140, -30, { slotIndex[6], slotIndex[11], slotIndex[12], slotIndex[13], slotIndex[14], slotIndex[15] }, L["Slot Intro"])
+			Option[11] = AW_CreateDropdown(tabs[i].Page, L["Slot*"], 140, -30, { slotIndex[6], slotIndex[8], slotIndex[10], slotIndex[11], slotIndex[12], slotIndex[13], slotIndex[14], slotIndex[15] }, L["Slot Intro"])
 			Option[12] = AW_CreateDropdown(tabs[i].Page, L["Totem*"], 140, -30, { L["TotemSlot"] .. "1", L["TotemSlot"] .. "2", L["TotemSlot"] .. "3", L["TotemSlot"] .. "4" }, L["Totem Intro"])
 
 			for j = 2, 12 do
@@ -643,7 +645,7 @@ local function CreatePanel()
 					end
 				end)
 			end
-		elseif i == 10 then
+		elseif i == 7 then
 			for _, v in pairs(KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD) do
 				AddInternal(tabs[i].List.child, i, v)
 			end
@@ -660,25 +662,25 @@ local function CreatePanel()
 		clear.text = K.CreateFontString(clear, 12, KEY_NUMLOCK_MAC, "", true)
 		clear:SetPoint("TOPRIGHT", -100, -90)
 		clear:SetScript("OnClick", function()
-			if i < 10 then
+			if i < 7 then
 				for j = 2, 12 do
 					AW_ClearEdit(Option[j])
 				end
-			elseif i == 10 then
+			elseif i == 7 then
 				for j = 13, 17 do
 					AW_ClearEdit(Option[j])
 				end
 			end
 		end)
 
-		local slotTable = { 6, 11, 12, 13, 14, 15, 16, 17 }
+		local slotTable = { 6, 8, 10, 11, 12, 13, 14, 15 }
 		local add = CreateFrame("Button", nil, tabs[i].Page, "BackdropTemplate")
 		add:SetSize(60, 25)
 		add:SkinButton()
 		add.text = K.CreateFontString(add, 12, ADD, "", true)
 		add:SetPoint("TOPRIGHT", -30, -90)
 		add:SetScript("OnClick", function()
-			if i < 10 then
+			if i < 7 then
 				local typeID, spellID, unitID, slotID, totemID = Option[1].Text:GetText(), tonumber(Option[2]:GetText()), Option[3].Text:GetText()
 				for i = 1, #Option[11].options do
 					if Option[11].options[i].selected then
@@ -686,7 +688,6 @@ local function CreatePanel()
 						break
 					end
 				end
-
 				for i = 1, #Option[12].options do
 					if Option[12].options[i].selected then
 						totemID = i
@@ -698,13 +699,11 @@ local function CreatePanel()
 					UIErrorsFrame:AddMessage(K.InfoColor .. L["Choose a Type"])
 					return
 				end
-
 				if (typeID == "AuraID" and (not spellID or not unitID)) or (typeID == "SpellID" and not spellID) or (typeID == "SlotID" and not slotID) or (typeID == "TotemID" and not totemID) then
 					UIErrorsFrame:AddMessage(K.InfoColor .. L["Incomplete Input"])
 					return
 				end
-
-				if (typeID == "AuraID" or typeID == "SpellID") and not C_Spell.GetSpellName(spellID) then
+				if (typeID == "AuraID" or typeID == "SpellID") and not GetSpellInfo(spellID) then
 					UIErrorsFrame:AddMessage(K.InfoColor .. L["Incorrect SpellID"])
 					return
 				end
@@ -715,31 +714,28 @@ local function CreatePanel()
 					return
 				end
 
-				-- stylua: ignore
-				KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[i][realID] = {typeID, realID, unitID, Option[4].Text:GetText(), tonumber(Option[5]:GetText()) or false, Option[6]:GetChecked(), Option[7]:GetChecked(), Option[8]:GetChecked(), Option[9]:GetText(), Option[10]:GetChecked()}
+				KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[i][realID] = { typeID, realID, unitID, Option[4].Text:GetText(), tonumber(Option[5]:GetText()) or false, Option[6]:GetChecked(), Option[7]:GetChecked(), Option[8]:GetChecked(), Option[9]:GetText(), Option[10]:GetChecked() }
 				AddAura(tabs[i].List.child, i, KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[i][realID])
 				for i = 2, 12 do
 					AW_ClearEdit(Option[i])
 				end
-			elseif i == 10 then
+			elseif i == 7 then
 				local intID, duration, trigger, unit, itemID = tonumber(Option[13]:GetText()), tonumber(Option[14]:GetText()), Option[15].Text:GetText(), Option[16].Text:GetText(), tonumber(Option[17]:GetText())
 				if not intID or not duration or not trigger or not unit then
 					UIErrorsFrame:AddMessage(K.InfoColor .. L["Incomplete Input"])
 					return
 				end
-
-				if intID and not C_Spell.GetSpellName(intID) then
+				if intID and not GetSpellInfo(intID) then
 					UIErrorsFrame:AddMessage(K.InfoColor .. L["Incorrect SpellID"])
 					return
 				end
-
-				if KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD[intID] then
+				if KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD then
 					UIErrorsFrame:AddMessage(K.InfoColor .. L["Existing ID"])
 					return
 				end
 
-				KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD[intID] = { intID, duration, trigger, unit, itemID }
-				AddInternal(tabs[i].List.child, i, KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD[intID])
+				KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD = { intID, duration, trigger, unit, itemID }
+				AddInternal(tabs[i].List.child, i, KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD)
 				for i = 13, 17 do
 					AW_ClearEdit(Option[i])
 				end

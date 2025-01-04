@@ -102,9 +102,9 @@ local function OnEvent(event)
 		if numSlots > 0 then
 			local r, g, b = getDurabilityColor(math_floor(localSlots[1][3] * 100), 100)
 			-- Set the text color to yellow and format the durability text
-			DurabilityDataText.Text:SetFormattedText("%s%%|r %s", K.RGBToHex(r, g, b) .. math.floor(localSlots[1][3] * 100), K.GreyColor .. DURABILITY)
+			DurabilityDataText.Text:SetFormattedText("%s%%|r %s", K.RGBToHex(r, g, b) .. math.floor(localSlots[1][3] * 100), K.GreyColor .. "Dur")
 		else
-			DurabilityDataText.Text:SetText(DURABILITY .. ": " .. K.MyClassColor .. NONE)
+			DurabilityDataText.Text:SetText("Dur" .. ": " .. K.MyClassColor .. NONE)
 		end
 	end
 
@@ -157,14 +157,15 @@ function Module:CreateDurabilityDataText()
 		return
 	end
 
-	DurabilityDataText = CreateFrame("Frame", nil, UIParent)
+	DurabilityDataText = CreateFrame("Frame", nil, PaperDollFrame)
 	DurabilityDataText:SetSize(100, 20)
-	DurabilityDataText:SetPoint("TOP", CharacterGuildText, "BOTTOM", 0, 3)
+	DurabilityDataText:SetPoint("BOTTOMLEFT", CharacterFrameTab1, "TOPLEFT", 10, 10)
 	DurabilityDataText:SetFrameLevel(PaperDollFrame:GetFrameLevel() + 2)
 	DurabilityDataText:SetParent(PaperDollFrame)
 
-	DurabilityDataText.Text = DurabilityDataText:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall") -- CharacterLevelText uses GameFontNormalSmall
+	DurabilityDataText.Text = DurabilityDataText:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	DurabilityDataText.Text:SetAllPoints(DurabilityDataText)
+	DurabilityDataText.Text:SetFont(DurabilityDataText.Text:GetFont(), 14) -- Set the font size to 12
 
 	local function _OnEvent(...)
 		OnEvent(...)

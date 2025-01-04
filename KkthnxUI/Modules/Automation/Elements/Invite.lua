@@ -1,15 +1,6 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Automation")
 
-local C_BattleNet = C_BattleNet
-local C_FriendList = C_FriendList
-local IsGuildMember = IsGuildMember
-local IsInGroup = IsInGroup
-local QueueStatusButton = QueueStatusButton
-local StaticPopupSpecial_Hide = StaticPopupSpecial_Hide
-local StaticPopup_Hide = StaticPopup_Hide
-local LFGInvitePopup = LFGInvitePopup
-
 local previousInviterGUID
 
 local function HandlePartyInvite(inviterGUID)
@@ -28,7 +19,6 @@ local function AutoInvite(event, _, _, _, _, _, _, inviterGUID)
 	if event == "PARTY_INVITE_REQUEST" then
 		HandlePartyInvite(inviterGUID)
 	elseif event == "GROUP_ROSTER_UPDATE" then
-		-- StaticPopupSpecial_Hide(LFGInvitePopup)
 		StaticPopup_Hide("PARTY_INVITE")
 		previousInviterGUID = nil
 	end

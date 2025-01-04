@@ -532,7 +532,6 @@ local Automation = function(self)
 	Window:CreateSwitch("Automation", "AutoDismountTaxi", newFeatureIcon .. "Automatically Dismount When Taking A Taxi", "Automatically dismounts the player when taking a taxi to ensure smooth travel transitions, retrying if in combat.")
 	Window:CreateSwitch("Automation", "AutoOpenItems", L["Auto Open Items In Your Inventory"], "Automatically opens items in your inventory that contain loot.")
 	Window:CreateSwitch("Automation", "AutoRelease", L["Auto Release in Battlegrounds & Arenas"], "Automatically releases your spirit upon death in battlegrounds or arenas.")
-	Window:CreateSwitch("Automation", "AutoSkipCinematic", L["Auto Skip All Cinematics/Movies"], "Automatically skips cinematics and movies during gameplay.")
 	Window:CreateSwitch("Automation", "AutoSummon", L["Auto Accept Summon Requests"], "Automatically accepts summon requests from your group or raid.")
 	Window:CreateSwitch("Automation", "NoBadBuffs", L["Automatically Remove Annoying Buffs"], "Automatically removes unwanted or annoying buffs.")
 end

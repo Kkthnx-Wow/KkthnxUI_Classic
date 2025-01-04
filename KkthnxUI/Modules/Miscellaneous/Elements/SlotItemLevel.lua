@@ -213,8 +213,8 @@ local function AnchorInspectRotate()
 	if anchored then
 		return
 	end
-	InspectModelFrameRotateRightButton:ClearAllPoints()
-	InspectModelFrameRotateRightButton:SetPoint("BOTTOMLEFT", InspectFrameTab1, "TOPLEFT", 0, 2)
+	-- InspectModelFrameRotateRightButton:ClearAllPoints()
+	-- InspectModelFrameRotateRightButton:SetPoint("BOTTOMLEFT", InspectFrameTab1, "TOPLEFT", 6, 2)
 
 	Module.InspectILvl = K.CreateFontString(InspectPaperDollFrame, 15)
 	Module.InspectILvl:ClearAllPoints()
@@ -274,8 +274,8 @@ function Module:CreateSlotItemLevel()
 	-- iLvl on CharacterFrame
 	CharacterFrame:HookScript("OnShow", Module.ItemLevel_UpdatePlayer)
 	K:RegisterEvent("PLAYER_EQUIPMENT_CHANGED", Module.ItemLevel_UpdatePlayer)
-	CharacterModelFrameRotateRightButton:ClearAllPoints()
-	CharacterModelFrameRotateRightButton:SetPoint("BOTTOMLEFT", CharacterFrameTab1, "TOPLEFT", 0, 2)
+	-- CharacterModelFrameRotateRightButton:ClearAllPoints()
+	-- CharacterModelFrameRotateRightButton:SetPoint("BOTTOMLEFT", CharacterFrameTab1, "TOPLEFT", 0, 2)
 
 	-- iLvl on InspectFrame
 	K:RegisterEvent("INSPECT_READY", Module.ItemLevel_UpdateInspect)

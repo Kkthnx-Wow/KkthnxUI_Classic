@@ -118,16 +118,15 @@ tinsert(C.defaultThemes, function()
 
 	if not CharacterModelFrame.KKUI_Texture then
 		-- Create the texture only once
-		local texture = CharacterModelFrame:CreateTexture(nil, "BACKGROUND", nil, -7)
-		texture:SetDrawLayer("BACKGROUND", -7)
+		local texture = CharacterModelFrame:CreateTexture(nil, "ARTWORK")
 		texture:SetPoint("TOPLEFT", 0, 0)
 		texture:SetPoint("BOTTOMRIGHT", 0, -94) -- Stretch down by 20 pixels
 		CharacterModelFrame.KKUI_Texture = texture
 	end
 
 	-- Set the texture properties
-	CharacterModelFrame.KKUI_Texture:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Skins\\DressingRoom" .. K.Class)
-	CharacterModelFrame.KKUI_Texture:SetTexCoord(0.00195312, 0.935547, 0.00195312, 0.978516)
+	CharacterModelFrame.KKUI_Texture:SetTexture("Interface\\Transmogrify\\TransmogBackground" .. K.Race:gsub("%s+", ""))
+	CharacterModelFrame.KKUI_Texture:SetTexCoord(0.00195312, 0.576172, 0.00195312, 0.966797)
 	CharacterModelFrame.KKUI_Texture:SetHorizTile(false)
 	CharacterModelFrame.KKUI_Texture:SetVertTile(false)
 

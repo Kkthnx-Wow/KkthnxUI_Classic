@@ -241,65 +241,94 @@ Features:
 	-- UpdatePartyMembers()
 end
 
-do
-	local playerGUID = UnitGUID("player")
+-- do
+-- 	local playerGUID = UnitGUID("player")
 
-	-- Create a frame for displaying critical hit numbers
-	local critFrame = CreateFrame("Frame", "CritFrame", UIParent)
-	critFrame:SetSize(400, 100)
-	critFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 200)
-	critFrame:Hide()
+-- 	-- Create a frame for displaying critical hit numbers
+-- 	local critFrame = CreateFrame("Frame", "CritFrame", UIParent)
+-- 	critFrame:SetSize(400, 100)
+-- 	critFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 200)
+-- 	critFrame:Hide()
 
-	critFrame.text = critFrame:CreateFontString(nil, "OVERLAY")
-	critFrame.text:SetFont("Fonts\\FRIZQT__.TTF", 32, "OUTLINE")
-	critFrame.text:SetTextColor(1, 0, 0) -- Red color
-	critFrame.text:SetPoint("CENTER")
+-- 	critFrame.icon = critFrame:CreateTexture(nil, "OVERLAY")
+-- 	critFrame.icon:SetSize(32, 32)
+-- 	critFrame.icon:SetPoint("LEFT", critFrame, "LEFT", 10, 0)
 
-	local function ShowCritAnimation(spellName, amount)
-		local message = string.format("|cffffffff%s|r CRIT FOR %d", spellName, amount)
-		critFrame.text:SetText(message)
-		critFrame:Show()
+-- 	critFrame.text = critFrame:CreateFontString(nil, "OVERLAY")
+-- 	critFrame.text:SetFont("Fonts\\FRIZQT__.TTF", 24, "OUTLINE")
+-- 	critFrame.text:SetTextColor(1, 0.82, 0) -- Gold color
+-- 	critFrame.text:SetPoint("LEFT", critFrame.icon, "RIGHT", 10, 0)
 
-		-- Create animation group
-		local animGroup = critFrame:CreateAnimationGroup()
+-- 	critFrame.amount = critFrame:CreateFontString(nil, "OVERLAY")
+-- 	critFrame.amount:SetFont("Fonts\\FRIZQT__.TTF", 48, "OUTLINE") -- Increased font size for crit amount
+-- 	critFrame.amount:SetTextColor(1, 0, 0) -- Red color
+-- 	critFrame.amount:SetPoint("LEFT", critFrame.text, "RIGHT", 10, 0)
 
-		-- Create translation animation (move up)
-		local moveUp = animGroup:CreateAnimation("Translation")
-		moveUp:SetOffset(0, 100) -- Move up by 75 pixels
-		moveUp:SetDuration(1.4) -- Increase speed by reducing duration to 1.5 seconds
-		moveUp:SetSmoothing("OUT")
+-- 	local function ShowCritAnimation(spellName, spellIcon, amount)
+-- 		-- Stop any ongoing animations
+-- 		if critFrame.animGroup and critFrame.animGroup:IsPlaying() then
+-- 			critFrame.animGroup:Stop()
+-- 		end
 
-		-- Create fade out animation
-		local fadeOut = animGroup:CreateAnimation("Alpha")
-		fadeOut:SetFromAlpha(1)
-		fadeOut:SetToAlpha(0)
-		fadeOut:SetDuration(1.4) -- Increase speed by reducing duration to 1.5 seconds
-		fadeOut:SetStartDelay(1.5) -- Increase start delay to 1.5 seconds
-		fadeOut:SetSmoothing("OUT")
+-- 		-- Set the spell icon and text
+-- 		critFrame.icon:SetTexture(spellIcon)
+-- 		critFrame.text:SetText(spellName .. " Crit For")
+-- 		critFrame.amount:SetText(amount)
+-- 		critFrame:Show()
 
-		animGroup:SetScript("OnFinished", function()
-			critFrame:Hide()
-		end)
+-- 		-- Play a sound effect
+-- 		PlaySound(39517, "Master")
 
-		animGroup:Play()
-	end
+-- 		-- Create animation group
+-- 		critFrame.animGroup = critFrame:CreateAnimationGroup()
 
-	local f = CreateFrame("Frame")
-	f:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	f:SetScript("OnEvent", function(self, event)
-		local _, subevent, _, sourceGUID, _, _, _, destGUID, destName = CombatLogGetCurrentEventInfo()
-		local spellId, amount, critical
+-- 		-- Create translation animation (move up)
+-- 		local moveUp = critFrame.animGroup:CreateAnimation("Translation")
+-- 		moveUp:SetOffset(0, 100) -- Move up by 100 pixels
+-- 		moveUp:SetDuration(1.5) -- Duration of 1.5 seconds
+-- 		moveUp:SetSmoothing("OUT")
 
-		if subevent == "SWING_DAMAGE" then
-			amount, _, _, _, _, _, critical = select(12, CombatLogGetCurrentEventInfo())
-			spellId = 6603 -- Auto Attack spell ID
-		elseif subevent == "SPELL_DAMAGE" then
-			spellId, _, _, amount, _, _, _, _, _, critical = select(12, CombatLogGetCurrentEventInfo())
-		end
+-- 		-- Create fade out animation
+-- 		local fadeOut = critFrame.animGroup:CreateAnimation("Alpha")
+-- 		fadeOut:SetFromAlpha(1)
+-- 		fadeOut:SetToAlpha(0)
+-- 		fadeOut:SetDuration(1.5) -- Duration of 1.5 seconds
+-- 		fadeOut:SetStartDelay(1.0) -- Start delay of 1.0 seconds
+-- 		fadeOut:SetSmoothing("OUT")
 
-		if critical and sourceGUID == playerGUID then
-			local spellName = GetSpellInfo(spellId) or "Auto Attack"
-			ShowCritAnimation(spellName, amount)
-		end
-	end)
-end
+-- 		critFrame.animGroup:SetScript("OnFinished", function()
+-- 			critFrame:Hide()
+-- 		end)
+
+-- 		critFrame.animGroup:Play()
+-- 	end
+
+-- 	local eventFrame = CreateFrame("Frame", "CritEventFrame", UIParent)
+-- 	eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+-- 	eventFrame:SetScript("OnEvent", function(self, event)
+-- 		local _, subevent, _, sourceGUID, _, _, _, destGUID, destName = CombatLogGetCurrentEventInfo()
+-- 		local spellId, amount, critical
+
+-- 		if subevent == "SWING_DAMAGE" then
+-- 			amount, _, _, _, _, _, critical = select(12, CombatLogGetCurrentEventInfo())
+-- 			spellId = 6603 -- Auto Attack spell ID
+-- 		elseif subevent == "SPELL_DAMAGE" then
+-- 			spellId, _, _, amount, _, _, _, _, _, critical = select(12, CombatLogGetCurrentEventInfo())
+-- 		end
+
+-- 		if critical and sourceGUID == playerGUID then
+-- 			local spellName = GetSpellInfo(spellId) or "Auto Attack"
+-- 			local spellIcon = GetSpellTexture(spellId) or "Interface\\Icons\\INV_Misc_QuestionMark"
+-- 			ShowCritAnimation(spellName, spellIcon, amount)
+-- 		end
+-- 	end)
+
+-- 	-- Test command to simulate a critical hit
+-- 	SLASH_TESTCRIT1 = "/testcrit"
+-- 	SlashCmdList["TESTCRIT"] = function()
+-- 		local testSpellName = "Test Spell"
+-- 		local testSpellIcon = "Interface\\Icons\\Spell_Nature_StarFall"
+-- 		local testAmount = 12345
+-- 		ShowCritAnimation(testSpellName, testSpellIcon, testAmount)
+-- 	end
+-- end

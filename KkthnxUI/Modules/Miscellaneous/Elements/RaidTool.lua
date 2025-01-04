@@ -333,12 +333,16 @@ function Module:RaidTool_BuffChecker(parent)
 					local HasBuff
 					local buffTable = C.RaidUtilityBuffCheckList[j]
 					for k = 1, #buffTable do
-						local buffName = C_Spell.GetSpellName(buffTable[k])
-						if buffName and C_UnitAuras.GetAuraDataBySpellName(name, buffName) then
-							HasBuff = true
-							break
+						local buffName = GetSpellInfo(buffTable[k])
+						for index = 1, 32 do
+							local currentBuff = UnitAura(name, index)
+							if currentBuff and currentBuff == buffName then
+								HasBuff = true
+								break
+							end
 						end
 					end
+
 					if not HasBuff then
 						name = strsplit("-", name) -- remove realm name
 						tinsert(NoBuff[j], name)
@@ -346,6 +350,7 @@ function Module:RaidTool_BuffChecker(parent)
 				end
 			end
 		end
+
 		if not C["Misc"].RMRune then
 			NoBuff[numGroups] = {}
 		end
@@ -357,13 +362,12 @@ function Module:RaidTool_BuffChecker(parent)
 			for i = 1, 5 do
 				sendResult(i)
 			end
+
 			if C["Misc"].RMRune then
 				sendResult(numGroups)
 			end
 		end
 	end
-
-	local potionCheck = C_AddOns_IsAddOnLoaded("MRT")
 
 	frame:HookScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
@@ -371,9 +375,6 @@ function Module:RaidTool_BuffChecker(parent)
 		GameTooltip:AddLine("Raid Tool", 0, 0.6, 1)
 		GameTooltip:AddLine(" ")
 		GameTooltip:AddDoubleLine(K.LeftButton .. K.InfoColor .. "Check Status")
-		if potionCheck then
-			GameTooltip:AddDoubleLine(K.RightButton .. K.InfoColor .. "MRT Potioncheck")
-		end
 		GameTooltip:Show()
 	end)
 	frame:HookScript("OnLeave", K.HideTooltip)
@@ -386,8 +387,6 @@ function Module:RaidTool_BuffChecker(parent)
 	frame:HookScript("OnMouseDown", function(_, btn)
 		if btn == "LeftButton" then
 			scanBuff()
-		elseif potionCheck then
-			SlashCmdList["mrtSlash"]("potionchat")
 		end
 	end)
 end

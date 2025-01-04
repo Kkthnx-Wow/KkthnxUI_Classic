@@ -44,6 +44,7 @@ function Module:AddNewAuraWatch(class, list)
 	if class ~= "ALL" and class ~= K.Class then
 		return
 	end
+
 	if not AuraWatchList[class] then
 		AuraWatchList[class] = {}
 	end

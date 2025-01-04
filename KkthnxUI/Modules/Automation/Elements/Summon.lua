@@ -9,9 +9,20 @@ local StaticPopup_Hide = StaticPopup_Hide
 local UnitAffectingCombat = UnitAffectingCombat
 local format = string.format
 
--- Automatically accept a summon after a 10 second delay
+-- Function to handle the summon acceptance
+local function HandleSummonAcceptance()
+	local summonerName = C_SummonInfo_GetSummonConfirmSummoner()
+	local summonerLocation = C_SummonInfo_GetSummonConfirmAreaName()
+
+	-- Verify that the summon request is still valid before accepting
+	if C_SummonInfo_GetSummonConfirmSummoner() == summonerName and C_SummonInfo_GetSummonConfirmAreaName() == summonerLocation then
+		C_SummonInfo_ConfirmSummon() -- Accept the summon
+		StaticPopup_Hide("CONFIRM_SUMMON") -- Hide the confirmation dialog
+	end
+end
+
+-- Function to automatically accept a summon after a delay
 local function AutoAcceptSummon(event)
-	-- If the player is in combat, register for PLAYER_REGEN_ENABLED to retry after combat ends
 	if UnitAffectingCombat("player") then
 		K:RegisterEvent("PLAYER_REGEN_ENABLED", AutoAcceptSummon)
 		return
@@ -19,7 +30,6 @@ local function AutoAcceptSummon(event)
 		K:UnregisterEvent("PLAYER_REGEN_ENABLED", AutoAcceptSummon)
 	end
 
-	-- Retrieve the summoner's name and location
 	local summonerName = C_SummonInfo_GetSummonConfirmSummoner()
 	local summonerLocation = C_SummonInfo_GetSummonConfirmAreaName()
 
@@ -27,13 +37,7 @@ local function AutoAcceptSummon(event)
 	K.Print(format(L["Summon From"] .. " %s (%s) %s", summonerName, summonerLocation, L["Summon Warning"]))
 
 	-- Wait for 10 seconds before automatically accepting the summon
-	K.Delay(10, function()
-		-- Verify that the summon request is still valid before accepting
-		if C_SummonInfo_GetSummonConfirmSummoner() == summonerName and C_SummonInfo_GetSummonConfirmAreaName() == summonerLocation then
-			C_SummonInfo_ConfirmSummon() -- Accept the summon
-			StaticPopup_Hide("CONFIRM_SUMMON") -- Hide the confirmation dialog
-		end
-	end)
+	K.Delay(10, HandleSummonAcceptance)
 end
 
 -- Enable or disable the automatic summon acceptance feature
