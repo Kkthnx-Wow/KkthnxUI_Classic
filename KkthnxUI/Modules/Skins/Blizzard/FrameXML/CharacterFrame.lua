@@ -35,23 +35,6 @@ local function PaperDollItemSlotButtonUpdate(frame)
 	end
 end
 
-local function HandleHappiness(frame)
-	local happiness = GetPetHappiness()
-	local _, isHunterPet = HasPetUI()
-	if not (happiness and isHunterPet) then
-		return
-	end
-
-	local texture = frame:GetRegions()
-	if happiness == 1 then
-		texture:SetTexCoord(0.41, 0.53, 0.06, 0.30)
-	elseif happiness == 2 then
-		texture:SetTexCoord(0.22, 0.345, 0.06, 0.30)
-	elseif happiness == 3 then
-		texture:SetTexCoord(0.04, 0.15, 0.06, 0.30)
-	end
-end
-
 local function HandleResistanceFrame(frameName)
 	for i = 1, 5 do
 		local frame, icon, text = _G[frameName .. i], _G[frameName .. i]:GetRegions()
@@ -109,7 +92,7 @@ tinsert(C.defaultThemes, function()
 		end
 	end
 
-	-- _G.CharacterAttributesFrame:StripTextures()
+	_G.CharacterAttributesFrame:StripTextures()
 
 	HandleResistanceFrame("MagicResFrame")
 
@@ -132,6 +115,21 @@ tinsert(C.defaultThemes, function()
 	end
 
 	hooksecurefunc("PaperDollItemSlotButton_Update", PaperDollItemSlotButtonUpdate)
+
+	if not CharacterModelFrame.KKUI_Texture then
+		-- Create the texture only once
+		local texture = CharacterModelFrame:CreateTexture(nil, "BACKGROUND", nil, -7)
+		texture:SetDrawLayer("BACKGROUND", -7)
+		texture:SetPoint("TOPLEFT", 0, 0)
+		texture:SetPoint("BOTTOMRIGHT", 0, -94) -- Stretch down by 20 pixels
+		CharacterModelFrame.KKUI_Texture = texture
+	end
+
+	-- Set the texture properties
+	CharacterModelFrame.KKUI_Texture:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Skins\\DressingRoom" .. K.Class)
+	CharacterModelFrame.KKUI_Texture:SetTexCoord(0.00195312, 0.935547, 0.00195312, 0.978516)
+	CharacterModelFrame.KKUI_Texture:SetHorizTile(false)
+	CharacterModelFrame.KKUI_Texture:SetVertTile(false)
 
 	hooksecurefunc("PaperDollFrame_SetLevel", function()
 		local classDisplayName, class = UnitClass("player")

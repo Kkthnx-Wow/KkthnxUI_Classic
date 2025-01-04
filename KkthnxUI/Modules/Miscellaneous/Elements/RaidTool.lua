@@ -286,7 +286,18 @@ function Module:RaidTool_BuffChecker(parent)
 		end
 	end
 
+	local lastSendTime = 0
+	local cooldown = 10 -- 10 seconds cooldown
+
 	local function sendResult(i)
+		local currentTime = GetTime()
+		if currentTime - lastSendTime < cooldown then
+			print("Please wait before sending another message.")
+			return
+		end
+
+		lastSendTime = currentTime
+
 		local count = #NoBuff[i]
 		if count > 0 then
 			if count >= numPlayer then
@@ -515,7 +526,7 @@ function Module:RaidTool_CreateMenu(parent)
 		{
 			CONVERT_TO_RAID,
 			function()
-				if UnitIsGroupLeader("player") and not HasLFGRestrictions() and GetNumGroupMembers() <= 5 then
+				if UnitIsGroupLeader("player") and GetNumGroupMembers() <= 5 then
 					if IsInRaid() then
 						ConvertToParty()
 					else
@@ -526,22 +537,6 @@ function Module:RaidTool_CreateMenu(parent)
 				else
 					UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_LEADER)
 				end
-			end,
-		},
-		{
-			ROLE_POLL,
-			function()
-				if IsInGroup() and not HasLFGRestrictions() and (UnitIsGroupLeader("player") or (UnitIsGroupAssistant("player") and IsInRaid())) then
-					InitiateRolePoll()
-				else
-					UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_LEADER)
-				end
-			end,
-		},
-		{
-			RAID_CONTROL,
-			function()
-				ToggleFriendsFrame(3)
 			end,
 		},
 	}
