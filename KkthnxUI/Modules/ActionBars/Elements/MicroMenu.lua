@@ -1,8 +1,8 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("ActionBar")
 
-local insert, ipairs, pairs = table.insert, ipairs, pairs
-local type, wipe = type, table.wipe
+local ipairs = ipairs
+local wipe = table.wipe
 
 local MicroButtons = {}
 local updateWatcher = 0
@@ -104,10 +104,11 @@ local function CreateMicroButton(parent, buttonName, FadeMicroMenuEnabled)
 	local buttonFrame = CreateFrame("Frame", nil, parent)
 	buttonFrame:SetSize(22, 30)
 	buttonFrame:CreateBorder()
-	insert(MicroButtons, buttonFrame)
+	table.insert(MicroButtons, buttonFrame)
 
 	local button = _G[buttonName]
 	if not button then
+		print("Button not found:", buttonName)
 		return
 	end
 
@@ -118,7 +119,15 @@ local function CreateMicroButton(parent, buttonName, FadeMicroMenuEnabled)
 	hooksecurefunc(button, "SetPoint", ResetButtonProperties)
 
 	button:SetHitRectInsets(0, 0, 0, 0)
-	button:SetHighlightTexture(0)
+
+	-- Create and set custom highlight texture
+	local highlight = button:CreateTexture(nil, "HIGHLIGHT")
+	highlight:SetTexture(K.MediaFolder .. "Skins\\HighlightMicroButtonWhite")
+	highlight:SetVertexColor(K.r, K.g, K.b) -- Set to class color
+	highlight:SetBlendMode("ADD")
+	highlight:SetPoint("TOPLEFT", button, "TOPLEFT", -24, 18)
+	highlight:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 24, -18)
+
 	button.SetHighlightTexture = K.Noop
 
 	SetupMicroButtonTextures(button)

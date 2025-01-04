@@ -102,23 +102,23 @@ local function ConvertTable()
 
 	for _, v in pairs(C.AuraWatchList[K.Class]) do
 		if v.Name == "Special Aura" then
-			InsertData(2, v.List)
+			InsertData(1, v.List)
 		elseif v.Name == "Spell Cooldown" then
-			InsertData(6, v.List)
+			InsertData(3, v.List)
 		end
 	end
 
 	for i, v in pairs(C.AuraWatchList["ALL"]) do
 		if v.Name == "Enchant Aura" then
-			InsertData(7, v.List)
-		elseif v.Name == "Raid Buff" then
-			InsertData(8, v.List)
-		elseif v.Name == "Raid Debuff" then
-			InsertData(9, v.List)
-		elseif v.Name == "Warning" then
 			InsertData(4, v.List)
+		elseif v.Name == "Raid Buff" then
+			InsertData(5, v.List)
+		elseif v.Name == "Raid Debuff" then
+			InsertData(6, v.List)
+		elseif v.Name == "Warning" then
+			InsertData(2, v.List)
 		elseif v.Name == "InternalCD" then
-			InsertData(10, v.List)
+			InsertData(7, v.List)
 			IntCD = v
 			tremove(C.AuraWatchList["ALL"], i)
 		end
