@@ -367,6 +367,10 @@ local function TogglePetHappiness()
 	K:GetModule("Miscellaneous"):TogglePetHappiness()
 end
 
+local function UpdateChatButtons()
+	K:GetModule("Chat"):UpdateChatButtons()
+end
+
 -- Sliders > minvalue, maxvalue, stepvalue
 local ActionBar = function(self)
 	local Window = self:CreateWindow(L["ActionBar"])
@@ -630,6 +634,9 @@ local Chat = function(self)
 	Window:CreateSection("Appearance")
 	Window:CreateSwitch("Chat", "Emojis", L["Show Emojis In Chat"] .. emojiExampleIcon)
 	Window:CreateSwitch("Chat", "ChatItemLevel", L["Show ItemLevel on ChatFrames"])
+	Window:CreateSwitch("Chat", "CopyButton", newFeatureIcon .. "Enable Copy Chat Button |TInterface\\Buttons\\UI-GuildButton-PublicNote-Up:14:14|t", "Enable or disable the Copy Chat button, which allows you to copy chat text.", UpdateChatButtons)
+	Window:CreateSwitch("Chat", "ConfigButton", newFeatureIcon .. "Enable Config Button |TInterface\\Buttons\\UI-OptionsButton:14:14|t", "Enable or disable the Config button, which provides quick access to the configuration menu.", UpdateChatButtons)
+	Window:CreateSwitch("Chat", "RollButton", newFeatureIcon .. "Enable Roll Button |A:charactercreate-icon-dice:14:14|a", "Enable or disable the Roll button, which allows you to roll a random number between 1 and 100.", UpdateChatButtons)
 	Window:CreateDropdown("Chat", "TimestampFormat", L["Custom Chat Timestamps"])
 
 	-- Chat behavior
