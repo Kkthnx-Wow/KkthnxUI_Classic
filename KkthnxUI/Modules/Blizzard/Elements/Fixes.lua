@@ -35,6 +35,66 @@ do
 end
 
 do
+	-- This script fixes the quest icon textures in the QuestFrameGreetingPanel.
+	-- It checks if the QuestFrameFixer addon is loaded and returns early if it is to avoid conflicts.
+	-- It then initializes the quest title buttons and their associated icon textures.
+	-- When the QuestFrameGreetingPanel is shown, it updates the quest icon textures to the active or available quest icon based on whether the quest is active.
+
+	local _G = _G
+	local tinsert = table.insert
+	local GetFileIDFromPath = GetFileIDFromPath
+	local MAX_NUM_QUESTS = MAX_NUM_QUESTS
+
+	-- Check if QuestFrameFixer addon is loaded
+	if IsAddOnLoaded("QuestFrameFixer") then
+		return
+	end
+
+	local ACTIVE_QUEST_ICON_FILEID = GetFileIDFromPath("Interface\\GossipFrame\\ActiveQuestIcon")
+	local AVAILABLE_QUEST_ICON_FILEID = GetFileIDFromPath("Interface\\GossipFrame\\AvailableQuestIcon")
+
+	local questTitleButtons = {}
+	local questIconTextures = {}
+
+	-- Initialize quest title buttons and icon textures
+	for i = 1, MAX_NUM_QUESTS do
+		local questTitleButton = _G["QuestTitleButton" .. i]
+		if questTitleButton then
+			tinsert(questTitleButtons, questTitleButton)
+			local questIconTexture = _G[questTitleButton:GetName() .. "QuestIcon"]
+			if questIconTexture then
+				tinsert(questIconTextures, questIconTexture)
+			else
+				-- Debugging: Log missing quest icon texture
+				print("Missing quest icon texture for button: " .. questTitleButton:GetName())
+			end
+		else
+			-- Debugging: Log missing quest title button
+			print("Missing quest title button: QuestTitleButton" .. i)
+		end
+	end
+
+	-- Hook the OnShow event of the QuestFrameGreetingPanel
+	QuestFrameGreetingPanel:HookScript("OnShow", function()
+		for i, questTitleButton in ipairs(questTitleButtons) do
+			if questTitleButton:IsVisible() then
+				local questIconTexture = questIconTextures[i]
+				if questIconTexture then
+					if questTitleButton.isActive == 1 then
+						questIconTexture:SetTexture(ACTIVE_QUEST_ICON_FILEID)
+					else
+						questIconTexture:SetTexture(AVAILABLE_QUEST_ICON_FILEID)
+					end
+				else
+					-- Debugging: Log missing quest icon texture
+					print("Missing quest icon texture for visible button: " .. questTitleButton:GetName())
+				end
+			end
+		end
+	end)
+end
+
+do
 	-- This ensures the 'scriptErrors' CVar is always disabled to prevent spam caused by Blizzard's bug with 'FCF_DockUpdate' in Classic Era.
 	-- Even if a user or another addon attempts to enable 'scriptErrors', this script will immediately turn it back off.
 

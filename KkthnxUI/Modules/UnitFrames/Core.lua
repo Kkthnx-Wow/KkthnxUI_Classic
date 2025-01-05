@@ -263,7 +263,17 @@ local dispellType = {
 	["Magic"] = true,
 }
 
-function Module.PostUpdateIcon(element, _, button, _, _, duration, expiration, debuffType)
+-- Function to update the stealable indicator
+local function UpdateStealableIndicator(button, unit, debuffType)
+	-- Show stealable indicator if applicable
+	if dispellType[debuffType] and not UnitIsPlayer(unit) and not button.isDebuff then
+		button.stealable:Show()
+	else
+		button.stealable:Hide()
+	end
+end
+
+function Module.PostUpdateIcon(element, unit, button, _, _, duration, expiration, debuffType)
 	local style = element.__owner.mystyle
 	button:SetSize(style == "nameplate" and element.size or element.size, style == "nameplate" and element.size * 1 or element.size)
 
@@ -290,10 +300,8 @@ function Module.PostUpdateIcon(element, _, button, _, _, duration, expiration, d
 		end
 	end
 
-	-- -- Show stealable indicator if applicable
-	if dispellType[debuffType] and not UnitIsPlayer(style) and not button.isDebuff then
-		button.stealable:Show()
-	end
+	-- Call the function to update the stealable indicator
+	UpdateStealableIndicator(button, unit, debuffType)
 
 	-- Handle cooldown and timer display
 	if duration and duration > 0 then

@@ -2,10 +2,27 @@
 local K = KkthnxUI[1]
 local oUF = K.oUF
 
-local starttime, duration, usingspell
+local starttime, duration, usingspell, spellID
 local GetTime = GetTime
 
+local classSpellIDs = {
+	["DEATHKNIGHT"] = 45902,
+	["DRUID"] = 1126,
+	["HUNTER"] = 1978,
+	["MAGE"] = 168,
+	["PALADIN"] = 20154,
+	["PRIEST"] = 1243,
+	["ROGUE"] = 1752,
+	["SHAMAN"] = 403,
+	["WARLOCK"] = 687,
+	["WARRIOR"] = 6673,
+}
+
+local playerClass = select(2, UnitClass("player"))
+spellID = classSpellIDs[playerClass]
+
 local function OnUpdateSpark(self)
+	self.Spark:ClearAllPoints()
 	local elapsed = GetTime() - starttime
 	local perc = elapsed / duration
 	if perc > 1 then
@@ -24,16 +41,32 @@ local function OnShow(self)
 	self:SetScript("OnUpdate", OnUpdateSpark)
 end
 
+local function Init()
+	if IsSpellKnown(spellID) then
+		return spellID
+	end
+	return nil
+end
+
 local function Update(self)
-	local bar = self.GCD
-	local start, dur = GetSpellCooldown(61304)
-	if dur and dur > 0 and dur <= 2 then
-		bar:Show()
-		usingspell = 1
-		starttime, duration = start, dur
-	elseif usingspell == 1 and dur == 0 then
-		bar:Hide()
-		usingspell = 0
+	local element = self.GCD
+	if element then
+		if not spellID then
+			spellID = Init()
+			if not spellID then
+				return
+			end
+		end
+		local start, dur = GetSpellCooldown(spellID)
+		if dur and dur > 0 and dur <= 2.0 then -- Adjust duration check for WoW Classic GCD
+			usingspell = 1
+			starttime = start
+			duration = dur
+			element:Show()
+		elseif usingspell == 1 and dur == 0 then
+			element:Hide()
+			usingspell = 0
+		end
 	end
 end
 
@@ -60,7 +93,7 @@ local function Enable(self)
 		element:SetScript("OnShow", OnShow)
 		element:SetScript("OnHide", OnHide)
 
-		self:RegisterEvent("SPELL_UPDATE_COOLDOWN", Update, true)
+		self:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN", Update, true)
 
 		return true
 	end
@@ -71,7 +104,7 @@ local function Disable(self)
 	if element then
 		element:Hide()
 
-		self:UnregisterEvent("SPELL_UPDATE_COOLDOWN", Update)
+		self:UnregisterEvent("ACTIONBAR_UPDATE_COOLDOWN", Update)
 	end
 end
 
