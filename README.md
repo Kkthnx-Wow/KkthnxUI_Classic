@@ -1,7 +1,5 @@
 # KkthnxUI for Classic Era Realms
 
-## ⚠️ THIS IS A WORK IN PROGRESS! EXPECT BUGS! ⚠️
-
 ![KkthnxUI Preview](https://user-images.githubusercontent.com/1692977/31845157-13107948-b5cc-11e7-926d-67e669b8ca69.png)
 
 [![Support me on Patreon](https://i.imgur.com/FzTLsYV.png)](https://www.patreon.com/kkthnx)
