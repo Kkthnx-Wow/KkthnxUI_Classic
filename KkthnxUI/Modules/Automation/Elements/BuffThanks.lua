@@ -106,7 +106,7 @@ end
 local function HandlePlayerEnteringWorld()
 	-- Cache auras on login or zoning
 	CacheAuras(previousAuras)
-	print("Cached auras on PLAYER_ENTERING_WORLD.")
+	-- print("Cached auras on PLAYER_ENTERING_WORLD.")
 end
 
 -- Handle Aura Changes

@@ -28,21 +28,6 @@ local localSlots = {
 	[11] = { 18, INVTYPE_RANGED, 1000 },
 }
 
-local function hideAlertWhileCombat()
-	if InCombatLockdown() then
-		DurabilityDataText:RegisterEvent("PLAYER_REGEN_ENABLED")
-		DurabilityDataText:UnregisterEvent("UPDATE_INVENTORY_DURABILITY")
-	end
-end
-
-local lowDurabilityInfo = {
-	text = L["DurabilityHelpTip"],
-	buttonStyle = HelpTip.ButtonStyle.Okay,
-	targetPoint = HelpTip.Point.TopEdgeCenter,
-	onAcknowledgeCallback = hideAlertWhileCombat,
-	offsetY = 10,
-}
-
 local function sortSlots(a, b)
 	if a and b then
 		return (a[3] == b[3] and a[1] < b[1]) or (a[3] < b[3])
@@ -109,9 +94,9 @@ local function OnEvent(event)
 	end
 
 	if isLow then
-		HelpTip:Show(DurabilityDataText, lowDurabilityInfo)
+		Module:ShowLowDurabilityWarning()
 	else
-		HelpTip:Hide(DurabilityDataText, L["DurabilityHelpTip"])
+		Module:HideLowDurabilityWarning()
 	end
 end
 
@@ -178,4 +163,52 @@ function Module:CreateDurabilityDataText()
 	DurabilityDataText:SetScript("OnEvent", _OnEvent)
 	DurabilityDataText:SetScript("OnEnter", OnEnter)
 	DurabilityDataText:SetScript("OnLeave", OnLeave)
+end
+
+-- Create a frame for the low durability warning
+local lowDurabilityFrame = CreateFrame("Frame", "KKUI_DurabilityWarningFrame", UIParent)
+lowDurabilityFrame:SetSize(400, 100)
+lowDurabilityFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 300)
+lowDurabilityFrame:Hide()
+
+lowDurabilityFrame.text = lowDurabilityFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+lowDurabilityFrame.text:SetPoint("CENTER", lowDurabilityFrame, "CENTER", 0, 0)
+
+-- Function to show the low durability warning
+function Module:ShowLowDurabilityWarning()
+	local lowestDurability = math_floor(localSlots[1][3] * 100)
+	lowDurabilityFrame.text:SetFormattedText("|A:services-icon-warning:16:16|a |cffff0000Low Durability!|r |cffffff00Please repair your gear.|r (|cff00ff00%d%%|r)", lowestDurability)
+	lowDurabilityFrame:Show()
+
+	-- Stop any ongoing animations
+	if lowDurabilityFrame.animGroup and lowDurabilityFrame.animGroup:IsPlaying() then
+		lowDurabilityFrame.animGroup:Stop()
+	end
+
+	-- Create animation group
+	if not lowDurabilityFrame.animGroup then
+		lowDurabilityFrame.animGroup = lowDurabilityFrame:CreateAnimationGroup()
+
+		-- Create fade out animation
+		local fadeOut = lowDurabilityFrame.animGroup:CreateAnimation("Alpha")
+		fadeOut:SetFromAlpha(1)
+		fadeOut:SetToAlpha(0)
+		fadeOut:SetDuration(1)
+		fadeOut:SetStartDelay(5)
+		fadeOut:SetSmoothing("OUT")
+
+		lowDurabilityFrame.animGroup:SetScript("OnFinished", function()
+			lowDurabilityFrame:Hide()
+			if isLowDurability() then
+				C_Timer.After(5, Module.ShowLowDurabilityWarning) -- Remind again after 5 seconds if still low
+			end
+		end)
+	end
+
+	lowDurabilityFrame.animGroup:Play()
+end
+
+-- Function to hide the low durability warning
+function Module:HideLowDurabilityWarning()
+	lowDurabilityFrame:Hide()
 end

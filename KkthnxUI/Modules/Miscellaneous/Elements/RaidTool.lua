@@ -19,7 +19,7 @@ function Module:RaidTool_Visibility(frame)
 	if IsInGroup() then
 		frame:Show()
 	else
-		frame:Show()
+		frame:Hide()
 	end
 end
 

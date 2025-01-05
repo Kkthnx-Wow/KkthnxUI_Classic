@@ -319,10 +319,25 @@ end
 
 -- Reanchor Durability Frame
 function Module:CreateDurabilityFrameMove()
+	-- Create a new frame to hold the DurabilityFrame
+	local durabilityHolder = CreateFrame("Frame", "KKUI_DurabilityHolder", UIParent)
+	durabilityHolder:SetSize(DurabilityFrame:GetSize())
+	durabilityHolder:SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", -40, -50)
+
+	-- Create a mover for the new frame
+	K.Mover(durabilityHolder, "DurabilityFrameMover", "Durability Frame", { "TOPLEFT", Minimap, "BOTTOMLEFT", -40, -50 })
+
+	-- Reanchor the DurabilityFrame to the new frame
+	DurabilityFrame:ClearAllPoints()
+	DurabilityFrame:SetPoint("CENTER", durabilityHolder, "CENTER")
+	DurabilityFrame:SetParent(durabilityHolder)
+
+	-- Hook the SetPoint function to prevent it from being moved by other addons
 	hooksecurefunc(DurabilityFrame, "SetPoint", function(self, _, parent)
 		if parent == "MinimapCluster" or parent == MinimapCluster then
 			self:ClearAllPoints()
-			self:SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", -40, -50)
+			self:SetPoint("CENTER", durabilityHolder, "CENTER")
+			self:SetParent(durabilityHolder)
 		end
 	end)
 end
