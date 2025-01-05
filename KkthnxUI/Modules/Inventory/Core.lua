@@ -315,13 +315,13 @@ function Module:CreateKeyToggle(click)
 	keyToggleButton:SetScript("OnClick", function()
 		ToggleFrame(self.keyring)
 		if self.keyring:IsShown() then
-			-- bu.bg:SetBackdropBorderColor(1, 0.8, 0)
+			keyToggleButton.KKUI_Border:SetVertexColor(1, 0.8, 0)
 			PlaySound(SOUNDKIT.KEY_RING_OPEN)
 			if self.BagBar and self.BagBar:IsShown() then
 				self.bagToggle:Click()
 			end
 		else
-			-- K.SetBorderColor(bu.bg)
+			K.SetBorderColor(keyToggleButton.KKUI_Border)
 			PlaySound(SOUNDKIT.KEY_RING_CLOSE)
 		end
 	end)
@@ -617,10 +617,10 @@ function Module:CreateFavouriteButton()
 	favouriteButton:StyleButton()
 
 	favouriteButton.Icon = favouriteButton:CreateTexture(nil, "ARTWORK")
-	favouriteButton.Icon:SetPoint("TOPLEFT", -4, 3.5)
-	favouriteButton.Icon:SetPoint("BOTTOMRIGHT", 4, -2.5)
+	favouriteButton.Icon:SetPoint("TOPLEFT", -2, 2)
+	favouriteButton.Icon:SetPoint("BOTTOMRIGHT", 2, -2)
 	favouriteButton.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-	favouriteButton.Icon:SetTexture("Interface\\Common\\friendship-heart")
+	favouriteButton.Icon:SetAtlas("PetJournal-FavoritesIcon", true)
 
 	favouriteButton.__turnOff = function()
 		K.SetBorderColor(favouriteButton.KKUI_Border)

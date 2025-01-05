@@ -92,7 +92,10 @@ function Module:Reminder_Create(cfg)
 	frame.Icon = frame:CreateTexture(nil, "ARTWORK")
 	frame.Icon:SetAllPoints()
 	frame.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-	frame.Icon:SetTexture(cfg.texture or GetSpellTexture(next(cfg.spells)))
+	for spell in pairs(cfg.spells) do
+		frame.Icon:SetTexture(GetSpellTexture(spell))
+		break
+	end
 
 	frame:CreateBorder()
 

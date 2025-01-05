@@ -550,9 +550,7 @@ local function HelloWorld()
 	welcome:SetFrameStrata("HIGH")
 	K.CreateMoverFrame(welcome)
 	welcome:CreateBorder()
-	K.CreateFontString(welcome, 30, K.Title, "", false, "TOPLEFT", 10, 28)
-	K.CreateFontString(welcome, 14, K.Version, "", true, "TOPLEFT", 164, 16)
-	K.CreateFontString(welcome, 16, "Help Info", "", true, "TOP", 0, -10)
+	K.CreateFontString(welcome, 16, "Installer Info", "", true, "TOP", 0, -10)
 
 	local welcomeLogo = welcome:CreateTexture(nil, "OVERLAY")
 	welcomeLogo:SetSize(512, 256)
@@ -602,7 +600,7 @@ local function HelloWorld()
 
 	K.CreateFontString(welcome, 13, "If this is your first time using |cff5C8BCFKkthnxUI|r,", "", false, "BOTTOM", 0, 130)
 	K.CreateFontString(welcome, 13, "please take a minute to go through the tutorial!", "", false, "BOTTOM", 0, 110)
-	K.CreateFontString(welcome, 13, "if you need help for commands type /khelp", "", false, "BOTTOM", 0, 90)
+	K.CreateFontString(welcome, 13, "if you need help for commands type /kk help", "", false, "BOTTOM", 0, 90)
 
 	if KkthnxUIDB.Variables[K.Realm][K.Name].InstallComplete or K.isDeveloper then
 		local close = CreateFrame("Button", nil, welcome)

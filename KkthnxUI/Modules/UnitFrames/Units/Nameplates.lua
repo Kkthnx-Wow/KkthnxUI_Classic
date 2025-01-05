@@ -810,7 +810,7 @@ function Module:CreatePlates()
 	self.Castbar.Text:SetJustifyH("LEFT")
 
 	self.Castbar.Icon = self.Castbar:CreateTexture(nil, "ARTWORK")
-	self.Castbar.Icon:SetSize(self:GetHeight() * 2 + 5, self:GetHeight() * 2 + 5)
+	self.Castbar.Icon:SetSize(self:GetHeight() * 2 + 10, self:GetHeight() * 2 + 10)
 	self.Castbar.Icon:SetPoint("BOTTOMRIGHT", self.Castbar, "BOTTOMLEFT", -3, 0)
 	self.Castbar.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
@@ -828,10 +828,6 @@ function Module:CreatePlates()
 	self.Castbar.spellTarget:SetJustifyH("LEFT")
 	self.Castbar.spellTarget:SetPoint("TOPLEFT", self.Castbar.Text, "BOTTOMLEFT", 0, -6)
 	self:RegisterEvent("UNIT_TARGET", updateSpellTarget)
-
-	self.Castbar.stageString = K.CreateFontString(self.Castbar, 22)
-	self.Castbar.stageString:ClearAllPoints()
-	self.Castbar.stageString:SetPoint("TOPLEFT", self.Castbar.Icon, -2, 2)
 
 	self.Castbar.timeToHold = 0.5
 	self.Castbar.decimal = "%.1f"
@@ -1145,19 +1141,6 @@ function Module:CreatePlayerPlate()
 	self.Power.frequentUpdates = true
 
 	Module:CreateClassPower(self)
-
-	if K.Class == "MONK" then
-		self.Stagger = CreateFrame("StatusBar", self:GetName() .. "Stagger", self)
-		self.Stagger:SetPoint("TOPLEFT", self.Health, 0, 8)
-		self.Stagger:SetSize(self:GetWidth(), self:GetHeight())
-		self.Stagger:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
-		self.Stagger:CreateShadow(true)
-
-		self.Stagger.Value = self.Stagger:CreateFontString(nil, "OVERLAY")
-		self.Stagger.Value:SetFontObject(K.UIFont)
-		self.Stagger.Value:SetPoint("CENTER", self.Stagger, "CENTER", 0, 0)
-		self:Tag(self.Stagger.Value, "[monkstagger]")
-	end
 
 	if C["Nameplate"].ClassAuras then
 		-- local Lumos = K:GetModule("Auras")

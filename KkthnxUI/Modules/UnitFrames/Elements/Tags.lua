@@ -30,8 +30,13 @@ local UnitPowerType = UnitPowerType
 local UnitReaction = UnitReaction
 local UnitStagger = UnitStagger
 
--- Add scantip back, due to issue on ColorMixin
-local scanTip = CreateFrame("GameTooltip", "KKUI_ScanTooltip", nil, "GameTooltipTemplate")
+local FEIGN_DEATH
+local function GetFeignDeathTag()
+	if not FEIGN_DEATH then
+		FEIGN_DEATH = GetSpellInfo(5384)
+	end
+	return FEIGN_DEATH
+end
 
 local function GetHealthColor(percentage)
 	local r, g, b
@@ -67,7 +72,7 @@ local function GetUnitHealthPerc(unit)
 end
 
 oUF.Tags.Methods["hp"] = function(unit)
-	if UnitIsDeadOrGhost(unit) or not UnitIsConnected(unit) then
+	if UnitIsDeadOrGhost(unit) or not UnitIsConnected(unit) or UnitIsFeignDeath(unit) then
 		return oUF.Tags.Methods["DDG"](unit)
 	else
 		local percentage, currentHealth = GetUnitHealthPerc(unit)
@@ -102,7 +107,7 @@ oUF.Tags.Methods["color"] = function(unit)
 
 	if UnitIsTapDenied(unit) then
 		return K.RGBToHex(oUF.colors.tapped)
-	elseif UnitIsPlayer(unit) or UnitInPartyIsAI(unit) then
+	elseif UnitIsPlayer(unit) then
 		return K.RGBToHex(K.Colors.class[class])
 	elseif reaction then
 		return K.RGBToHex(K.Colors.reaction[reaction])
@@ -124,18 +129,14 @@ end
 oUF.Tags.Events["afkdnd"] = "PLAYER_FLAGS_CHANGED"
 
 oUF.Tags.Methods["DDG"] = function(unit)
-	if UnitIsDead(unit) then
+	if UnitIsFeignDeath(unit) then
+		return "|cff99ccff" .. GetFeignDeathTag() .. "|r"
+	elseif UnitIsDead(unit) then
 		return "|cffCFCFCF" .. DEAD .. "|r"
 	elseif UnitIsGhost(unit) then
 		return "|cffCFCFCF" .. L["Ghost"] .. "|r"
 	elseif not UnitIsConnected(unit) then
 		return "|cffCFCFCF" .. PLAYER_OFFLINE .. "|r"
-	elseif UnitIsAFK(unit) then
-		return "|cffCFCFCF <" .. AFK .. ">|r"
-	elseif UnitIsDND(unit) then
-		return "|cffCFCFCF <" .. DND .. ">|r"
-	else
-		return ""
 	end
 end
 
@@ -143,31 +144,26 @@ oUF.Tags.Events["DDG"] = "PLAYER_FLAGS_CHANGED UNIT_HEALTH UNIT_MAXHEALTH UNIT_N
 
 -- Level tags
 oUF.Tags.Methods["fulllevel"] = function(unit)
-	if not UnitIsConnected(unit) then
-		return "??"
-	end
-
-	local level, realLevel, color, str, class
-	realLevel = UnitLevel(unit)
-	level = UnitEffectiveLevel(unit)
-	color = K.RGBToHex(GetCreatureDifficultyColor(level))
-
+	local level = UnitLevel(unit)
+	local color = K.RGBToHex(GetCreatureDifficultyColor(level))
 	if level > 0 then
-		local realTag = level ~= realLevel and "*" or ""
-		str = color .. level .. realTag .. "|r"
+		level = color .. level .. "|r"
 	else
-		str = "|cffff0000??|r"
+		level = "|cffff0000??|r"
 	end
+	local str = level
 
-	class = UnitClassification(unit)
-	if class == "worldboss" then
+	local class = UnitClassification(unit)
+	if not UnitIsConnected(unit) then
+		str = "??"
+	elseif class == "worldboss" then
 		str = "|cffAF5050Boss|r"
 	elseif class == "rareelite" then
-		str = str .. "|cffAF5050R|r+"
+		str = level .. "|cffAF5050R|r+"
 	elseif class == "elite" then
-		str = str .. "|cffAF5050+|r"
+		str = level .. "|cffAF5050+|r"
 	elseif class == "rare" then
-		str = str .. "|cffAF5050R|r"
+		str = level .. "|cffAF5050R|r"
 	end
 
 	return str
@@ -222,25 +218,17 @@ end
 oUF.Tags.Events["nppp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER"
 
 oUF.Tags.Methods["nplevel"] = function(unit)
-	-- Get the unit's level
 	local level = UnitLevel(unit)
-
-	-- Check if the level is valid and not equal to K.Level
-	if level and level ~= K.Level then
-		-- Check if the level is greater than 0
+	if level and level ~= UnitLevel("player") then
 		if level > 0 then
-			-- Get the difficulty color for the level and convert it to a hex value
 			level = K.RGBToHex(GetCreatureDifficultyColor(level)) .. level .. "|r "
 		else
-			-- Set the level to "??", indicating that the level is unknown
 			level = "|cffff0000??|r "
 		end
 	else
-		-- Set the level to an empty string
 		level = ""
 	end
 
-	-- Return the formatted level string
 	return level
 end
 
@@ -281,8 +269,8 @@ oUF.Tags.Methods["npctitle"] = function(unit)
 			return "<" .. guildName .. ">"
 		end
 	elseif not isPlayer and NameOnlyTitle then
-		scanTip:SetOwner(UIParent, "ANCHOR_NONE")
-		scanTip:SetUnit(unit)
+		K.ScanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+		K.ScanTooltip:SetUnit(unit)
 
 		local textLine = _G[format("KKUI_ScanTooltipTextLeft%d", GetCVarBool("colorblindmode") and 3 or 2)]
 		local title = textLine and textLine:GetText()
@@ -320,22 +308,6 @@ oUF.Tags.Methods["altpower"] = function(unit)
 	return cur > 0 and cur
 end
 oUF.Tags.Events["altpower"] = "UNIT_POWER_UPDATE UNIT_MAXPOWER"
-
--- Monk stagger
-oUF.Tags.Methods["monkstagger"] = function(unit)
-	if unit ~= "player" or K.Class ~= "MONK" then
-		return
-	end
-
-	local cur = UnitStagger(unit) or 0
-	local perc = cur / UnitHealthMax(unit)
-	if cur == 0 then
-		return
-	end
-
-	return K.ShortValue(cur) .. " - " .. K.MyClassColor .. K.Round(perc * 100) .. "%"
-end
-oUF.Tags.Events["monkstagger"] = "UNIT_MAXHEALTH UNIT_AURA"
 
 oUF.Tags.Methods["lfdrole"] = function(unit)
 	local role = UnitGroupRolesAssigned(unit)

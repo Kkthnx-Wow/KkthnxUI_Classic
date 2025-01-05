@@ -116,11 +116,14 @@ tinsert(C.defaultThemes, function()
 
 	hooksecurefunc("PaperDollItemSlotButton_Update", PaperDollItemSlotButtonUpdate)
 
+	CharacterModelFrame:ClearAllPoints()
+	CharacterModelFrame:SetSize(231, 320)
+	CharacterModelFrame:SetPoint("TOPLEFT", PaperDollFrame, "TOPLEFT", 66, -78)
 	if not CharacterModelFrame.KKUI_Texture then
 		-- Create the texture only once
 		local texture = CharacterModelFrame:CreateTexture(nil, "ARTWORK")
 		texture:SetPoint("TOPLEFT", 0, 0)
-		texture:SetPoint("BOTTOMRIGHT", 0, -94) -- Stretch down by 20 pixels
+		texture:SetPoint("BOTTOMRIGHT", 0, -0) -- Stretch down by 20 pixels
 		CharacterModelFrame.KKUI_Texture = texture
 	end
 
