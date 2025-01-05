@@ -401,15 +401,6 @@ C["Misc"] = {
 		},
 		Value = 1,
 	},
-	-- ShowMarkerBar = {
-	-- 	Options = {
-	-- 		["Grids"] = 1,
-	-- 		["Horizontal"] = 2,
-	-- 		["Vertical"] = 3,
-	-- 		["DISABLE"] = 4,
-	-- 	},
-	-- 	Value = 4,
-	-- },
 }
 
 C["Nameplate"] = {

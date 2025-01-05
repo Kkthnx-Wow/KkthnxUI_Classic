@@ -799,10 +799,7 @@ local Misc = function(self)
 	-- Raid Tool Section
 	Window:CreateSection("Raid Tool")
 	Window:CreateSwitch("Misc", "RaidTool", L["Show Raid Utility Frame"])
-	-- Window:CreateSwitch("Misc", "RMRune", "RMRune - Add Info")
 	Window:CreateEditBox("Misc", "DBMCount", "DBMCount - Add Info")
-	-- Window:CreateSlider("Misc", "MarkerBarSize", "Marker Bar Size - Add Info", 20, 40, 1, nil, UpdateMarkerGrid)
-	-- Window:CreateDropdown("Misc", "ShowMarkerBar", L["World Markers Bar"], nil, nil, UpdateMarkerGrid)
 
 	-- Misc Section
 	Window:CreateSection("Misc")

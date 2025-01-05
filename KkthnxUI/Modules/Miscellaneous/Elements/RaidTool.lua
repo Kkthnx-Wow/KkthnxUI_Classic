@@ -2,16 +2,15 @@ local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 local Module = K:GetModule("Miscellaneous")
 
 local next, pairs, mod, select = next, pairs, mod, select
-local tinsert, strsplit, format = table.insert, string.split, string.format
 
 local IsInGroup, IsInRaid, IsInInstance = IsInGroup, IsInRaid, IsInInstance
 local UnitIsGroupLeader, UnitIsGroupAssistant = UnitIsGroupLeader, UnitIsGroupAssistant
-local IsPartyLFG, IsLFGComplete, HasLFGRestrictions = IsPartyLFG, IsLFGComplete, HasLFGRestrictions
+local IsPartyLFG, IsLFGComplete = IsPartyLFG, IsLFGComplete
 local GetInstanceInfo, GetNumGroupMembers, GetRaidRosterInfo, GetRaidTargetIndex, SetRaidTarget = GetInstanceInfo, GetNumGroupMembers, GetRaidRosterInfo, GetRaidTargetIndex, SetRaidTarget
-local GetTime, SendChatMessage, C_AddOns_IsAddOnLoaded = GetTime, SendChatMessage, C_AddOns.IsAddOnLoaded
+local GetTime, SendChatMessage = GetTime, SendChatMessage
 local IsAltKeyDown, IsControlKeyDown, IsShiftKeyDown, InCombatLockdown = IsAltKeyDown, IsControlKeyDown, IsShiftKeyDown, InCombatLockdown
 local UnitExists, UninviteUnit = UnitExists, UninviteUnit
-local DoReadyCheck, InitiateRolePoll, GetReadyCheckStatus = DoReadyCheck, InitiateRolePoll, GetReadyCheckStatus
+local DoReadyCheck, GetReadyCheckStatus = DoReadyCheck, GetReadyCheckStatus
 local LeaveParty = C_PartyInfo.LeaveParty
 local ConvertToRaid = C_PartyInfo.ConvertToRaid
 local ConvertToParty = C_PartyInfo.ConvertToParty
@@ -20,7 +19,7 @@ function Module:RaidTool_Visibility(frame)
 	if IsInGroup() then
 		frame:Show()
 	else
-		frame:Hide()
+		frame:Show()
 	end
 end
 
@@ -31,9 +30,31 @@ function Module:RaidTool_Header()
 	frame:SkinButton()
 	K.Mover(frame, "Raid Tool", "RaidManager", { "TOP", UIParent, "TOP", 0, -4 })
 
+	-- Fake icon
+	local left = CreateFrame("Frame", nil, frame)
+	left:SetPoint("LEFT", frame, "RIGHT", 6, 0)
+	left:SetSize(28, 28)
+	left:SkinButton()
+	local leftString = K.CreateFontString(left, 14, GetNumGroupMembers(), "", true)
+
+	-- Add tooltip
+	left:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine("This icon does nothing.")
+		GameTooltip:AddLine("It just shows the number of group members.", 1, 1, 1)
+		if K.Name == "Swiver" then -- He hates me...
+			GameTooltip:AddLine(" ")
+			GameTooltip:AddLine("No more spamming |cffFF7D0ASwiver|r!")
+		end
+		GameTooltip:Show()
+	end)
+
+	left:SetScript("OnLeave", K.HideTooltip)
+
 	Module.RaidTool_Visibility(Module, frame)
 	K:RegisterEvent("GROUP_ROSTER_UPDATE", function()
 		Module.RaidTool_Visibility(Module, frame)
+		leftString:SetText(GetNumGroupMembers())
 	end)
 
 	frame:RegisterForClicks("AnyUp")
@@ -269,138 +290,7 @@ function Module:RaidTool_BuffChecker(parent)
 	local icon = frame:CreateTexture(nil, "ARTWORK")
 	icon:SetPoint("TOPLEFT", frame, 6, -6)
 	icon:SetPoint("BOTTOMRIGHT", frame, -6, 6)
-	icon:SetAtlas("auctionhouse-icon-checkmark")
-
-	local BuffName = { L["Flask"], L["Food"], SPELL_STAT4_NAME, RAID_BUFF_2, RAID_BUFF_3, RUNES }
-	local NoBuff, numGroups, numPlayer = {}, 6, 0
-	for i = 1, numGroups do
-		NoBuff[i] = {}
-	end
-
-	local debugMode = false
-	local function sendMsg(text)
-		if debugMode then
-			K.Print(text)
-		else
-			SendChatMessage(text, K.CheckChat())
-		end
-	end
-
-	local lastSendTime = 0
-	local cooldown = 10 -- 10 seconds cooldown
-
-	local function sendResult(i)
-		local currentTime = GetTime()
-		if currentTime - lastSendTime < cooldown then
-			print("Please wait before sending another message.")
-			return
-		end
-
-		lastSendTime = currentTime
-
-		local count = #NoBuff[i]
-		if count > 0 then
-			if count >= numPlayer then
-				sendMsg(L["Lack"] .. " " .. BuffName[i] .. ": " .. "Everyone")
-			elseif count >= 5 and i > 2 then
-				sendMsg(L["Lack"] .. " " .. BuffName[i] .. ": " .. format(L["%s players"], count))
-			else
-				local str = L["Lack"] .. " " .. BuffName[i] .. ": "
-				for j = 1, count do
-					str = str .. NoBuff[i][j] .. (j < #NoBuff[i] and ", " or "")
-					if #str > 230 then
-						sendMsg(str)
-						str = ""
-					end
-				end
-				sendMsg(str)
-			end
-		end
-	end
-
-	local function scanBuff()
-		for i = 1, numGroups do
-			wipe(NoBuff[i])
-		end
-		numPlayer = 0
-
-		local maxgroup = Module:GetRaidMaxGroup()
-		for i = 1, GetNumGroupMembers() do
-			local name, _, subgroup, _, _, _, _, online, isDead = GetRaidRosterInfo(i)
-			if name and online and subgroup <= maxgroup and not isDead then
-				numPlayer = numPlayer + 1
-				for j = 1, numGroups do
-					local HasBuff
-					local buffTable = C.RaidUtilityBuffCheckList[j]
-					for k = 1, #buffTable do
-						local buffName = GetSpellInfo(buffTable[k])
-						for index = 1, 32 do
-							local currentBuff = UnitAura(name, index)
-							if currentBuff and currentBuff == buffName then
-								HasBuff = true
-								break
-							end
-						end
-					end
-
-					if not HasBuff then
-						name = strsplit("-", name) -- remove realm name
-						tinsert(NoBuff[j], name)
-					end
-				end
-			end
-		end
-
-		if not C["Misc"].RMRune then
-			NoBuff[numGroups] = {}
-		end
-
-		if #NoBuff[1] == 0 and #NoBuff[2] == 0 and #NoBuff[3] == 0 and #NoBuff[4] == 0 and #NoBuff[5] == 0 and #NoBuff[6] == 0 then
-			sendMsg(L["All Buffs Ready"])
-		else
-			sendMsg(L["Raid Buff Checker"])
-			for i = 1, 5 do
-				sendResult(i)
-			end
-
-			if C["Misc"].RMRune then
-				sendResult(numGroups)
-			end
-		end
-	end
-
-	frame:HookScript("OnEnter", function(self)
-		GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
-		GameTooltip:ClearLines()
-		GameTooltip:AddLine("Raid Tool", 0, 0.6, 1)
-		GameTooltip:AddLine(" ")
-		GameTooltip:AddDoubleLine(K.LeftButton .. K.InfoColor .. "Check Status")
-		GameTooltip:Show()
-	end)
-	frame:HookScript("OnLeave", K.HideTooltip)
-
-	local reset = true
-	K:RegisterEvent("PLAYER_REGEN_ENABLED", function()
-		reset = true
-	end)
-
-	frame:HookScript("OnMouseDown", function(_, btn)
-		if btn == "LeftButton" then
-			scanBuff()
-		end
-	end)
-end
-
-function Module:RaidTool_CountDown(parent)
-	local frame = CreateFrame("Button", nil, parent)
-	frame:SetPoint("LEFT", parent, "RIGHT", 6, 0)
-	frame:SetSize(28, 28)
-	frame:SkinButton()
-
-	local icon = frame:CreateTexture(nil, "ARTWORK")
-	icon:SetPoint("TOPLEFT", frame, 6, -6)
-	icon:SetPoint("BOTTOMRIGHT", frame, -6, 6)
-	icon:SetAtlas("auctionhouse-icon-clock", true)
+	icon:SetAtlas("common-icon-checkmark-yellow")
 
 	frame:HookScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
@@ -408,7 +298,7 @@ function Module:RaidTool_CountDown(parent)
 		GameTooltip:AddLine("Raid Tool", 0, 0.6, 1)
 		GameTooltip:AddLine(" ")
 		GameTooltip:AddDoubleLine(K.LeftButton .. K.InfoColor .. READY_CHECK)
-		GameTooltip:AddDoubleLine(K.RightButton .. K.InfoColor .. "Count Down")
+		GameTooltip:AddDoubleLine(K.ScrollButton .. K.InfoColor .. "Count Down")
 		GameTooltip:Show()
 	end)
 	frame:HookScript("OnLeave", K.HideTooltip)
@@ -429,18 +319,18 @@ function Module:RaidTool_CountDown(parent)
 			else
 				UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_LEADER)
 			end
-		else
+		elseif btn == "MiddleButton" then
 			if IsInGroup() and (UnitIsGroupLeader("player") or (UnitIsGroupAssistant("player") and IsInRaid())) then
-				if C_AddOns.IsAddOnLoaded("DBM-Core") then
+				if IsAddOnLoaded("DBM-Core") then
 					if reset then
 						SlashCmdList["DEADLYBOSSMODS"]("pull " .. "5")
 					else
 						SlashCmdList["DEADLYBOSSMODS"]("pull 0")
 					end
 					reset = not reset
-				elseif C_AddOns.IsAddOnLoaded("BigWigs") then
+				elseif IsAddOnLoaded("BigWigs") then
 					if not SlashCmdList["BIGWIGSPULL"] then
-						C_AddOns.LoadAddOn("BigWigs_Plugins")
+						LoadAddOn("BigWigs_Plugins")
 					end
 					if reset then
 						SlashCmdList["BIGWIGSPULL"]("5")
@@ -448,8 +338,10 @@ function Module:RaidTool_CountDown(parent)
 						SlashCmdList["BIGWIGSPULL"]("0")
 					end
 					reset = not reset
+				elseif K:GetModule("Announcements") and K:GetModule("Announcements").StartPull then
+					K:GetModule("Announcements").StartPull(5) -- Start a 5-second pull timer
 				else
-					UIErrorsFrame:AddMessage(K.InfoColor .. "DBM Required")
+					UIErrorsFrame:AddMessage(K.InfoColor .. "You need DBM or BigWigs to use this feature.")
 				end
 			else
 				UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_LEADER)
@@ -461,7 +353,7 @@ end
 function Module:RaidTool_CreateMenu(parent)
 	local frame = CreateFrame("Frame", nil, parent)
 	frame:SetPoint("TOP", parent, "BOTTOM", 0, -6)
-	frame:SetSize(250, 70)
+	frame:SetSize(250, 38)
 	frame:CreateBorder()
 	frame:Hide()
 
@@ -644,7 +536,6 @@ function Module:RaidTool_Init()
 	Module:RaidTool_ReadyCheck(frame)
 	Module:RaidTool_BuffChecker(frame)
 	Module:RaidTool_CreateMenu(frame)
-	Module:RaidTool_CountDown(frame)
 
 	Module:RaidTool_EasyMarker()
 	Module:RaidTool_Misc()

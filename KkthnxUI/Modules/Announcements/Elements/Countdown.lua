@@ -69,3 +69,6 @@ function Module:CreatePullCountdown()
 	SLASH_PULLCOUNTDOWN1 = "/pc"
 	SLASH_PULLCOUNTDOWN2 = "/jenkins"
 end
+
+-- Expose the startPull function
+Module.StartPull = startPull

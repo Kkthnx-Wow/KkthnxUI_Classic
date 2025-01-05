@@ -253,11 +253,23 @@ function Module:HideMinimapClock()
 end
 
 local calendarButton
+local lastClickTime = 0
 
 -- Function to calculate the current day
 local function GetCurrentDay()
 	local today = date("*t") -- Get the current system time as a table
 	return today.day -- Extract the day of the month
+end
+
+-- Function to handle calendar button click
+local function OnCalendarButtonClick()
+	local currentTime = GetTime()
+	if currentTime - lastClickTime < 60 then
+		return
+	end
+
+	lastClickTime = currentTime
+	K.Print("Oops! It seems you're trying to access the calendar, but this is Classic WoW. There is no calendar here! Enjoy the nostalgia!")
 end
 
 -- Function to create a custom calendar button
@@ -296,6 +308,8 @@ function Module:ShowCalendar()
 		calendarText:SetPoint("CENTER", 0, -4)
 		calendarText:SetText(GetCurrentDay()) -- Directly set the current day
 		calendarButton.calendarText = calendarText
+
+		calendarButton:SetScript("OnClick", OnCalendarButtonClick)
 	end
 
 	calendarButton:Show()
