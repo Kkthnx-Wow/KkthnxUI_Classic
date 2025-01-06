@@ -31,7 +31,11 @@ local function setupCheckButton()
 	AutoQuestCheckButton:SetFrameLevel(WorldMapFrame:GetFrameLevel() + 2)
 	AutoQuestCheckButton:ClearAllPoints()
 	if IsAddOnLoaded("Leatrix_Maps") and LeaMapsDB and LeaMapsDB["UseDefaultMap"] == "Off" then
-		AutoQuestCheckButton:SetPoint("TOPLEFT", 22, -24)
+		if LeaMapsDB["ShowCoords"] == "On" then
+			AutoQuestCheckButton:SetPoint("BOTTOMLEFT", 22, 44)
+		else
+			AutoQuestCheckButton:SetPoint("BOTTOMLEFT", 22, 26)
+		end
 	else
 		AutoQuestCheckButton:SetPoint("TOPRIGHT", -140, 0)
 	end
