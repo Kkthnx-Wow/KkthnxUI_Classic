@@ -623,32 +623,6 @@ end
 
 -- Role Updater and Chat Channel Check Functions
 do
-	-- local function CheckRole()
-	-- 	local tree = GetSpecialization()
-
-	-- 	if not tree then
-	-- 		K.Role = nil
-	-- 		return
-	-- 	end
-
-	-- 	local _, _, _, _, role, stat = GetSpecializationInfo(tree)
-	-- 	if role == "TANK" then
-	-- 		K.Role = "Tank"
-	-- 	elseif role == "HEALER" then
-	-- 		K.Role = "Healer"
-	-- 	elseif role == "DAMAGER" then
-	-- 		-- Check if the player is a caster class
-	-- 		if stat == 4 then -- 1 Strength, 2 Agility, 4 Intellect
-	-- 			K.Role = "Caster"
-	-- 		else
-	-- 			K.Role = "Melee"
-	-- 		end
-	-- 	end
-	-- end
-	-- K:RegisterEvent("PLAYER_LOGIN", CheckRole)
-	-- K:RegisterEvent("PLAYER_TALENT_UPDATE", CheckRole)
-	-- K:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", CheckRole)
-
 	-- Role Icons
 	local GroupRoleTex = {
 		TANK = "groupfinder-icon-role-micro-tank",

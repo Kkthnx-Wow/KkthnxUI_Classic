@@ -6,11 +6,14 @@ local next = next
 local unpack = unpack
 local hooksecurefunc = hooksecurefunc
 
-local HasPetUI = HasPetUI
-local GetPetHappiness = GetPetHappiness
 local GetInventoryItemQuality = GetInventoryItemQuality
-
 local GetItemQualityColor = C_Item.GetItemQualityColor
+
+local function replaceBlueColor(bar, r, g, b)
+	if r == 0 and g == 0 and b > 0.99 then
+		bar:SetStatusBarColor(0, 0.6, 1, 0.5)
+	end
+end
 
 local ResistanceCoords = {
 	{ 0.21875, 0.8125, 0.25, 0.32421875 }, --Arcane
@@ -150,4 +153,37 @@ tinsert(C.defaultThemes, function()
 			CharacterGuildText:SetFormattedText(GUILD_TITLE_TEMPLATE, infoColorString .. title .. "|r", guildName)
 		end
 	end)
+
+	-- Update the appearance of faction reputation bars
+	local function UpdateFactionSkins()
+		for i = 1, GetNumFactions() do
+			local bar = _G["ReputationBar" .. i]
+
+			if bar and not bar.styled then
+				bar:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
+				bar:GetStatusBarTexture():SetDrawLayer("BORDER")
+
+				bar.styled = true
+			end
+		end
+	end
+
+	ReputationFrame:HookScript("OnShow", UpdateFactionSkins)
+	ReputationFrame:HookScript("OnEvent", UpdateFactionSkins)
+
+	-- Update the appearance of the skill detail status bar
+	SkillDetailStatusBar:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
+	hooksecurefunc(SkillDetailStatusBar, "SetStatusBarColor", replaceBlueColor)
+	SkillDetailStatusBar:GetStatusBarTexture():SetDrawLayer("BORDER")
+
+	-- Update the appearance of individual skill rank frames
+	for i = 1, 12 do
+		local name = "SkillRankFrame" .. i
+		local bar = _G[name]
+
+		-- Apply custom texture and set the draw layer
+		bar:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
+		hooksecurefunc(bar, "SetStatusBarColor", replaceBlueColor)
+		bar:GetStatusBarTexture():SetDrawLayer("BORDER")
+	end
 end)
