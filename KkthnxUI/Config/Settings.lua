@@ -384,6 +384,7 @@ C["Misc"] = {
 	EnhancedMail = false,
 	ExpRep = true,
 	GemEnchantInfo = false,
+	HelmCloakToggle = false,
 	ItemLevel = false,
 	MaxCameraZoom = 2.6,
 	MuteSounds = true,

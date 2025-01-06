@@ -769,6 +769,7 @@ local Misc = function(self)
 	Window:CreateSwitch("Misc", "ClassColorPlus", "Enable Class Color Enhancements", "Enhances various UI elements with class-specific colors, including guild, friends, who list, and battlefield score frames.")
 	Window:CreateSwitch("Misc", "ColorPicker", L["Enhanced Color Picker"])
 	Window:CreateSwitch("Misc", "EasyMarking", L["EasyMarking by Ctrl + LeftClick"])
+	Window:CreateSwitch("Misc", "HelmCloakToggle", "Toggle helm and cloak visibility", "Enable this option to add quick toggle buttons for showing or hiding your helm and cloak directly on the character model frame.")
 	Window:CreateSwitch("Misc", "ShowWowHeadLinks", L["Show Wowhead Links Above Questlog Frame"])
 	Window:CreateSwitch("Misc", "SlotDurability", L["Show Slot Durability %"])
 

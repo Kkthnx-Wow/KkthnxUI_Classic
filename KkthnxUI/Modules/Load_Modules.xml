@@ -106,6 +106,7 @@
    <Script file="Miscellaneous\Elements\RaidTool.lua" />
    <Script file="Miscellaneous\Elements\SlotItemLevel.lua" />
    <Script file="Miscellaneous\Elements\TradeTabs.lua" />
+   <Script file="Miscellaneous\Elements\HelmCloakToggle.lua" />
    <!-- Announcements -->
    <Script file="Announcements\Core.lua" />
    <Script file="Announcements\Elements\QuestNotifier.lua" />

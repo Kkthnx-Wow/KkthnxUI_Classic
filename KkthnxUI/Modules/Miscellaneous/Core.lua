@@ -67,6 +67,7 @@ function Module:OnEnable()
 		"CreateClassColorPlus",
 		"CreateDurabilityFrameMove",
 		"CreateGUIGameMenuButton",
+		"CreateHelmCloakToggle",
 		"CreateMinimapButton",
 		"CreateQuickDeleteDialog",
 		"CreateTicketStatusFrameMove",
