@@ -124,7 +124,7 @@ local function friendsFrame()
 					local classIcon = getClassIcon(info.className)
 					local factionIcon = getFactionIcon(UnitFactionGroup("player"))
 					local levelText = info.level and "[" .. diffColor(info.level) .. info.level .. "|r]" or "[??]" -- Fallback to ??
-					nameText = classColor(info.className) .. info.name .. "|r - " .. factionIcon .. " " .. classIcon .. " " .. info.name .. " " .. levelText
+					nameText = classColor(info.className) .. info.name .. "|r - " .. factionIcon .. " " .. classIcon .. " " .. levelText
 					if info.area == playerArea then
 						infoText = format("|cff00ff00%s|r", info.area)
 					end
@@ -136,7 +136,7 @@ local function friendsFrame()
 					local classIcon = getClassIcon(class)
 					local factionIcon = getFactionIcon(faction)
 					local levelText = level and "[" .. diffColor(level) .. level .. "|r]" or "[??]" -- Fallback to ??
-					nameText = classColor(class) .. presenceName .. "|r - " .. factionIcon .. " " .. classIcon .. " " .. (charName or "Unknown") .. " " .. levelText
+					nameText = classColor(class) .. presenceName .. "|r - " .. factionIcon .. " " .. classIcon .. " " .. (charName or UNKNOWN) .. " " .. levelText
 					if zoneName == playerArea then
 						infoText = format("|cff00ff00%s|r", zoneName)
 					end
