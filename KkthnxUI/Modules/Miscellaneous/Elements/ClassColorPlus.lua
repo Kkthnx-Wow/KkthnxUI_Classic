@@ -20,48 +20,48 @@ local function classColor(class, showRGB)
 end
 
 -- Get Class Icon with Fallback
--- local function getClassIcon(class)
--- 	local atlasName = class and "groupfinder-icon-class-" .. string.lower(class) or nil
--- 	if atlasName and C_Texture.GetAtlasInfo(atlasName) then
--- 		return CreateAtlasMarkup(atlasName, 16, 16)
--- 	else
--- 		-- Fallback to a generic icon
--- 		return CreateAtlasMarkup("UI-LFG-RoleIcon-Pending", 16, 16)
--- 	end
--- end
-
--- Get Class Icon with Blank Fallback
 local function getClassIcon(class)
 	local atlasName = class and "groupfinder-icon-class-" .. string.lower(class) or nil
 	if atlasName and C_Texture.GetAtlasInfo(atlasName) then
 		return CreateAtlasMarkup(atlasName, 16, 16)
 	else
-		-- Fallback to a blank space
-		return " "
+		-- Fallback to a generic icon
+		return CreateAtlasMarkup("UI-LFG-RoleIcon-Pending", 16, 16)
 	end
 end
 
--- Get Faction Icon with Fallback
--- local function getFactionIcon(faction)
--- 	local iconPath = faction == "Horde" and "communities-create-button-wow-horde" or faction == "Alliance" and "communities-create-button-wow-alliance" or nil
--- 	if iconPath and C_Texture.GetAtlasInfo(iconPath) then
--- 		return CreateAtlasMarkup(iconPath, 12, 15)
+-- Get Class Icon with Blank Fallback
+-- local function getClassIcon(class)
+-- 	local atlasName = class and "groupfinder-icon-class-" .. string.lower(class) or nil
+-- 	if atlasName and C_Texture.GetAtlasInfo(atlasName) then
+-- 		return CreateAtlasMarkup(atlasName, 16, 16)
 -- 	else
--- 		-- Fallback to a generic icon
--- 		return CreateAtlasMarkup("UI-LFG-RoleIcon-Pending", 12, 15)
+-- 		-- Fallback to a blank space
+-- 		return ""
 -- 	end
 -- end
 
--- Get Faction Icon with Blank Fallback
+-- Get Faction Icon with Fallback
 local function getFactionIcon(faction)
 	local iconPath = faction == "Horde" and "communities-create-button-wow-horde" or faction == "Alliance" and "communities-create-button-wow-alliance" or nil
 	if iconPath and C_Texture.GetAtlasInfo(iconPath) then
 		return CreateAtlasMarkup(iconPath, 12, 15)
 	else
-		-- Fallback to a blank space
-		return " "
+		-- Fallback to a generic icon
+		return CreateAtlasMarkup("UI-LFG-RoleIcon-Pending", 12, 15)
 	end
 end
+
+-- Get Faction Icon with Blank Fallback
+-- local function getFactionIcon(faction)
+-- 	local iconPath = faction == "Horde" and "communities-create-button-wow-horde" or faction == "Alliance" and "communities-create-button-wow-alliance" or nil
+-- 	if iconPath and C_Texture.GetAtlasInfo(iconPath) then
+-- 		return CreateAtlasMarkup(iconPath, 12, 15)
+-- 	else
+-- 		-- Fallback to a blank space
+-- 		return ""
+-- 	end
+-- end
 
 local function diffColor(level)
 	return K.RGBToHex(GetQuestDifficultyColor(level))
