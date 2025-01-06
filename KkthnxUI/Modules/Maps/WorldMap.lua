@@ -86,6 +86,10 @@ function Module:UpdateMapID()
 end
 
 function Module:SetupCoords()
+	if not C["WorldMap"].Coordinates then
+		return
+	end
+
 	-- Create the coordinates frame
 	local textParent = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
 	textParent:SetFrameLevel(5)
@@ -132,9 +136,8 @@ local function isMouseOverMap()
 	return not WorldMapFrame:IsMouseOver()
 end
 
-local TestMapFader = true
 function Module:MapFader()
-	if TestMapFader then
+	if C["WorldMap"].FadeWhenMoving then
 		PlayerMovementFrameFader.AddDeferredFrame(WorldMapFrame, 0.5, 1, 0.5, isMouseOverMap)
 	else
 		PlayerMovementFrameFader.RemoveFrame(WorldMapFrame)
@@ -143,7 +146,6 @@ end
 
 function Module:MapPartyDots()
 	local WorldMapUnitPin, WorldMapUnitPinSizes
-	--local partyTexture = "WhiteCircle-RaidBlips"
 	local partyTexture = "Interface\\OptionsFrame\\VoiceChat-Record"
 
 	local function setPinTexture(self)
@@ -169,10 +171,12 @@ function Module:MapPartyDots()
 end
 
 function Module:OnEnable()
-	-- if C.db["Map"]["DisableMap"] then
-	-- 	return
-	-- end
-	if IsAddOnLoaded("Mapster") then
+	if not C["WorldMap"].Enable then
+		return
+	end
+
+	-- Exit if conflicting addons are loaded
+	if IsAddOnLoaded("Leatrix_Maps") or IsAddOnLoaded("Mapster") then
 		return
 	end
 
@@ -242,51 +246,3 @@ function Module:OnEnable()
 		end
 	end
 end
-
--- function Module:OnEnable()
--- 	local WorldMapFrame = _G.WorldMapFrame
--- 	if C["WorldMap"].Coordinates then
--- 		-- Define the desired color (#F0C500 or RGB values 240/255, 197/255, 0)
--- 		local textColor = { r = 240 / 255, g = 197 / 255, b = 0 }
-
--- 		-- Create the coordinates frame
--- 		local coordsFrame = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
--- 		coordsFrame:SetSize(WorldMapFrame:GetWidth(), 17)
--- 		coordsFrame:SetPoint("BOTTOMLEFT", 17)
--- 		coordsFrame:SetPoint("BOTTOMRIGHT", 0)
-
--- 		-- Background texture for the coordinates frame
--- 		coordsFrame.Texture = coordsFrame:CreateTexture(nil, "BACKGROUND")
--- 		coordsFrame.Texture:SetAllPoints()
--- 		coordsFrame.Texture:SetTexture(C["Media"].Textures.White8x8Texture)
--- 		coordsFrame.Texture:SetVertexColor(0.04, 0.04, 0.04, 0.5)
-
--- 		-- Create the cursor coordinates text
--- 		cursorCoords = WorldMapFrame.ScrollContainer:CreateFontString(nil, "OVERLAY")
--- 		cursorCoords:SetFontObject(K.UIFontOutline)
--- 		cursorCoords:SetFont(select(1, cursorCoords:GetFont()), 13, select(3, cursorCoords:GetFont()))
--- 		cursorCoords:SetSize(200, 16)
--- 		cursorCoords:SetParent(coordsFrame)
--- 		cursorCoords:ClearAllPoints()
--- 		cursorCoords:SetPoint("BOTTOMLEFT", 152, 1)
--- 		cursorCoords:SetTextColor(textColor.r, textColor.g, textColor.b)
--- 		cursorCoords:SetAlpha(0.9)
-
--- 		-- Create the player coordinates text
--- 		playerCoords = WorldMapFrame.ScrollContainer:CreateFontString(nil, "OVERLAY")
--- 		playerCoords:SetFontObject(K.UIFontOutline)
--- 		playerCoords:SetFont(select(1, playerCoords:GetFont()), 13, select(3, playerCoords:GetFont()))
--- 		playerCoords:SetSize(200, 16)
--- 		playerCoords:SetParent(coordsFrame)
--- 		playerCoords:ClearAllPoints()
--- 		playerCoords:SetPoint("BOTTOMRIGHT", -132, 1)
--- 		playerCoords:SetTextColor(textColor.r, textColor.g, textColor.b)
--- 		playerCoords:SetAlpha(0.9)
-
--- 		hooksecurefunc(WorldMapFrame, "OnFrameSizeChanged", self.UpdateMapID)
--- 		hooksecurefunc(WorldMapFrame, "OnMapChanged", self.UpdateMapID)
-
--- 		self.CoordsUpdater = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
--- 		self.CoordsUpdater:SetScript("OnUpdate", self.UpdateCoords)
--- 	end
--- end

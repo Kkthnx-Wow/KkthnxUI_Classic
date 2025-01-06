@@ -142,7 +142,7 @@ function Module:MapData_ResetTexturePool(texture)
 end
 
 function Module:CreateWorldMapReveal()
-	if C_AddOns.IsAddOnLoaded("Leatrix_Maps") then
+	if IsAddOnLoaded("Leatrix_Maps") and LeaMapsDB and LeaMapsDB["RevealMap"] then
 		return
 	end
 

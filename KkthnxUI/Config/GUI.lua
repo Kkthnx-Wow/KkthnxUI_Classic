@@ -1099,15 +1099,16 @@ local WorldMap = function(self)
 	local Window = self:CreateWindow(L["WorldMap"])
 
 	Window:CreateSection(GENERAL)
+	Window:CreateSwitch("WorldMap", "Enable", enableTextColor .. "Toggle Enhanced World Map Features.", "Enable this option to enhance the World Map with additional functionalities such as movable frames, cursor coordinates, customizable scaling, and fading effects.")
 	Window:CreateSwitch("WorldMap", "Coordinates", L["Show Player/Mouse Coordinates"])
 	Window:CreateSwitch("WorldMap", "FadeWhenMoving", L["Fade Worldmap When Moving"])
-	--Window:CreateSwitch("WorldMap", "SmallWorldMap", L["Show Smaller Worldmap"])
+	-- Window:CreateSwitch("WorldMap", "SmallWorldMap", L["Show Smaller Worldmap"])
 
 	Window:CreateSection("WorldMap Reveal")
 	Window:CreateSwitch("WorldMap", "MapRevealGlow", L["Map Reveal Shadow"], L["MapRevealTip"])
 
-	Window:CreateSection(L["Sizes"])
-	Window:CreateSlider("WorldMap", "AlphaWhenMoving", L["Alpha When Moving"], 0.1, 1, 0.01)
+	-- Window:CreateSection(L["Sizes"])
+	-- Window:CreateSlider("WorldMap", "AlphaWhenMoving", L["Alpha When Moving"], 0.1, 1, 0.01)
 end
 
 GUI:AddWidgets(ActionBar)
