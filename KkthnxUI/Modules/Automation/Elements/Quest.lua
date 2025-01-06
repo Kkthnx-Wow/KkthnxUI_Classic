@@ -28,12 +28,24 @@ local function setupCheckButton()
 	end
 
 	local AutoQuestCheckButton = CreateFrame("CheckButton", nil, WorldMapFrame, "OptionsBaseCheckButtonTemplate")
-	AutoQuestCheckButton:SetPoint("TOPRIGHT", -140, 0)
+	AutoQuestCheckButton:SetFrameLevel(WorldMapFrame:GetFrameLevel() + 2)
+	AutoQuestCheckButton:ClearAllPoints()
+	if IsAddOnLoaded("Leatrix_Maps") and LeaMapsDB and LeaMapsDB["UseDefaultMap"] == "Off" then
+		AutoQuestCheckButton:SetPoint("TOPLEFT", 22, -24)
+	else
+		AutoQuestCheckButton:SetPoint("TOPRIGHT", -140, 0)
+	end
 	AutoQuestCheckButton:SetSize(24, 24)
 
 	AutoQuestCheckButton.text = AutoQuestCheckButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	AutoQuestCheckButton.text:SetPoint("LEFT", 24, 0)
 	AutoQuestCheckButton.text:SetText(L["Auto Quest"])
+
+	if IsAddOnLoaded("Leatrix_Maps") and LeaMapsDB and LeaMapsDB["UseDefaultMap"] == "Off" then
+		AutoQuestCheckButton.text:SetTextColor(1, 1, 1)
+	else
+		AutoQuestCheckButton.text:SetTextColor(1.0, 0.82, 0)
+	end
 
 	AutoQuestCheckButton:SetHitRectInsets(0, 0 - AutoQuestCheckButton.text:GetWidth(), 0, 0)
 	AutoQuestCheckButton:SetChecked(KkthnxUIDB.Variables[K.Realm][K.Name].AutoQuest)
