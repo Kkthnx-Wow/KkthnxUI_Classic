@@ -164,14 +164,25 @@ for k, v in pairs(LOCALIZED_CLASS_NAMES_FEMALE) do
 	K.ClassList[v] = k
 end
 
+-- Define the fixed Shaman color
+local fixShamanColor = { r = 0.20, g = 0.35, b = 0.60, colorStr = "ff335999" }
+
 -- Populate the ClassColors table with the colors of each class
 local colors = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
 for class, value in pairs(colors) do
 	K.ClassColors[class] = {}
-	K.ClassColors[class].r = value.r
-	K.ClassColors[class].g = value.g
-	K.ClassColors[class].b = value.b
-	K.ClassColors[class].colorStr = value.colorStr
+	-- Apply the fixed Shaman color
+	if class == "SHAMAN" then
+		K.ClassColors[class].r = fixShamanColor.r
+		K.ClassColors[class].g = fixShamanColor.g
+		K.ClassColors[class].b = fixShamanColor.b
+		K.ClassColors[class].colorStr = fixShamanColor.colorStr
+	else
+		K.ClassColors[class].r = value.r
+		K.ClassColors[class].g = value.g
+		K.ClassColors[class].b = value.b
+		K.ClassColors[class].colorStr = value.colorStr
+	end
 end
 
 -- Get the player's class color
