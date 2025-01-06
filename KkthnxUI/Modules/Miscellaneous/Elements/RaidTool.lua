@@ -40,15 +40,32 @@ function Module:RaidTool_Header()
 	-- Add tooltip
 	left:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:AddLine("This icon does nothing.")
-		GameTooltip:AddLine("It just shows the number of group members.", 1, 1, 1)
-		if K.Name == "Swiver" then -- He hates me...
+		GameTooltip:ClearLines()
+		GameTooltip:AddLine("Group Members", 0.6, 0.8, 1)
+		GameTooltip:AddDoubleLine("Current Count:", K.InfoColor .. GetNumGroupMembers())
+		GameTooltip:AddLine(" ")
+		if IsInGroup() then
+			local tank = UnitGroupRolesAssigned("player") == "TANK"
+			local healer = UnitGroupRolesAssigned("player") == "HEALER"
+			local dps = UnitGroupRolesAssigned("player") == "DAMAGER"
+			local role = (tank and "|A:groupfinder-icon-role-micro-tank:16:16|a" or healer and "|A:groupfinder-icon-role-micro-heal:16:16|a" or dps and "|A:groupfinder-icon-role-micro-dps:16:16|a") or "None"
+
+			GameTooltip:AddDoubleLine("Role:", K.InfoColor .. role)
 			GameTooltip:AddLine(" ")
-			GameTooltip:AddLine("No more spamming |cffFF7D0ASwiver|r!")
+			GameTooltip:AddLine("Actions:", 0.6, 0.8, 1)
+			GameTooltip:AddDoubleLine(K.LeftButton .. "Role Check", K.InfoColor .. "Initiate a role check")
+		else
+			GameTooltip:AddLine("You are not in a group.", 1, 0, 0)
 		end
+
+		-- Special Easter Egg for Swiver
+		if K.Name == "Swiver" then
+			GameTooltip:AddLine(" ")
+			GameTooltip:AddLine("No more spamming |cffFF7D0ASwiver|r!", 0.9, 0.1, 0.1)
+		end
+
 		GameTooltip:Show()
 	end)
-
 	left:SetScript("OnLeave", K.HideTooltip)
 
 	Module.RaidTool_Visibility(Module, frame)
@@ -73,8 +90,17 @@ function Module:RaidTool_Header()
 
 				self.buttons[2].text:SetText(IsInRaid() and CONVERT_TO_PARTY or CONVERT_TO_RAID)
 			end
+		elseif btn == "RightButton" then
+			if IsInGroup() and (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
+				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+				InitiateRolePoll()
+			else
+				UIErrorsFrame:AddMessage("You must be the group leader or assistant to initiate a role check.", 1, 0, 0)
+			end
 		end
 	end)
+
+	-- Right-Click to Leave Party on Double-Click
 	frame:SetScript("OnDoubleClick", function(_, btn)
 		if btn == "RightButton" and (IsPartyLFG() and IsLFGComplete() or not IsInInstance()) then
 			LeaveParty()
@@ -295,10 +321,13 @@ function Module:RaidTool_BuffChecker(parent)
 	frame:HookScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
 		GameTooltip:ClearLines()
-		GameTooltip:AddLine("Raid Tool", 0, 0.6, 1)
+		GameTooltip:AddLine("Raid Tool", 0.6, 0.8, 1)
+		GameTooltip:AddLine("Manage your raid with useful tools.", 1, 1, 1)
 		GameTooltip:AddLine(" ")
-		GameTooltip:AddDoubleLine(K.LeftButton .. K.InfoColor .. READY_CHECK)
-		GameTooltip:AddDoubleLine(K.ScrollButton .. K.InfoColor .. "Count Down")
+		GameTooltip:AddLine("Actions:", 0.6, 0.8, 1)
+		GameTooltip:AddDoubleLine(K.LeftButton .. " Ready Check", K.InfoColor .. "Initiate a ready check")
+		GameTooltip:AddDoubleLine(K.ScrollButton .. " Countdown", K.InfoColor .. "Start a countdown timer")
+
 		GameTooltip:Show()
 	end)
 	frame:HookScript("OnLeave", K.HideTooltip)

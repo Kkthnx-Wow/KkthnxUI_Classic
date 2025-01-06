@@ -427,9 +427,9 @@ function Module:MinimapDifficulty()
 	end -- hide flag if blizz makes its own
 
 	local frame = CreateFrame("Frame", "KKUI_MinimapDifficulty", Minimap)
-	frame:SetSize(38, 46)
-	frame:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 2, 2)
-	frame:SetScale(0.6)
+	frame:SetSize(30, 30)
+	frame:SetPoint("TOPLEFT", Minimap, 4, -4)
+	frame:SetScale(0.8)
 	frame:Hide()
 
 	local tex = frame:CreateTexture(nil, "ARTWORK")
@@ -439,7 +439,7 @@ function Module:MinimapDifficulty()
 	tex:SetTexCoord(0, 0.25, 0.0703125, 0.4140625)
 	frame.tex = tex
 
-	frame.text = K.CreateFontString(frame, 15, "", "", true, "CENTER", 1, -8)
+	frame.text = K.CreateFontString(frame, 14, "", "", false, "CENTER", 1, -9)
 
 	K:RegisterEvent("GROUP_ROSTER_UPDATE", UpdateDifficultyFlag)
 	K:RegisterEvent("UPDATE_INSTANCE_INFO", UpdateDifficultyFlag)

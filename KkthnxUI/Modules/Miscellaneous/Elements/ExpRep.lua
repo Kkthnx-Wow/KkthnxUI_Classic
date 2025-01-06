@@ -30,6 +30,22 @@ end
 
 local sendExperienceText = "Send experience to chat|r"
 
+-- Reputation
+local function RepGetValues(curValue, minValue, maxValue)
+	local maximum = maxValue - minValue
+	local current, diff = curValue - minValue, maximum
+
+	if diff == 0 then
+		diff = 1
+	end -- prevent a division by zero
+
+	if current == maximum then
+		return 1, 1, 100, true
+	else
+		return current, maximum, current / diff * 100
+	end
+end
+
 -- Bar string
 local barDisplayString = ""
 local altKeyText = K.InfoColor .. ALT_KEY_TEXT .. " "
@@ -81,66 +97,32 @@ local function OnExpBarEvent(self)
 		-- Update text display with XP information
 		self.text:SetText(barDisplayString)
 	elseif GetWatchedFactionInfo() then
-		-- local data = C_Reputation_GetWatchedFactionData()
-		-- local name, reaction, currentReactionThreshold, nextReactionThreshold, currentStanding, factionID = data.name, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding, data.factionID
+		local name, reaction, minRep, maxRep, currentRep = GetWatchedFactionInfo()
 
-		-- local standing, rewardPending, _
+		-- Default reaction to 1 if it somehow becomes 0
+		reaction = reaction == 0 and 1 or reaction
 
-		-- if reaction == 0 then
-		-- 	reaction = 1
-		-- end
+		-- Get standing label
+		local standing = _G["FACTION_STANDING_LABEL" .. reaction] or UNKNOWN
 
-		-- local info = factionID and C_GossipInfo_GetFriendshipReputation(factionID)
-		-- if info and info.friendshipFactionID and info.friendshipFactionID > 0 then
-		-- 	standing, currentReactionThreshold, nextReactionThreshold, currentStanding = info.reaction, info.reactionThreshold or 0, info.nextThreshold or math.huge, info.standing or 1
-		-- end
+		-- Get color for the reaction level
+		local color = _G.FACTION_BAR_COLORS[reaction] or { r = 1, g = 1, b = 1 }
 
-		-- if not standing and factionID and C_Reputation_IsFactionParagon(factionID) then
-		-- 	local current, threshold
-		-- 	current, threshold, _, rewardPending = C_Reputation_GetFactionParagonInfo(factionID)
+		-- Calculate total for max reputation
+		local total = maxRep or 1
 
-		-- 	if current and threshold then
-		-- 		standing, currentReactionThreshold, nextReactionThreshold, currentStanding, reaction = L["Paragon"], 0, threshold, current % threshold, 9
-		-- 	end
-		-- end
+		-- Adjust the status bar color and range
+		self:SetStatusBarColor(color.r, color.g, color.b)
+		self:SetMinMaxValues(minRep or 0, total)
+		self:SetValue(currentRep or 0)
 
-		-- if not standing and factionID and C_Reputation_IsMajorFaction(factionID) then
-		-- 	local majorFactionData = C_MajorFactions_GetMajorFactionData(factionID)
-		-- 	local renownColor = { r = 0, g = 0.74, b = 0.95 }
-		-- 	local renownHex = K.RGBToHex(renownColor.r, renownColor.g, renownColor.b)
+		-- Format the display string
+		local percent = total > 0 and ((currentRep - minRep) / (total - minRep) * 100) or 0
+		local barDisplayString = string.format("%s: %s - %d%% [%s]", name, K.ShortValue(currentRep), percent, standing)
 
-		-- 	reaction, currentReactionThreshold, nextReactionThreshold = 10, 0, majorFactionData.renownLevelThreshold
-		-- 	currentStanding = C_MajorFactions_HasMaximumRenown(factionID) and majorFactionData.renownLevelThreshold or majorFactionData.renownReputationEarned or 0
-		-- 	standing = string_format("%s%s %s|r", renownHex, RENOWN_LEVEL_LABEL, majorFactionData.renownLevel)
-		-- end
-
-		-- if not standing then
-		-- 	standing = _G["FACTION_STANDING_LABEL" .. reaction] or UNKNOWN
-		-- end
-
-		-- local customColors = true
-		-- local customReaction = reaction == 9 or reaction == 10 -- 9 is paragon, 10 is renown
-		-- local color = (customColors or customReaction) and K.Colors.faction[reaction] or _G.FACTION_BAR_COLORS[reaction]
-		-- local alpha = (customColors and 1)
-		-- local total = nextReactionThreshold == math.huge and 1 or nextReactionThreshold -- we need to correct the min/max of friendship factions to display the bar at 100%
-
-		-- self:SetStatusBarColor(color.r or 1, color.g or 1, color.b or 1, alpha or 1)
-		-- self:SetMinMaxValues((nextReactionThreshold == math.huge or currentReactionThreshold == nextReactionThreshold) and 0 or currentReactionThreshold, total) -- we force min to 0 because the min will match max when a rep is maxed and cause the bar to be 0%
-		-- self:SetValue(currentStanding)
-
-		-- self.reward:ClearAllPoints()
-		-- self.reward:SetPoint("CENTER", self, "LEFT")
-		-- self.reward:SetShown(rewardPending)
-
-		-- local current, _, percent, capped = RepGetValues(currentStanding, currentReactionThreshold, total) -- Check these please.
-		-- if capped then -- show only name and standing on exalted
-		-- 	barDisplayString = string_format("%s: [%s]", name, standing)
-		-- else
-		-- 	barDisplayString = string_format("%s: %s - %d%% [%s]", name, K.ShortValue(current), percent, standing)
-		-- end
-
-		-- self:Show()
-		-- self.text:SetText(barDisplayString)
+		-- Update the bar text and visibility
+		self.text:SetText(barDisplayString)
+		self:Show()
 	else
 		self:Hide()
 		self.text:SetText("")
@@ -176,82 +158,29 @@ local function OnExpBarEnter(self)
 		GameTooltip:AddDoubleLine(altKeyText .. KEY_PLUS .. K.RightButton, sendExperienceText)
 	end
 
-	-- if C_Reputation_GetWatchedFactionData() then
-	-- 	if not XPIsLevelMax() then
-	-- 		GameTooltip:AddLine(" ")
-	-- 	end
+	if GetWatchedFactionInfo() then
+		if not XPIsLevelMax() then
+			GameTooltip:AddLine(" ")
+		end
 
-	-- 	local data = C_Reputation_GetWatchedFactionData()
-	-- 	local name, reaction, currentReactionThreshold, nextReactionThreshold, currentStanding, factionID = data.name, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding, data.factionID
-	-- 	local isParagon = factionID and C_Reputation_IsFactionParagon(factionID)
-	-- 	local standing
+		local name, reaction, minRep, maxRep, currentRep = GetWatchedFactionInfo()
+		local standing = _G["FACTION_STANDING_LABEL" .. reaction] or UNKNOWN
 
-	-- 	if isParagon then
-	-- 		local current, threshold = C_Reputation_GetFactionParagonInfo(factionID)
-	-- 		if current and threshold then
-	-- 			standing, currentReactionThreshold, nextReactionThreshold, currentStanding = L["Paragon"], 0, threshold, current % threshold
-	-- 		end
-	-- 	end
+		if name then
+			-- Get the proper color for the current standing
+			local color = _G.FACTION_BAR_COLORS[reaction] or { r = 1, g = 1, b = 1 }
+			GameTooltip:AddDoubleLine(name, standing, nil, nil, nil, color.r, color.g, color.b)
+			GameTooltip:AddLine(" ")
 
-	-- 	if name then
-	-- 		GameTooltip:AddLine(name, K.RGBToHex(0, 0.74, 0.95))
-	-- 		GameTooltip:AddLine(" ")
-
-	-- 		local info = factionID and C_GossipInfo.GetFriendshipReputation(factionID)
-	-- 		if info and info.friendshipFactionID and info.friendshipFactionID > 0 then
-	-- 			standing, currentReactionThreshold, nextReactionThreshold, currentStanding = info.reaction, info.reactionThreshold or 0, info.nextThreshold or math.huge, info.standing or 1
-	-- 		end
-
-	-- 		if not standing then
-	-- 			standing = _G["FACTION_STANDING_LABEL" .. reaction] or UNKNOWN
-	-- 		end
-
-	-- 		local isMajorFaction = factionID and C_Reputation_IsMajorFaction(factionID)
-	-- 		if not isMajorFaction then
-	-- 			GameTooltip:AddDoubleLine(STANDING .. ":", standing, 1, 1, 1)
-	-- 		end
-
-	-- 		if not isParagon and isMajorFaction then
-	-- 			local majorFactionData = C_MajorFactions_GetMajorFactionData(factionID)
-	-- 			currentStanding = (C_MajorFactions_HasMaximumRenown(factionID) and majorFactionData.renownLevelThreshold) or majorFactionData.renownReputationEarned or 0
-	-- 			nextReactionThreshold = majorFactionData.renownLevelThreshold
-	-- 			GameTooltip:AddDoubleLine(RENOWN_LEVEL_LABEL .. majorFactionData.renownLevel, string_format("%d / %d (%d%%)", RepGetValues(currentStanding, 0, nextReactionThreshold)), BLUE_FONT_COLOR.r, BLUE_FONT_COLOR.g, BLUE_FONT_COLOR.b, 1, 1, 1)
-	-- 		elseif (isParagon or (reaction ~= _G.MAX_REPUTATION_REACTION)) and nextReactionThreshold ~= math.huge then
-	-- 			GameTooltip:AddDoubleLine(REPUTATION .. ":", string_format("%d / %d (%d%%)", RepGetValues(currentStanding, currentReactionThreshold, nextReactionThreshold)), 1, 1, 1)
-	-- 		end
-
-	-- 		-- Check for specific faction
-	-- 		if factionID == 2465 then -- Translate "荒猎团" if necessary
-	-- 			local repInfo = C_GossipInfo_GetFriendshipReputation(2463) -- Translate "玛拉斯缪斯" if necessary
-	-- 			local rep, name, reaction, threshold, nextThreshold = repInfo.standing, repInfo.name, repInfo.reaction, repInfo.reactionThreshold, repInfo.nextThreshold
-	-- 			if nextThreshold and rep > 0 then
-	-- 				local current = rep - threshold
-	-- 				local currentMax = nextThreshold - threshold
-	-- 				GameTooltip:AddLine(" ") -- Translate if necessary
-	-- 				GameTooltip:AddLine(name, 0, 0.6, 1) -- Translate "name" if necessary
-	-- 				GameTooltip:AddDoubleLine(reaction, current .. " / " .. currentMax .. " (" .. floor(current / currentMax * 100) .. "%)", 0.6, 0.8, 1, 1, 1, 1) -- Translate "reaction" if necessary
-	-- 			end
-	-- 		end
-
-	-- 		if factionID == 2465 then -- 荒猎团
-	-- 			local repInfo = C_GossipInfo_GetFriendshipReputation(2463) -- 玛拉斯缪斯
-	-- 			local rep, name, reaction, threshold, nextThreshold = repInfo.standing, repInfo.name, repInfo.reaction, repInfo.reactionThreshold, repInfo.nextThreshold
-	-- 			if nextThreshold and rep > 0 then
-	-- 				local current = rep - threshold
-	-- 				local currentMax = nextThreshold - threshold
-	-- 				GameTooltip:AddLine(" ")
-	-- 				GameTooltip:AddLine(name, 0, 0.6, 1)
-	-- 				GameTooltip:AddDoubleLine(reaction, current .. " / " .. currentMax .. " (" .. floor(current / currentMax * 100) .. "%)", 0.6, 0.8, 1, 1, 1, 1)
-	-- 			end
-	-- 		elseif factionID == 2574 then -- 梦境守望者
-	-- 			local currencyInfo = C_CurrencyInfo.GetCurrencyInfo(2649) -- 梦境注能
-	-- 			local q = currencyInfo.quantity
-	-- 			local m = currencyInfo.maxQuantity
-	-- 			local name = C_CurrencyInfo.GetCurrencyInfo(2777).name
-	-- 			GameTooltip:AddDoubleLine(name, q .. " / " .. m .. " (" .. floor(q / m * 100) .. "%)", 0.6, 0.8, 1, 1, 1, 1)
-	-- 		end
-	-- 	end
-	-- end
+			-- Add reputation details if not at max standing
+			if reaction ~= _G.MAX_REPUTATION_REACTION and maxRep then
+				local current = currentRep - minRep
+				local total = maxRep - minRep
+				local percent = total > 0 and (current / total * 100) or 0
+				GameTooltip:AddDoubleLine(REPUTATION .. ":", string.format("%d / %d (%d%%)", current, total, percent), 1, 1, 1)
+			end
+		end
+	end
 
 	GameTooltip:Show()
 end

@@ -61,8 +61,10 @@ function Module:OnEnable()
 	end
 
 	local loadMiscModules = {
+		"CreateAlreadyKnown",
 		"CreateAutoBubbles",
 		"CreateBossEmote",
+		"CreateClassColorPlus",
 		"CreateDurabilityFrameMove",
 		"CreateGUIGameMenuButton",
 		"CreateMinimapButton",

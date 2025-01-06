@@ -89,22 +89,30 @@ local function CompareAndHandleAuras()
 end
 
 -- Event Handlers
-local function HandlePlayerEnteringWorld()
-	ClearTable(previousAuras)
-	CacheAuras(previousAuras) -- Cache current buffs as previous
-	ClearTable(lastThanked) -- Clear thanked buffs to reset state for zoning
+local function HandlePlayerEnteringWorld(_, isLogin, isReload)
+	-- Full reset on login or reload
+	if isLogin or isReload then
+		ClearTable(previousAuras)
+		ClearTable(currentAuras)
+		ClearTable(lastThanked)
+	end
+
+	-- Always cache current state
+	CacheAuras(previousAuras)
+	CacheAuras(currentAuras)
 end
 
 local function HandleUnitAura(_, unit)
 	if unit == "player" then
-		CacheAuras(currentAuras)
-		CompareAndHandleAuras()
-
-		-- Update previous auras
+		-- Store current state before updating
 		ClearTable(previousAuras)
 		for spellID, data in pairs(currentAuras) do
 			previousAuras[spellID] = data
 		end
+
+		-- Get new state
+		CacheAuras(currentAuras)
+		CompareAndHandleAuras()
 	end
 end
 

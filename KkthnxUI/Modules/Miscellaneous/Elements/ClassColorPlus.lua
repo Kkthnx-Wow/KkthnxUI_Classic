@@ -1,7 +1,9 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
--- local Module = K:GetModule("Miscellaneous")
+local Module = K:GetModule("Miscellaneous")
 
-local format, tinsert, strsplit = string.format, table.insert, string.split
+local format, strsplit = string.format, string.split
+
+local hookCount = 0
 
 -- Colors
 local function classColor(class, showRGB)
@@ -21,20 +23,10 @@ local function diffColor(level)
 	return K.RGBToHex(GetQuestDifficultyColor(level))
 end
 
-local rankColor = {
-	1,
-	0,
-	0,
-	1,
-	1,
-	0,
-	0,
-	1,
-	0,
-}
+local rankColor = { 1, 0, 0, 1, 1, 0, 0, 1, 0 }
 
 -- Guild
-hooksecurefunc("GuildStatus_Update", function()
+local function updateGuildStatus()
 	local guildIndex
 	local playerArea = GetRealZoneText()
 	local guildOffset = FauxScrollFrame_GetOffset(GuildListScrollFrame)
@@ -67,7 +59,7 @@ hooksecurefunc("GuildStatus_Update", function()
 			end
 		end
 	end
-end)
+end
 
 -- Friends
 local FRIENDS_LEVEL_TEMPLATE = FRIENDS_LEVEL_TEMPLATE:gsub("%%d", "%%s")
@@ -112,8 +104,6 @@ local function friendsFrame()
 		end
 	end
 end
-hooksecurefunc(FriendsFrameFriendsScrollFrame, "update", friendsFrame)
-hooksecurefunc("FriendsFrame_UpdateFriends", friendsFrame)
 
 -- Whoframe
 local columnTable = {
@@ -123,9 +113,6 @@ local columnTable = {
 }
 
 local currentType = "zone"
-hooksecurefunc(C_FriendList, "SortWho", function(sortType)
-	currentType = sortType
-end)
 
 local function updateWhoList()
 	local whoOffset = FauxScrollFrame_GetOffset(WhoListScrollFrame)
@@ -161,12 +148,11 @@ local function updateWhoList()
 		end
 	end
 end
-hooksecurefunc("WhoList_Update", updateWhoList)
 
 -- Battlefield board
 local SCORE_BUTTONS_MAX = SCORE_BUTTONS_MAX or 20
 
-hooksecurefunc("WorldStateScoreFrame_Update", function()
+local function updateBattlefieldScore()
 	local offset = FauxScrollFrame_GetOffset(WorldStateScoreScrollFrame)
 
 	for i = 1, SCORE_BUTTONS_MAX do
@@ -194,4 +180,22 @@ hooksecurefunc("WorldStateScoreFrame_Update", function()
 			end
 		end
 	end
-end)
+end
+
+-- Initialization
+function Module:CreateClassColorPlus()
+	if not C["Misc"].ClassColorPlus then
+		return
+	end
+
+	hooksecurefunc("GuildStatus_Update", updateGuildStatus)
+	hooksecurefunc(FriendsFrameFriendsScrollFrame, "update", friendsFrame)
+	hooksecurefunc("FriendsFrame_UpdateFriends", friendsFrame)
+	hooksecurefunc(C_FriendList, "SortWho", function(sortType)
+		currentType = sortType
+	end)
+	hooksecurefunc("WhoList_Update", updateWhoList)
+	hooksecurefunc("WorldStateScoreFrame_Update", updateBattlefieldScore)
+
+	hookCount = hookCount + 1
+end

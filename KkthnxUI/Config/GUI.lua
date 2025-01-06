@@ -531,7 +531,6 @@ local Automation = function(self)
 
 	Window:CreateSection("Miscellaneous Options")
 	-- Window:CreateSwitch("Automation", "AutoCollapse", L["Auto Collapse Objective Tracker"], "Automatically collapses the objective tracker when entering an instance.")
-	-- Window:CreateSwitch("Automation", "AutoGoodbye", L["Say Goodbye After Dungeon Completion"], "Automatically says 'Goodbye' to the group when the dungeon is completed.")
 	Window:CreateSwitch("Automation", "BuffThanks", newFeatureIcon .. "Automatically Thank Players For Specific Buffs", "Automatically sends a thank-you emote to players who cast specific buffs on you, with a cooldown to prevent spamming.")
 	Window:CreateSwitch("Automation", "AutoDismountTaxi", newFeatureIcon .. "Automatically Dismount When Taking A Taxi", "Automatically dismounts the player when taking a taxi to ensure smooth travel transitions, retrying if in combat.")
 	Window:CreateSwitch("Automation", "AutoOpenItems", L["Auto Open Items In Your Inventory"], "Automatically opens items in your inventory that contain loot.")
@@ -766,6 +765,8 @@ local Misc = function(self)
 
 	-- General Section
 	Window:CreateSection(GENERAL)
+	Window:CreateSwitch("Misc", "AlreadyKnown", "Highlight Already Known Items", "Highlights items you already know in various frames such as the merchant, auction house, and guild bank.")
+	Window:CreateSwitch("Misc", "ClassColorPlus", "Enable Class Color Enhancements", "Enhances various UI elements with class-specific colors, including guild, friends, who list, and battlefield score frames.")
 	Window:CreateSwitch("Misc", "ColorPicker", L["Enhanced Color Picker"])
 	Window:CreateSwitch("Misc", "EasyMarking", L["EasyMarking by Ctrl + LeftClick"])
 	Window:CreateSwitch("Misc", "ShowWowHeadLinks", L["Show Wowhead Links Above Questlog Frame"])

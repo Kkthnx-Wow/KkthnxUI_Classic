@@ -18,7 +18,7 @@ function Module:EnhancedPicker_UpdateColor()
 end
 
 function Module:CreateColorPicker()
-	if C_AddOns.IsAddOnLoaded("ColorPickerPlus") or C["Misc"].ColorPicker ~= true then
+	if not C["Misc"].ColorPicker or C_AddOns.IsAddOnLoaded("ColorPickerPlus") then
 		return
 	end
 

@@ -98,6 +98,7 @@
    <Script file="Miscellaneous\Elements\AFKCam.lua" />
    <Script file="Miscellaneous\Elements\AlreadyKnown.lua" />
    <Script file="Miscellaneous\Elements\CharacterStatPanel.lua" />
+   <Script file="Miscellaneous\Elements\ClassColorPlus.lua" />
    <Script file="Miscellaneous\Elements\ExpRep.lua" />
    <Script file="Miscellaneous\Elements\ImprovedMail.lua" />
    <Script file="Miscellaneous\Elements\MovableFrames.lua" />
@@ -105,7 +106,6 @@
    <Script file="Miscellaneous\Elements\RaidTool.lua" />
    <Script file="Miscellaneous\Elements\SlotItemLevel.lua" />
    <Script file="Miscellaneous\Elements\TradeTabs.lua" />
-   <Script file="Miscellaneous\Elements\yClassColors.lua" />
    <!-- Announcements -->
    <Script file="Announcements\Core.lua" />
    <Script file="Announcements\Elements\QuestNotifier.lua" />
@@ -153,6 +153,7 @@
    <Include file="Skins\Blizzard\FrameXML\UIDropDownMenu.lua" /> -->
    <!-- Skins AddOns -->
    <Include file="Skins\Addons\Details.lua" />
+   <Include file="Skins\Addons\DeadlyBossMods.lua" />
    <!-- <Include file="Skins\Addons\Bartender4.lua" />
    <Include file="Skins\Addons\BigWigs.lua" />
    <Include file="Skins\Addons\ButtonForge.lua" />

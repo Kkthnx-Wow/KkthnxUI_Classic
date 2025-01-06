@@ -157,8 +157,8 @@ function Module:UpdateAuras(button, index)
 	end
 
 	if filter == "HARMFUL" then
-		local color = oUF.colors.debuff[debuffType or "none"]
-		button.KKUI_Border:SetVertexColor(color.r, color.g, color.b)
+		local color = K.Colors.debuff[debuffType or "none"]
+		button.KKUI_Border:SetVertexColor(color[1], color[2], color[3])
 	else
 		K.SetBorderColor(button.KKUI_Border)
 	end

@@ -1,7 +1,8 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
--- local Module = K:GetModule("Miscellaneous")
+local Module = K:GetModule("Miscellaneous")
 
 local strmatch, strfind, strsplit, mod = string.match, string.find, string.split, mod
+local UIParent, mod, ceil = UIParent, mod, math.ceil
 
 local COLOR = { r = 0.1, g = 1, b = 0.1 }
 local knowables, knowns = {
@@ -9,6 +10,8 @@ local knowables, knowns = {
 	[LE_ITEM_CLASS_RECIPE] = true,
 	[LE_ITEM_CLASS_MISCELLANEOUS] = true,
 }, {}
+
+local hookCount = 0
 
 local function isPetCollected(speciesID)
 	if not speciesID or speciesID == 0 then
@@ -80,7 +83,6 @@ local function MerchantFrame_UpdateMerchantInfo()
 		end
 	end
 end
-hooksecurefunc("MerchantFrame_UpdateMerchantInfo", MerchantFrame_UpdateMerchantInfo)
 
 local function MerchantFrame_UpdateBuybackInfo()
 	local numItems = GetNumBuybackItems()
@@ -98,7 +100,6 @@ local function MerchantFrame_UpdateBuybackInfo()
 		end
 	end
 end
-hooksecurefunc("MerchantFrame_UpdateBuybackInfo", MerchantFrame_UpdateBuybackInfo)
 
 -- auction frame
 local function AuctionFrameBrowse_Update()
@@ -199,21 +200,27 @@ local function GuildBankFrame_Update(self)
 	end
 end
 
-local hookCount = 0
-local f = CreateFrame("Frame")
-f:RegisterEvent("ADDON_LOADED")
-f:SetScript("OnEvent", function(_, event, addon)
+local function AlreadyKnown_OnEvent(_, addon)
 	if addon == "Blizzard_AuctionUI" then
 		hooksecurefunc("AuctionFrameBrowse_Update", AuctionFrameBrowse_Update)
 		hooksecurefunc("AuctionFrameBid_Update", AuctionFrameBid_Update)
 		hooksecurefunc("AuctionFrameAuctions_Update", AuctionFrameAuctions_Update)
 		hookCount = hookCount + 1
 	elseif addon == "Blizzard_GuildBankUI" then
-		--	hooksecurefunc(GuildBankFrame, "Update", GuildBankFrame_Update)
-		--	hookCount = hookCount + 1
+		hooksecurefunc(GuildBankFrame, "Update", GuildBankFrame_Update)
+		hookCount = hookCount + 1
+	end
+end
+
+-- Initialization
+function Module:CreateAlreadyKnown()
+	if not C["Misc"].AlreadyKnown then
+		return
 	end
 
-	if hookCount >= 1 then
-		f:UnregisterEvent(event)
-	end
-end)
+	hooksecurefunc("MerchantFrame_UpdateMerchantInfo", MerchantFrame_UpdateMerchantInfo)
+	hooksecurefunc("MerchantFrame_UpdateBuybackInfo", MerchantFrame_UpdateBuybackInfo)
+	hookCount = hookCount + 1
+
+	K:RegisterEvent("ADDON_LOADED", AlreadyKnown_OnEvent)
+end

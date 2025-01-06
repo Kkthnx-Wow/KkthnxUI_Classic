@@ -69,15 +69,15 @@ function Module:OnEnable()
 	local loadSkinModules = {
 		"LoadDefaultSkins",
 		"QuestTracker",
-		"ReskinBartender4",
-		"ReskinNekometer",
+		-- "ReskinBartender4",
+		-- "ReskinNekometer",
 		-- "ReskinBigWigs",
-		"ReskinButtonForge",
-		"ReskinChocolateBar",
+		-- "ReskinButtonForge",
+		-- "ReskinChocolateBar",
 		"ReskinDeadlyBossMods",
-		"ReskinDominos",
-		"ReskinRareScanner",
-		"ReskinSimulationcraft",
+		-- "ReskinDominos",
+		-- "ReskinRareScanner",
+		-- "ReskinSimulationcraft",
 	}
 
 	for _, funcName in ipairs(loadSkinModules) do
