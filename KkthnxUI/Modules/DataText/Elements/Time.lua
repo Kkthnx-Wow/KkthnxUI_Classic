@@ -146,7 +146,8 @@ function Module:OnEnter()
 
 	-- Help Info
 	GameTooltip:AddLine(" ")
-	GameTooltip:AddLine(K.RightButton .. GAMETIME_TOOLTIP_TOGGLE_CALENDAR)
+	GameTooltip:AddLine(K.LeftButton .. GAMETIME_TOOLTIP_TOGGLE_CALENDAR)
+	GameTooltip:AddLine(K.RightButton .. TIMEMANAGER_SHOW_STOPWATCH)
 	GameTooltip:Show()
 
 	K:RegisterEvent("MODIFIER_STATE_CHANGED", OnShiftDown)
@@ -160,6 +161,10 @@ end
 
 local function OnMouseUp(_, btn)
 	if btn == "RightButton" then
+		if Stopwatch_Toggle then
+			Stopwatch_Toggle()
+		end
+	elseif btn == "LeftButton" then
 		TimeManager_LoadUI()
 		if TimeManager_Toggle then
 			TimeManager_Toggle()

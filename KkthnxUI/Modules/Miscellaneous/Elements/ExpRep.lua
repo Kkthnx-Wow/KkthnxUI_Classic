@@ -53,74 +53,47 @@ local altKeyText = K.InfoColor .. ALT_KEY_TEXT .. " "
 local function OnExpBarEvent(self)
 	if not XPIsLevelMax() then
 		CurrentXP, XPToLevel, RestedXP = UnitXP("player"), UnitXPMax("player"), (GetXPExhaustion() or 0)
-
-		-- Ensure XPToLevel is not 0 to avoid division by zero
 		if XPToLevel <= 0 then
 			XPToLevel = 1
 		end
 
-		-- Calculate remaining XP and percentage
 		local remainXP = XPToLevel - CurrentXP
 		local remainPercent = remainXP / XPToLevel
 		RemainTotal, RemainBars = remainPercent * 100, remainPercent * 20
 		PercentXP, RemainXP = (CurrentXP / XPToLevel) * 100, K.ShortValue(remainXP)
 
-		-- Set status bar colors
 		self:SetStatusBarColor(0, 0.4, 1, 0.8)
 		self.restBar:SetStatusBarColor(1, 0, 1, 0.4)
 
-		-- Set up main XP bar
 		self:SetMinMaxValues(0, XPToLevel)
 		self:SetValue(CurrentXP)
 		barDisplayString = string_format("%s - %.2f%%", K.ShortValue(CurrentXP), PercentXP)
 
-		-- Check if rested XP exists
 		local isRested = RestedXP > 0
 		if isRested then
-			-- Set up rested XP bar
 			self.restBar:SetMinMaxValues(0, XPToLevel)
 			self.restBar:SetValue(math_min(CurrentXP + RestedXP, XPToLevel))
 
-			-- Calculate percentage of rested XP
 			PercentRested = (RestedXP / XPToLevel) * 100
-
-			-- Update XP display string with rested XP information
 			barDisplayString = string_format("%s R:%s [%.2f%%]", barDisplayString, K.ShortValue(RestedXP), PercentRested)
 		end
 
-		-- Show experience
 		self:Show()
-
-		-- Show or hide rested XP bar based on rested state
 		self.restBar:SetShown(isRested)
-
-		-- Update text display with XP information
 		self.text:SetText(barDisplayString)
 	elseif GetWatchedFactionInfo() then
 		local name, reaction, minRep, maxRep, currentRep = GetWatchedFactionInfo()
-
-		-- Default reaction to 1 if it somehow becomes 0
 		reaction = reaction == 0 and 1 or reaction
 
-		-- Get standing label
 		local standing = _G["FACTION_STANDING_LABEL" .. reaction] or UNKNOWN
-
-		-- Get color for the reaction level
 		local color = _G.FACTION_BAR_COLORS[reaction] or { r = 1, g = 1, b = 1 }
+		local current, maximum, percent = RepGetValues(currentRep, minRep, maxRep)
 
-		-- Calculate total for max reputation
-		local total = maxRep or 1
-
-		-- Adjust the status bar color and range
 		self:SetStatusBarColor(color.r, color.g, color.b)
-		self:SetMinMaxValues(minRep or 0, total)
-		self:SetValue(currentRep or 0)
+		self:SetMinMaxValues(0, maximum)
+		self:SetValue(current)
 
-		-- Format the display string
-		local percent = total > 0 and ((currentRep - minRep) / (total - minRep) * 100) or 0
-		local barDisplayString = string.format("%s: %s - %d%% [%s]", name, K.ShortValue(currentRep), percent, standing)
-
-		-- Update the bar text and visibility
+		local barDisplayString = string.format("%s: %s - %.2f%% [%s]", name, K.ShortValue(currentRep), percent, standing)
 		self.text:SetText(barDisplayString)
 		self:Show()
 	else
@@ -158,6 +131,29 @@ local function OnExpBarEnter(self)
 		GameTooltip:AddDoubleLine(altKeyText .. KEY_PLUS .. K.RightButton, sendExperienceText)
 	end
 
+	if K.Class == "HUNTER" and UnitExists("pet") then
+		local currPetXP, nextPetXP = GetPetExperience()
+
+		if nextPetXP and nextPetXP > 0 then
+			-- Calculate XP metrics
+			local remainPetXP = nextPetXP - currPetXP
+			local percentPetXP = (currPetXP / nextPetXP) * 100
+			local remainPetFraction = remainPetXP / nextPetXP
+			local remainPetPercent = remainPetFraction * 100
+			local remainPetBars = remainPetFraction * 20
+
+			-- Add pet XP tooltip details
+			if not XPIsLevelMax() then
+				GameTooltip:AddLine(" ")
+			end
+
+			GameTooltip:AddDoubleLine("|cff0070ff" .. PET .. " " .. COMBAT_XP_GAIN .. "|r", format("%s %d", LEVEL, UnitLevel("pet")))
+			GameTooltip:AddLine(" ")
+			GameTooltip:AddDoubleLine(L["XP"], string.format("%s / %s (%.2f%%)", K.ShortValue(currPetXP), K.ShortValue(nextPetXP), percentPetXP), 1, 1, 1)
+			GameTooltip:AddDoubleLine(L["Remaining"], string.format("%s (%.2f%% - %.2f " .. L["Bars"] .. ")", K.ShortValue(remainPetXP), remainPetPercent, remainPetBars), 1, 1, 1)
+		end
+	end
+
 	if GetWatchedFactionInfo() then
 		if not XPIsLevelMax() then
 			GameTooltip:AddLine(" ")
@@ -174,10 +170,8 @@ local function OnExpBarEnter(self)
 
 			-- Add reputation details if not at max standing
 			if reaction ~= _G.MAX_REPUTATION_REACTION and maxRep then
-				local current = currentRep - minRep
-				local total = maxRep - minRep
-				local percent = total > 0 and (current / total * 100) or 0
-				GameTooltip:AddDoubleLine(REPUTATION .. ":", string.format("%d / %d (%d%%)", current, total, percent), 1, 1, 1)
+				local current, maximum, percent = RepGetValues(currentRep, minRep, maxRep)
+				GameTooltip:AddDoubleLine(REPUTATION .. ":", string.format("%s / %s (%.2f%%)", K.ShortValue(current), K.ShortValue(maximum), percent), 1, 1, 1)
 			end
 		end
 	end

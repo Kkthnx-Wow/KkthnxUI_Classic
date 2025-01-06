@@ -55,6 +55,61 @@ local KKUI_Changelog = {
 	-- },
 
 	{
+		Version = "[1.0.2] - 2025-01-06 - Patch 1.15.5 - Classic Era",
+		General = "This update introduces several new features, visual improvements, and bug fixes to enhance your experience with KkthnxUI. Key updates include the addition of helm and cloak toggle buttons, better status bar textures, and fixes for longstanding issues.",
+
+		Sections = {
+			{
+				Header = "Core Updates",
+				Entries = {
+					"Added helm and cloak toggle buttons, configurable in the Miscellaneous settings.",
+					"Cleaned up and optimized code across multiple modules for better performance.",
+				},
+			},
+
+			{
+				Header = "Visual Enhancements",
+				Entries = {
+					"Improved status bar textures (e.g., skills) to align with KkthnxUI's overall aesthetic.",
+					"Adjusted blue color palette for easier-on-the-eyes visuals.",
+					"Updated the appearance and position of MinimapDifficulty icons for better readability.",
+				},
+			},
+
+			{
+				Header = "New Features and Enhancements",
+				Entries = {
+					"Introduced the ability to toggle the 'Already Known' feature on or off.",
+					"Renamed yclassColors to ClassColorPlus, which can now be toggled on or off.",
+					"Reputation tracking now displays the specific faction you are tracking.",
+					"Updated micromenu code to include a highlight effect and improve overall functionality.",
+					"Updated oUF tags to properly display 'Feign Death' status for hunters.",
+				},
+			},
+
+			{
+				Header = "Bug Fixes",
+				Entries = {
+					"Fixed temporary enchant auras appearing twice.",
+					"Resolved issues with GCD and HealPrediction functionality.",
+					"Fixed AuraWatch tracking auras into incorrect categories.",
+					"Addressed durability code to properly show alerts and reminders to repair.",
+					"Fixed raid tool code to better manage groups and assist in coordination.",
+				},
+			},
+
+			{
+				Header = "Code Refactoring and Cleanup",
+				Entries = {
+					"Cleaned up leftover MONK-specific code from previous versions.",
+					"Refactored reputation code to ensure consistent behavior.",
+					"Removed unused and outdated media files.",
+				},
+			},
+		},
+	},
+
+	{
 		Version = "[1.0.0] - 2025-01-04 - Patch 1.15.5 - Classic Era",
 		General = "This is the first release of KkthnxUI for WoW Classic Era. We've backported most of the retail code to ensure a smooth and enhanced user experience. This update includes key fixes, optimizations, and new features to improve performance and functionality.",
 
