@@ -9,8 +9,6 @@ local unpack = unpack
 -- WoW API and Constants
 local CLASS_ICON_TCOORDS = CLASS_ICON_TCOORDS
 local CURRENCY = CURRENCY
-local C_CurrencyInfo_GetBackpackCurrencyInfo = C_CurrencyInfo.GetBackpackCurrencyInfo
-local C_CurrencyInfo_GetCurrencyInfo = C_CurrencyInfo.GetCurrencyInfo
 local C_Timer_NewTicker = C_Timer.NewTicker
 local C_WowTokenPublic_GetCurrentMarketPrice = C_WowTokenPublic.GetCurrentMarketPrice
 local C_WowTokenPublic_UpdateMarketPrice = C_WowTokenPublic.UpdateMarketPrice
@@ -24,7 +22,6 @@ local YES = YES
 
 -- Variables
 local slotString = BAGSLOTTEXT .. ": %s%d"
-local showGoldGap = 100 * 1e4
 local ticker
 local profit = 0
 local spent = 0
@@ -34,16 +31,20 @@ local RebuildCharList
 
 -- Player Information
 local myName, myRealm = K.Name, K.Realm
-myRealm = gsub(myRealm, "%s", "") -- fix for multi-word realm name
+local crossRealms = GetAutoCompleteRealms()
+if not crossRealms or #crossRealms == 0 then
+	crossRealms = { [1] = myRealm }
+end
 
 StaticPopupDialogs["RESETGOLD"] = {
 	text = "Are you sure to reset the gold count?",
 	button1 = YES,
 	button2 = NO,
 	OnAccept = function()
-		wipe(KkthnxUIDB.Gold)
-		if not KkthnxUIDB.Gold[myRealm] then
-			KkthnxUIDB.Gold[myRealm] = {}
+		for _, realm in pairs(crossRealms) do
+			if KkthnxUIDB.Gold[realm] then
+				wipe(KkthnxUIDB.Gold[realm])
+			end
 		end
 		KkthnxUIDB.Gold[myRealm][myName] = { GetMoney(), K.Class, K.Faction }
 	end,
@@ -97,6 +98,10 @@ local eventList = {
 }
 
 local function UpdateMarketPrice()
+	if not GetLocale() == "zhCN" then
+		return
+	end
+
 	return C_WowTokenPublic_UpdateMarketPrice()
 end
 
@@ -118,7 +123,7 @@ local function OnEvent(_, event, arg1)
 		end
 	end
 
-	if not ticker and not K.IsFirestorm then
+	if not ticker and GetLocale() == "zhCN" then
 		C_WowTokenPublic_UpdateMarketPrice()
 		ticker = C_Timer_NewTicker(60, UpdateMarketPrice)
 	end
@@ -173,24 +178,25 @@ function RebuildCharList()
 	end
 
 	local index = 1
-	for realm, data in pairs(KkthnxUIDB.Gold) do
-		for name, value in pairs(data) do
-			if not (realm == myRealm and name == myName) then
-				index = index + 1
-				if not menuList[index] then
-					menuList[index] = {}
+	for _, realm in pairs(crossRealms) do
+		if KkthnxUIDB.Gold[realm] then
+			for name, value in pairs(KkthnxUIDB.Gold[realm]) do
+				if not (realm == myRealm and name == myName) then
+					index = index + 1
+					if not menuList[index] then
+						menuList[index] = {}
+					end
+					menuList[index].text = K.RGBToHex(K.ColorClass(value[2])) .. Ambiguate(name .. "-" .. realm, "none")
+					menuList[index].notCheckable = true
+					menuList[index].arg1 = realm
+					menuList[index].arg2 = name
+					menuList[index].func = clearCharGold
 				end
-				menuList[index].text = K.RGBToHex(K.ColorClass(value[2])) .. Ambiguate(name .. "-" .. realm, "none")
-				menuList[index].notCheckable = true
-				menuList[index].arg1 = realm
-				menuList[index].arg2 = name
-				menuList[index].func = clearCharGold
 			end
 		end
 	end
 end
 
-local title
 local function OnEnter(self)
 	if not self then
 		return
@@ -214,38 +220,18 @@ local function OnEnter(self)
 	GameTooltip:AddLine(" ")
 
 	local totalGold = 0
-	GameTooltip:AddLine(CHARACTER_BUTTON .. ":", 0.5, 0.7, 1)
-	if KkthnxUIDB.Gold[myRealm] then
-		for k, v in pairs(KkthnxUIDB.Gold[myRealm]) do
-			local gold, class, faction = unpack(v)
-			local name = Ambiguate(k .. "-" .. myRealm, "none")
-			if gold > showGoldGap or UnitIsUnit(name, "player") then
+	GameTooltip:AddLine("Realm Characters:", 0.6, 0.8, 1)
+	for _, realm in pairs(crossRealms) do
+		local thisRealmList = KkthnxUIDB.Gold[realm]
+		if thisRealmList then
+			for k, v in pairs(thisRealmList) do
+				local name = Ambiguate(k .. "-" .. realm, "none")
+				local gold, class, faction = unpack(v)
 				local r, g, b = K.ColorClass(class)
 				GameTooltip:AddDoubleLine(getFactionIcon(faction) .. getClassIcon(class) .. name, K.FormatMoney(gold), r, g, b, 1, 1, 1)
 				totalGold = totalGold + gold
 			end
 		end
-	end
-
-	local isShiftKeyDown = IsShiftKeyDown()
-	for realm, data in pairs(KkthnxUIDB.Gold) do
-		if realm ~= myRealm then
-			for k, v in pairs(data) do
-				local gold, class, faction = unpack(v)
-				if gold > showGoldGap then
-					if isShiftKeyDown then -- show other realms while holding shift
-						local name = Ambiguate(k .. "-" .. realm, "none")
-						local r, g, b = K.ColorClass(class)
-						GameTooltip:AddDoubleLine(getFactionIcon(faction) .. getClassIcon(class) .. name, K.FormatMoney(gold), r, g, b, 1, 1, 1)
-					end
-					totalGold = totalGold + gold
-				end
-			end
-		end
-	end
-
-	if not isShiftKeyDown then
-		GameTooltip:AddLine(L["Hold Shift"], 0.63, 0.82, 1)
 	end
 
 	GameTooltip:AddLine(" ")

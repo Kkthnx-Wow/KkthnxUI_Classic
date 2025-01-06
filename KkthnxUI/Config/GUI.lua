@@ -582,6 +582,7 @@ local Inventory = function(self)
 	Window:CreateSection("Bag Bar")
 	Window:CreateSwitch("Inventory", "BagBar", enableTextColor .. L["Enable Bagbar"])
 	Window:CreateSwitch("Inventory", "JustBackpack", "Just Show Main Backpack")
+	Window:CreateSwitch("Inventory", "BagBarMouseover", "Show Bag Bar On Mouseover")
 	Window:CreateSlider("Inventory", "BagBarSize", "BagBar Size", 20, 34, 1)
 	Window:CreateDropdown("Inventory", "GrowthDirection", "Growth Direction")
 	Window:CreateDropdown("Inventory", "SortDirection", "Sort Direction")
@@ -771,11 +772,14 @@ local Misc = function(self)
 	Window:CreateSwitch("Misc", "EasyMarking", L["EasyMarking by Ctrl + LeftClick"])
 	Window:CreateSwitch("Misc", "HelmCloakToggle", "Toggle helm and cloak visibility", "Enable this option to add quick toggle buttons for showing or hiding your helm and cloak directly on the character model frame.")
 	Window:CreateSwitch("Misc", "ShowWowHeadLinks", L["Show Wowhead Links Above Questlog Frame"])
+
+	Window:CreateSection("Durability")
 	Window:CreateSwitch("Misc", "SlotDurability", L["Show Slot Durability %"])
+	Window:CreateSwitch("Misc", "SlotDurabilityWarning", "Show Low Durability Warnings.", "Enable this option to display a warning when your equipment's durability falls below 25%. The warning will remind you to repair your gear to avoid item breakage.")
 
 	if K.Class == "HUNTER" then
 		Window:CreateSection(PET)
-		Window:CreateSwitch("Misc", "PetHappiness", newFeatureIcon .. "Display Pet Happiness Alerts To Stay Updated On Your Pet's Mood", nil, TogglePetHappiness)
+		Window:CreateSwitch("Misc", "PetHappiness", newFeatureIcon .. "Display Pet Happiness Alerts", nil, TogglePetHappiness)
 	end
 
 	Window:CreateSection("Camera")
