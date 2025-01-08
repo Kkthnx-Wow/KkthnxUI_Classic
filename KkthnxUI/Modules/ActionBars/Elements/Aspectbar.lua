@@ -99,15 +99,32 @@ function Module:UpdateAspectAnchor()
 	sort(aspectButtons, sortButtons)
 
 	local prevButton
+	local growUp = C["ActionBar"].BarAspectGrowUp
+	local spacing = 6
+
 	for _, value in pairs(aspectButtons) do
 		value[1]:ClearAllPoints()
 		if not prevButton then
-			value[1]:SetPoint("TOPLEFT", 0, 0)
-		else
+			-- Anchor the first button to the aspect frame
 			if C["ActionBar"].BarAspectVerticle then
-				value[1]:SetPoint("TOP", prevButton, "BOTTOM", 0, -6)
+				if growUp then
+					value[1]:SetPoint("BOTTOMLEFT", aspectFrame, "BOTTOMLEFT", 0, 0)
+				else
+					value[1]:SetPoint("TOPLEFT", aspectFrame, "TOPLEFT", 0, 0)
+				end
 			else
-				value[1]:SetPoint("LEFT", prevButton, "RIGHT", 6, 0)
+				value[1]:SetPoint("TOPLEFT", aspectFrame, "TOPLEFT", 0, 0)
+			end
+		else
+			-- Adjust subsequent buttons based on the layout and growth direction
+			if C["ActionBar"].BarAspectVerticle then
+				if growUp then
+					value[1]:SetPoint("BOTTOM", prevButton, "TOP", 0, spacing)
+				else
+					value[1]:SetPoint("TOP", prevButton, "BOTTOM", 0, -spacing)
+				end
+			else
+				value[1]:SetPoint("LEFT", prevButton, "RIGHT", spacing, 0)
 			end
 		end
 		prevButton = value[1]
@@ -155,14 +172,17 @@ function Module:UpdateAspectStatus()
 	end
 
 	local size = C["ActionBar"].BarAspectSize
-	local num = #aspects
-	local width, height = size * num + 3 * (num + 1), size
+	local num = #aspectButtons
+	local spacing = 6
+	local width, height = size, size * num + spacing * (num - 1)
+
+	-- Adjust frame size based on layout and direction
 	if C["ActionBar"].BarAspectVerticle then
-		aspectFrame:SetSize(height, width)
-		aspectFrame.mover:SetSize(height, width)
-	else
 		aspectFrame:SetSize(width, height)
 		aspectFrame.mover:SetSize(width, height)
+	else
+		aspectFrame:SetSize(height, width)
+		aspectFrame.mover:SetSize(height, width)
 	end
 
 	for _, value in pairs(aspectButtons) do
@@ -196,15 +216,16 @@ function Module:CreateAspectbar()
 
 	local size = C["ActionBar"].BarAspectSize or 50
 	local num = #aspects
-	local width, height = size * num + 3 * (num + 1), size
+	local spacing = 6
+	local width, height = size, size * num + spacing * (num - 1)
 
 	aspectFrame = CreateFrame("Frame", "KKUI_ActionBarAspect", UIParent)
 	if C["ActionBar"].BarAspectVerticle then
-		aspectFrame:SetSize(height, width)
-	else
 		aspectFrame:SetSize(width, height)
+	else
+		aspectFrame:SetSize(height, width)
 	end
-	aspectFrame.mover = K.Mover(aspectFrame, "AspectBar", "AspectBar", { "BOTTOMLEFT", 415, 25 })
+	aspectFrame.mover = K.Mover(aspectFrame, "AspectBar", "AspectBar", { "BOTTOMLEFT", 440, 4 })
 
 	Module:ToggleAspectBar()
 end

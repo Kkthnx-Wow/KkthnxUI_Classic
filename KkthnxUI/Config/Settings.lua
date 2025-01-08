@@ -29,7 +29,6 @@ C["ActionBar"] = {
 	VehButtonSize = 34,
 
 	Bar1 = true,
-	Bar1Flyout = 1,
 	Bar1Size = 38,
 	Bar1Font = 12,
 	Bar1Num = 12,
@@ -37,7 +36,6 @@ C["ActionBar"] = {
 	Bar1Fade = false,
 
 	Bar2 = true,
-	Bar2Flyout = 1,
 	Bar2Size = 38,
 	Bar2Font = 12,
 	Bar2Num = 12,
@@ -45,7 +43,6 @@ C["ActionBar"] = {
 	Bar2Fade = false,
 
 	Bar3 = true,
-	Bar3Flyout = 1,
 	Bar3Size = 38,
 	Bar3Font = 12,
 	Bar3Num = 12,
@@ -53,7 +50,6 @@ C["ActionBar"] = {
 	Bar3Fade = false,
 
 	Bar4 = true,
-	Bar4Flyout = 3,
 	Bar4Size = 38,
 	Bar4Font = 12,
 	Bar4Num = 12,
@@ -61,7 +57,6 @@ C["ActionBar"] = {
 	Bar4Fade = true,
 
 	Bar5 = true,
-	Bar5Flyout = 3,
 	Bar5Size = 38,
 	Bar5Font = 12,
 	Bar5Num = 12,
@@ -79,7 +74,6 @@ C["ActionBar"] = {
 	BarStanceFade = false,
 
 	Bar6 = false,
-	Bar6Flyout = 1,
 	Bar6Size = 34,
 	Bar6Font = 12,
 	Bar6Num = 12,
@@ -87,7 +81,6 @@ C["ActionBar"] = {
 	Bar6Fade = false,
 
 	Bar7 = false,
-	Bar7Flyout = 1,
 	Bar7Size = 34,
 	Bar7Font = 12,
 	Bar7Num = 12,
@@ -95,7 +88,6 @@ C["ActionBar"] = {
 	Bar7Fade = false,
 
 	Bar8 = false,
-	Bar8Flyout = 1,
 	Bar8Size = 34,
 	Bar8Font = 12,
 	Bar8Num = 12,
@@ -106,6 +98,7 @@ C["ActionBar"] = {
 	BarAspectSize = 25,
 	BarAspectVerticle = true,
 	BarAspectFade = true,
+	BarAspectGrowUp = true, -- Change to false for downward growth
 
 	BarFadeGlobal = true,
 	BarFadeAlpha = 0.1,

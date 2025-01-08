@@ -1,36 +1,15 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Automation")
 
--- Variables
-local lastThanked = {} -- Tracks buffs we've already thanked for
+local thankCooldown = {} -- Tracks last thank time for each caster and spellID
 local currentAuras = {}
 local previousAuras = {}
+local globalThankCooldown = 0
 
--- Buffs List
-local spellList = {
-	-- Druid
-	1126, -- Mark of the Wild
-
-	-- Mage
-	1459, -- Arcane Intellect
-
-	-- Priest
-	1243, -- Power Word: Fortitude
-
-	-- Paladin
-	19740, -- Blessing of Might
-	19742, -- Blessing of Wisdom
-	20217, -- Blessing of Kings
-
-	-- Warlock
-	5697, -- Unending Breath
-}
-
--- Emote List for Thanking
+local spellList = { 1126, 1459, 1243, 19740, 19742, 20217, 5697 }
 local emoteList = { "THANK", "BOW", "SALUTE" }
-
--- Prebuilt Buffs to Thank
 local buffsToThank = {}
+
 for _, spellID in ipairs(spellList) do
 	local spellName = GetSpellInfo(spellID)
 	if spellName then
@@ -38,7 +17,6 @@ for _, spellID in ipairs(spellList) do
 	end
 end
 
--- Utility Functions
 local function ClearTable(tbl)
 	for k in pairs(tbl) do
 		tbl[k] = nil
@@ -47,6 +25,20 @@ end
 
 local function GetRandomEmote()
 	return emoteList[math.random(1, #emoteList)]
+end
+
+local function PruneOldEntries()
+	local currentTime = GetTime()
+	for caster, spells in pairs(thankCooldown) do
+		for spellID, timestamp in pairs(spells) do
+			if currentTime - timestamp > 3600 then
+				thankCooldown[caster][spellID] = nil
+			end
+		end
+		if not next(thankCooldown[caster]) then
+			thankCooldown[caster] = nil
+		end
+	end
 end
 
 local function CacheAuras(targetTable)
@@ -61,26 +53,30 @@ local function CacheAuras(targetTable)
 end
 
 local function HandleNewBuff(spellID, caster)
-	if not lastThanked[spellID] or lastThanked[spellID] ~= caster then
-		lastThanked[spellID] = caster
-
-		local delay = math.random(1, 20) / 10 -- Random delay between 1 and 2 seconds
-		local emote = GetRandomEmote()
-
-		C_Timer.After(delay, function()
-			DoEmote(emote, caster)
-		end)
+	local currentTime = GetTime()
+	if currentTime - globalThankCooldown < 2 then
+		return
+	end -- Global cooldown
+	thankCooldown[caster] = thankCooldown[caster] or {}
+	if thankCooldown[caster][spellID] and (currentTime - thankCooldown[caster][spellID] < 5) then
+		return
 	end
+
+	thankCooldown[caster][spellID] = currentTime
+
+	local delay = math.random(1, 20) / 10
+	local emote = GetRandomEmote()
+	C_Timer.After(delay, function()
+		DoEmote(emote, caster)
+	end)
+
+	globalThankCooldown = currentTime
 end
 
--- Core Logic for Comparing Buffs
 local function CompareAndHandleAuras()
 	for spellID, data in pairs(currentAuras) do
 		if not previousAuras[spellID] then
-			-- Buff is new
-			local name = data.name
-			local caster = data.caster
-
+			local name, caster = data.name, data.caster
 			if name and caster and buffsToThank[name] and caster ~= UnitName("player") then
 				HandleNewBuff(spellID, caster)
 			end
@@ -88,35 +84,22 @@ local function CompareAndHandleAuras()
 	end
 end
 
--- Event Handlers
-local function HandlePlayerEnteringWorld(_, isLogin, isReload)
-	-- Full reset on login or reload
-	if isLogin or isReload then
-		ClearTable(previousAuras)
-		ClearTable(currentAuras)
-		ClearTable(lastThanked)
-	end
-
-	-- Always cache current state
+local function HandlePlayerEnteringWorld()
+	PruneOldEntries()
 	CacheAuras(previousAuras)
 	CacheAuras(currentAuras)
 end
 
 local function HandleUnitAura(_, unit)
 	if unit == "player" then
-		-- Store current state before updating
-		ClearTable(previousAuras)
 		for spellID, data in pairs(currentAuras) do
 			previousAuras[spellID] = data
 		end
-
-		-- Get new state
 		CacheAuras(currentAuras)
 		CompareAndHandleAuras()
 	end
 end
 
--- Initialization
 function Module:CreateAutoBuffThanks()
 	if C["Automation"].BuffThanks then
 		K:RegisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)

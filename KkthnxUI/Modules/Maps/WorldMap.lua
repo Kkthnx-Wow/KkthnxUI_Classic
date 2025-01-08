@@ -171,6 +171,7 @@ function Module:MapPartyDots()
 end
 
 function Module:OnEnable()
+	self:CreateWowheadLinks()
 	if not C["WorldMap"].Enable then
 		return
 	end

@@ -40,7 +40,6 @@
    <Script file="ActionBars\Elements\Aspectbar.lua" />
    <Script file="ActionBars\Elements\Stancebar.lua" />
    <Script file="ActionBars\Elements\Petbar.lua" />
-   <Script file="ActionBars\Elements\Extrabar.lua" />
    <Script file="ActionBars\Elements\LeaveVehicle.lua" />
    <Script file="ActionBars\Elements\HideBlizzardArt.lua" />
    <Script file="ActionBars\Elements\MicroMenu.lua" />

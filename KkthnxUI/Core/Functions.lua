@@ -252,11 +252,10 @@ end
 
 -- Class Color and Unit Color Functions
 do
-	local fixShamanColor = { r = 0.20, g = 0.35, b = 0.60, colorStr = "ff335999" }
 	function K.ColorClass(class)
 		local color
 		if class == "SHAMAN" then
-			color = fixShamanColor
+			color = K.FixShamanColor
 		else
 			color = K.ClassColors[class]
 		end

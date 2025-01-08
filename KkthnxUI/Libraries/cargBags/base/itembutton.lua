@@ -36,11 +36,15 @@ local ItemButton = cargBags:NewClass("ItemButton", nil, "Button")
 ]]
 function ItemButton:GetTemplate(bagID)
 	bagID = bagID or self.bagId
-	return (bagID == -3 and "ReagentBankItemButtonGenericTemplate") or (bagID == -1 and "BankItemButtonGenericTemplate") or (bagID and "ContainerFrameItemButtonTemplate") or "ItemButtonTemplate",
-      (bagID == -3 and ReagentBankFrame) or (bagID == -1 and BankFrame) or (bagID and _G["ContainerFrame"..bagID + 1]) or ContainerFrame1;
+	return (bagID == -3 and "ReagentBankItemButtonGenericTemplate") or (bagID == -1 and "BankItemButtonGenericTemplate") or (bagID and "ContainerFrameItemButtonTemplate") or "ItemButtonTemplate", (bagID == -3 and ReagentBankFrame) or (bagID == -1 and BankFrame) or (bagID and _G["ContainerFrame" .. bagID + 1]) or ContainerFrame1
 end
 
-local mt_gen_key = {__index = function(self,k) self[k] = {}; return self[k]; end}
+local mt_gen_key = {
+	__index = function(self, k)
+		self[k] = {}
+		return self[k]
+	end,
+}
 
 --[[!
 	Fetches a new instance of the ItemButton, creating one if necessary
@@ -63,6 +67,7 @@ function ItemButton:New(bagID, slotID)
 	button:SetID(slotID)
 	button:Show()
 	button:HookScript("OnEnter", button.OnEnter)
+	button:HookScript("OnLeave", button.OnLeave)
 	if bagID == BANK_CONTAINER then
 		button.GetInventorySlot = ButtonInventorySlot
 		button.UpdateTooltip = BankFrameItemButton_OnEnter
@@ -85,16 +90,26 @@ function ItemButton:Create(tpl, parent)
 	impl.numSlots = (impl.numSlots or 0) + 1
 	local name = ("%sSlot%d"):format(impl.name, impl.numSlots)
 
-	local button = setmetatable(CreateFrame("Button", name, parent, tpl..", BackdropTemplate"), self.__index)
+	local button = setmetatable(CreateFrame("Button", name, parent, tpl .. ", BackdropTemplate"), self.__index)
 
-	if(button.Scaffold) then button:Scaffold(tpl) end
-	if(button.OnCreate) then button:OnCreate(tpl) end
-	local btnNT = _G[button:GetName().."NormalTexture"]
+	if button.Scaffold then
+		button:Scaffold(tpl)
+	end
+	if button.OnCreate then
+		button:OnCreate(tpl)
+	end
+	local btnNT = _G[button:GetName() .. "NormalTexture"]
 	local btnNIT = button.NewItemTexture
 	local btnBIT = button.BattlepayItemTexture
-	if btnNT then btnNT:SetTexture("") end
-	if btnNIT then btnNIT:SetTexture("") end
-	if btnBIT then btnBIT:SetTexture("") end
+	if btnNT then
+		btnNT:SetTexture("")
+	end
+	if btnNIT then
+		btnNIT:SetTexture("")
+	end
+	if btnBIT then
+		btnBIT:SetTexture("")
+	end
 
 	button:RegisterForDrag("LeftButton") -- fix button drag in 9.0
 

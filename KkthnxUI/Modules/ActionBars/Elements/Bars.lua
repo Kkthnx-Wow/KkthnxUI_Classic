@@ -153,7 +153,6 @@ function Module:UpdateButtonConfig(i)
 
 	self.buttonConfig.clickOnDown = GetCVarBool("ActionButtonUseKeyDown")
 	self.buttonConfig.showGrid = C["ActionBar"].Grid
-	self.buttonConfig.flyoutDirection = directions[C["ActionBar"]["Bar" .. i .. "Flyout"]]
 
 	local hotkey = self.buttonConfig.text.hotkey
 	hotkey.font.font = K.UIFont
@@ -346,13 +345,6 @@ function Module:CreateBars()
 
 	K.LibActionButton.RegisterCallback(Module, "OnButtonUpdate", Module.UpdateBarBorderColor)
 
-	if K.LibActionButton.flyoutHandler then
-		K.LibActionButton.flyoutHandler.Background:Hide()
-		for _, button in next, K.LibActionButton.FlyoutButtons do
-			Module:StyleActionButton(button)
-		end
-	end
-
 	local function delayUpdate()
 		Module:UpdateBarConfig()
 		K:UnregisterEvent("PLAYER_REGEN_ENABLED", delayUpdate)
@@ -406,14 +398,8 @@ function Module:OnEnable()
 		end
 	end
 
-	--if C_PetBattles.IsInBattle() then
-	--Module:ClearBindings()
-	--else
 	Module:ReassignBindings()
-	--end
 	K:RegisterEvent("UPDATE_BINDINGS", Module.ReassignBindings)
-	-- K:RegisterEvent("PET_BATTLE_CLOSE", Module.ReassignBindings)
-	-- K:RegisterEvent("PET_BATTLE_OPENING_DONE", Module.ClearBindings)
 
 	if AdiButtonAuras then
 		AdiButtonAuras:RegisterLAB("LibActionButton-1.0")

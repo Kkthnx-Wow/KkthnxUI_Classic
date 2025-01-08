@@ -1,9 +1,7 @@
 local K = KkthnxUI[1]
 local Module = K:GetModule("ActionBar")
 
-local _G = _G
-local next, tonumber = next, tonumber
-local ACTION_BUTTON_SHOW_GRID_REASON_CVAR = ACTION_BUTTON_SHOW_GRID_REASON_CVAR
+local next = next
 
 local scripts = {
 	"OnShow",
@@ -76,8 +74,5 @@ function Module:HideBlizz()
 	K.HideInterfaceOption(InterfaceOptionsActionBarsPanelRight)
 	K.HideInterfaceOption(InterfaceOptionsActionBarsPanelRightTwo)
 	K.HideInterfaceOption(InterfaceOptionsActionBarsPanelAlwaysShowActionBars)
-	-- InterfaceOptionsActionBarsPanelStackRightBars:EnableMouse(false)
-	-- InterfaceOptionsActionBarsPanelStackRightBars:SetAlpha(0)
-	-- Update token panel
 	K:RegisterEvent("CURRENCY_DISPLAY_UPDATE", updateTokenVisibility)
 end

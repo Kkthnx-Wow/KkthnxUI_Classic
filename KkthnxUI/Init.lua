@@ -165,7 +165,7 @@ for k, v in pairs(LOCALIZED_CLASS_NAMES_FEMALE) do
 end
 
 -- Define the fixed Shaman color
-local fixShamanColor = { r = 0.20, g = 0.35, b = 0.60, colorStr = "ff335999" }
+K.FixShamanColor = { r = 0.30, g = 0.50, b = 0.75, colorStr = "ff4d80bf" }
 
 -- Populate the ClassColors table with the colors of each class
 local colors = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
@@ -173,10 +173,10 @@ for class, value in pairs(colors) do
 	K.ClassColors[class] = {}
 	-- Apply the fixed Shaman color
 	if class == "SHAMAN" then
-		K.ClassColors[class].r = fixShamanColor.r
-		K.ClassColors[class].g = fixShamanColor.g
-		K.ClassColors[class].b = fixShamanColor.b
-		K.ClassColors[class].colorStr = fixShamanColor.colorStr
+		K.ClassColors[class].r = K.FixShamanColor.r
+		K.ClassColors[class].g = K.FixShamanColor.g
+		K.ClassColors[class].b = K.FixShamanColor.b
+		K.ClassColors[class].colorStr = K.FixShamanColor.colorStr
 	else
 		K.ClassColors[class].r = value.r
 		K.ClassColors[class].g = value.g

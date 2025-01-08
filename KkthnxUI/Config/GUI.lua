@@ -42,9 +42,9 @@ local function togglePlatePower()
 	K:GetModule("Unitframes"):TogglePlatePower()
 end
 
-local function toggleMinimapIcon()
-	K:GetModule("Miscellaneous"):ToggleMinimapIcon()
-end
+-- local function toggleMinimapIcon()
+-- 	K:GetModule("Miscellaneous"):ToggleMinimapIcon()
+-- end
 
 local function togglePlayerPlate()
 	refreshNameplates()
@@ -689,7 +689,7 @@ local General = function(self)
 
 	-- Toggles
 	Window:CreateSection(GENERAL)
-	Window:CreateSwitch("General", "MinimapIcon", "Enable Minimap Icon", nil, toggleMinimapIcon)
+	Window:CreateSwitch("General", "MinimapIcon", "Enable Minimap Icon")
 	Window:CreateSwitch("General", "MoveBlizzardFrames", L["Move Blizzard Frames"])
 	Window:CreateSwitch("General", "CombatErrors", newFeatureIcon .. "Block Specific Error Messages During Combat", nil, UpdateErrorBlocker)
 
