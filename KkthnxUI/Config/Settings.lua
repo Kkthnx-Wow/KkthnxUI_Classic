@@ -387,6 +387,7 @@ C["Misc"] = {
 	SlotDurability = false,
 	SlotDurabilityWarning = false,
 	TradeTabs = false,
+	TrainAll = false,
 	EasyMarkKey = {
 		Options = {
 			["CTRL"] = 1,

@@ -772,6 +772,7 @@ local Misc = function(self)
 	Window:CreateSwitch("Misc", "EasyMarking", L["EasyMarking by Ctrl + LeftClick"])
 	Window:CreateSwitch("Misc", "HelmCloakToggle", "Toggle helm and cloak visibility", "Enable this option to add quick toggle buttons for showing or hiding your helm and cloak directly on the character model frame.")
 	Window:CreateSwitch("Misc", "ShowWowHeadLinks", L["Show Wowhead Links Above Questlog Frame"])
+	Window:CreateSwitch("Misc", "TrainAll", "Enable Train All Button", "Adds a 'Train All' button to the Class Trainer frame, allowing you to train all available skills with a single click.")
 
 	Window:CreateSection("Durability")
 	Window:CreateSwitch("Misc", "SlotDurability", L["Show Slot Durability %"])
