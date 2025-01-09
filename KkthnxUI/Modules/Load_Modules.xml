@@ -139,6 +139,7 @@
    <Include file="Skins\Core.lua" />
    <Include file="Skins\Blizzard\InspectUI.lua" />
    <Include file="Skins\Blizzard\EngravingUI.lua" />
+   <Include file="Skins\Blizzard\QuestLogFrame.lua" />
    <!-- Skins FrameXML -->
    <Include file="Skins\Blizzard\FrameXML\CharacterFrame.lua" />
    <Include file="Skins\Blizzard\FrameXML\ChatBubbles.lua" />

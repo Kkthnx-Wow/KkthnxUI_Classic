@@ -1,5 +1,6 @@
 -- Cache Global Variables
 local K, C = KkthnxUI[1], KkthnxUI[2]
+local Module = K:GetModule("Skins")
 
 local _G = _G
 local next = next

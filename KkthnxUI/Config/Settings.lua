@@ -500,15 +500,19 @@ C["Nameplate"] = {
 
 -- Skins
 C["Skins"] = {
-	-- Bartender4 = false,
-	-- BigWigs = false,
 	BlizzardFrames = true,
-	-- ButtonForge = false,
 	ChatBubbleAlpha = 0.9,
 	ChatBubbles = true,
-	-- ChocolateBar = false,
 	DeadlyBossMods = false,
 	Details = false,
+	QuestDifficulty = false,
+	QuestLevels = false,
+	QuestLog = false,
+
+	-- Bartender4 = false,
+	-- BigWigs = false,
+	-- ButtonForge = false,
+	-- ChocolateBar = false,
 	-- Dominos = false,
 	-- Hekili = false,
 	-- RareScanner = false,

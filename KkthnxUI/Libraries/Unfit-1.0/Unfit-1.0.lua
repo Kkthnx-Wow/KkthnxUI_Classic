@@ -20,11 +20,11 @@ if not Lib then
 	return
 end
 
---[[ Data ]]
---
+local Class = UnitClassBase("player")
+local Level = UnitLevel("player")
 
-do
-	local Class = UnitClassBase("player")
+local function UpdateUnusable()
+	Level = UnitLevel("player") -- Update player level dynamically
 	local Unusable
 
 	if Class == "DRUID" then
@@ -53,7 +53,7 @@ do
 				Enum.ItemWeaponSubclass.Thrown,
 				Enum.ItemWeaponSubclass.Wand,
 			},
-			{ Enum.ItemArmorSubclass.Plate, Enum.ItemArmorSubclass.Shield },
+			Level < 40 and { Enum.ItemArmorSubclass.Mail, Enum.ItemArmorSubclass.Plate, Enum.ItemArmorSubclass.Shield } or { Enum.ItemArmorSubclass.Plate, Enum.ItemArmorSubclass.Shield },
 			true,
 		}
 	elseif Class == "MAGE" then
@@ -80,22 +80,6 @@ do
 			},
 			true,
 		}
-	elseif Class == "MONK" then
-		Unusable = {
-			{
-				Enum.ItemWeaponSubclass.Axe2H,
-				Enum.ItemWeaponSubclass.Bows,
-				Enum.ItemWeaponSubclass.Guns,
-				Enum.ItemWeaponSubclass.Mace2H,
-				Enum.ItemWeaponSubclass.Sword2H,
-				Enum.ItemWeaponSubclass.Warglaive,
-				Enum.ItemWeaponSubclass.Dagger,
-				Enum.ItemWeaponSubclass.Thrown,
-				Enum.ItemWeaponSubclass.Crossbow,
-				Enum.ItemWeaponSubclass.Wand,
-			},
-			{ Enum.ItemArmorSubclass.Mail, Enum.ItemArmorSubclass.Plate, Enum.ItemArmorSubclass.Shield },
-		}
 	elseif Class == "PALADIN" then
 		Unusable = {
 			{
@@ -109,7 +93,7 @@ do
 				Enum.ItemWeaponSubclass.Crossbow,
 				Enum.ItemWeaponSubclass.Wand,
 			},
-			{},
+			Level < 40 and { Enum.ItemArmorSubclass.Plate } or {},
 			true,
 		}
 	elseif Class == "PRIEST" then
@@ -162,7 +146,7 @@ do
 				Enum.ItemWeaponSubclass.Crossbow,
 				Enum.ItemWeaponSubclass.Wand,
 			},
-			{ Enum.ItemArmorSubclass.Plate },
+			Level < 40 and { Enum.ItemArmorSubclass.Mail, Enum.ItemArmorSubclass.Plate } or { Enum.ItemArmorSubclass.Plate },
 		}
 	elseif Class == "WARLOCK" then
 		Unusable = {
@@ -189,7 +173,13 @@ do
 			true,
 		}
 	elseif Class == "WARRIOR" then
-		Unusable = { { Enum.ItemWeaponSubclass.Warglaive, Enum.ItemWeaponSubclass.Wand }, {} }
+		Unusable = {
+			{
+				Enum.ItemWeaponSubclass.Warglaive,
+				Enum.ItemWeaponSubclass.Wand,
+			},
+			Level < 40 and { Enum.ItemArmorSubclass.Plate } or {},
+		}
 	else
 		Unusable = { {}, {} }
 	end
@@ -202,14 +192,23 @@ do
 		for _, subclass in ipairs(Unusable[i]) do
 			list[subclass] = true
 		end
-
 		Lib.unusable[class] = list
 	end
 end
 
---[[ API ]]
---
+-- Register the PLAYER_LEVEL_UP event
+local frame = CreateFrame("Frame")
+frame:RegisterEvent("PLAYER_LEVEL_UP")
+frame:SetScript("OnEvent", function(_, event)
+	if event == "PLAYER_LEVEL_UP" then
+		UpdateUnusable()
+	end
+end)
 
+-- Initial setup
+UpdateUnusable()
+
+--[[ API ]]
 function Lib:IsItemUnusable(item)
 	if item then
 		local slot, _, _, class, subclass = select(9, C_Item.GetItemInfo(item))
