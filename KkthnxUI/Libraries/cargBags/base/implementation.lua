@@ -342,7 +342,7 @@ function Implementation:GetItemInfo(bagID, slotID, i)
 		local questInfo = C_Container.GetContainerItemQuestInfo(bagID, slotID)
 		i.isQuestItem, i.questID, i.questActive = questInfo.isQuestItem, questInfo.questID, questInfo.isActive
 
-		i.name, _, _, i.level, _, i.type, i.subType, _, i.equipLoc, _, _, i.classID, i.subClassID, i.bindType = GetItemInfo(i.link)
+		i.name, _, _, i.level, i.minLevel, i.type, i.subType, _, i.equipLoc, _, _, i.classID, i.subClassID, i.bindType = GetItemInfo(i.link)
 		i.equipLoc = _G[i.equipLoc] -- INVTYPE to localized string
 
 		if i.id == PET_CAGE then

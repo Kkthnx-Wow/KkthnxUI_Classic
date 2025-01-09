@@ -1097,7 +1097,7 @@ function Module:OnEnable()
 		end
 
 		-- Determine if we can use that item or not?
-		if (Unfit:IsItemUnusable(item.link) or item.minlevel and item.minlevel > K.Level) and not item.locked then
+		if (Unfit:IsItemUnusable(item.link) or item.minLevel and item.minLevel > K.Level) and not item.locked then
 			self.usableTexture:Show()
 		else
 			self.usableTexture:Hide()
