@@ -86,3 +86,5 @@ function Module:CreateHelmCloakToggle()
 		UpdateToggleStates(helmButton, cloakButton)
 	end)
 end
+
+Module:RegisterMisc("HelmCloakToggle", Module.CreateHelmCloakToggle)

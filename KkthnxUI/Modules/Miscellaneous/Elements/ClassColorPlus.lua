@@ -247,3 +247,5 @@ function Module:CreateClassColorPlus()
 
 	hookCount = hookCount + 1
 end
+
+Module:RegisterMisc("ClassColorPlus", Module.CreateClassColorPlus)

@@ -224,3 +224,5 @@ function Module:CreateAlreadyKnown()
 
 	K:RegisterEvent("ADDON_LOADED", AlreadyKnown_OnEvent)
 end
+
+Module:RegisterMisc("AlreadyKnown", Module.CreateAlreadyKnown)

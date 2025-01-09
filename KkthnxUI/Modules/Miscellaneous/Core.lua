@@ -61,13 +61,10 @@ function Module:OnEnable()
 	end
 
 	local loadMiscModules = {
-		"CreateAlreadyKnown",
 		"CreateAutoBubbles",
 		"CreateBossEmote",
-		"CreateClassColorPlus",
 		"CreateDurabilityFrameMove",
 		"CreateGUIGameMenuButton",
-		"CreateHelmCloakToggle",
 		"CreateMinimapButton",
 		"CreateQuickDeleteDialog",
 		"CreateTicketStatusFrameMove",
@@ -107,7 +104,7 @@ end
 
 -- Readycheck sound on master channel
 K:RegisterEvent("READY_CHECK", function()
-	PlaySound(SOUNDKIT.READY_CHECK, "master")
+	PlaySound(8960, "master")
 end)
 
 -- Modify Delete Dialog
@@ -445,8 +442,8 @@ end
 -- Resurrect Sound on Request
 do
 	local function soundOnResurrect()
-		if C["Unitframe"].ResurrectSound then
-			PlaySound("72978", "Master")
+		if C["Misc"].ResurrectSound then
+			PlaySoundFile("Interface\\AddOns\\KkthnxUI\\Media\\Sounds\\Resurrect.ogg", "Master")
 		end
 	end
 	K:RegisterEvent("RESURRECT_REQUEST", soundOnResurrect)
