@@ -35,6 +35,30 @@ do
 end
 
 do
+	-- Hook the GetClassColor function to return the custom Shaman color
+	hooksecurefunc("GetClassColor", function(englishClass)
+		if englishClass == "SHAMAN" then
+			return K.FixShamanColor.r, K.FixShamanColor.g, K.FixShamanColor.b, 1.0
+		end
+	end)
+
+	-- Update chat color configuration for Shamans
+	local function UpdateShamanChatColor()
+		local shamanColor = CreateColor(K.FixShamanColor.r, K.FixShamanColor.g, K.FixShamanColor.b)
+		RAID_CLASS_COLORS["SHAMAN"] = shamanColor
+		RAID_CLASS_COLORS["SHAMAN"].colorStr = K.FixShamanColor.colorStr
+	end
+
+	-- Initialize the Shaman color functionality
+	local function InitializeShamanColor()
+		UpdateShamanChatColor()
+	end
+
+	-- Register the initialization event
+	K:RegisterEvent("PLAYER_LOGIN", InitializeShamanColor)
+end
+
+do
 	-- This script fixes the quest icon textures in the QuestFrameGreetingPanel.
 	-- It checks if the QuestFrameFixer addon is loaded and returns early if it is to avoid conflicts.
 	-- It then initializes the quest title buttons and their associated icon textures.

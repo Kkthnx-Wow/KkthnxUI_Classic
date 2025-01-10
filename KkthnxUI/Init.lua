@@ -164,8 +164,8 @@ for k, v in pairs(LOCALIZED_CLASS_NAMES_FEMALE) do
 	K.ClassList[v] = k
 end
 
--- Define the fixed Shaman color
-K.FixShamanColor = { r = 0.30, g = 0.50, b = 0.75, colorStr = "ff4d80bf" }
+-- Define the updated Shaman color
+K.FixShamanColor = { r = 0.20, g = 0.50, b = 0.85, colorStr = "ff3380d9" }
 
 -- Populate the ClassColors table with the colors of each class
 local colors = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
