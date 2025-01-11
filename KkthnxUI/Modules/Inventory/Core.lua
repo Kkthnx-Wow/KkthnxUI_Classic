@@ -4,11 +4,8 @@ local Module = K:NewModule("Bags")
 local Unfit = K.LibUnfit
 local cargBags = K.cargBags
 
-local ceil = ceil
-local ipairs = ipairs
-local string_match = string.match
 local table_wipe = table.wipe
-local unpack = unpack
+local ipairs, strmatch, unpack, ceil = ipairs, string.match, unpack, math.ceil
 
 local C_Container_GetContainerItemInfo = C_Container.GetContainerItemInfo
 local C_NewItems_IsNewItem, C_NewItems_RemoveNewItem = C_NewItems.IsNewItem, C_NewItems.RemoveNewItem
@@ -20,10 +17,9 @@ local GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots or
 local GetInventoryItemID = GetInventoryItemID
 local GetItemInfo = C_Item.GetItemInfo
 local ITEM_STARTS_QUEST = ITEM_STARTS_QUEST
-local InCombatLockdown = InCombatLockdown
 local IsAltKeyDown = IsAltKeyDown
 local IsControlKeyDown = IsControlKeyDown
-local IsControlKeyDown, IsAltKeyDown, IsShiftKeyDown, DeleteCursorItem = IsControlKeyDown, IsAltKeyDown, IsShiftKeyDown, DeleteCursorItem
+local IsControlKeyDown, IsAltKeyDown, DeleteCursorItem = IsControlKeyDown, IsAltKeyDown, DeleteCursorItem
 local LE_ITEM_CLASS_QUIVER, LE_ITEM_CLASS_CONTAINER = LE_ITEM_CLASS_QUIVER, LE_ITEM_CLASS_CONTAINER
 local LE_ITEM_QUALITY_POOR, LE_ITEM_QUALITY_RARE = LE_ITEM_QUALITY_POOR, LE_ITEM_QUALITY_RARE
 local NUM_BAG_SLOTS = NUM_BAG_SLOTS or 4
@@ -31,9 +27,8 @@ local NUM_BANKBAGSLOTS = NUM_BANKBAGSLOTS or 7
 local PickupContainerItem = C_Container and C_Container.PickupContainerItem or PickupContainerItem
 local PlaySound = PlaySound
 local SOUNDKIT = SOUNDKIT
-local SortBankBags, SortBags, InCombatLockdown, ClearCursor = SortBankBags, SortBags, InCombatLockdown, ClearCursor
+local SortBankBags, SortBags, ClearCursor = SortBankBags, SortBags, ClearCursor
 local SplitContainerItem = C_Container and C_Container.SplitContainerItem or SplitContainerItem
-local ipairs, strmatch, unpack, ceil = ipairs, string.match, unpack, math.ceil
 
 local anchorCache = {}
 

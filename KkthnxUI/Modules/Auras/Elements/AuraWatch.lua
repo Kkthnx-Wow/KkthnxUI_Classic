@@ -481,12 +481,12 @@ function Module:AuraWatch_UpdateCD()
 					end
 					if charges and maxCharges and maxCharges > 1 and charges < maxCharges then
 						Module:AuraWatch_SetupCD(KEY, name, icon, chargeStart, chargeDuration, true, 1, value.SpellID, charges)
-					elseif start and duration > 3 then -- Add config for MinCD for AW
+					elseif start and duration > C["AuraWatch"].MinCD then
 						Module:AuraWatch_SetupCD(KEY, name, icon, start, duration, true, 1, value.SpellID)
 					end
 				elseif value.ItemID then
 					local start, duration = GetItemCooldown(value.ItemID)
-					if start and duration > 3 then -- Add config for MinCD for AW
+					if start and duration > C["AuraWatch"].MinCD then
 						local name, _, _, _, _, _, _, _, _, icon = GetItemInfo(value.ItemID)
 						if group.Mode:lower() == "icon" then
 							name = nil

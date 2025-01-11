@@ -618,6 +618,7 @@ local AuraWatch = function(self)
 	Window:CreateSwitch("AuraWatch", "Enable", enableTextColor .. L["Enable AuraWatch"])
 	Window:CreateSwitch("AuraWatch", "ClickThrough", L["Disable AuraWatch Tooltip (ClickThrough)"], "If enabled, the icon would be uninteractable, you can't select or mouseover them.")
 	Window:CreateSlider("AuraWatch", "IconScale", L["AuraWatch IconScale"], 0.8, 2, 0.1)
+	Window:CreateSlider("AuraWatch", "MinCD", "Minimum Cooldown For Spells To Be Displayed", 1, 60, 1, "The Spell cooldown is only visible when its cooldown is greater than the specified value in seconds.")
 end
 
 local Chat = function(self)

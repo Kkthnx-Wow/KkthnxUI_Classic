@@ -88,7 +88,11 @@ function Module:SetSizeAndPositionBagBar()
 	_G.MainMenuBarBackpackButtonCount:SetFontObject(K.UIFontOutline)
 
 	for i, button in ipairs(buttonList) do
-		button:SetSize(bagBarSize, bagBarSize)
+		if button == _G.KeyRingButton then
+			button:SetSize(18, bagBarSize + 4)
+		else
+			button:SetSize(bagBarSize, bagBarSize)
+		end
 		button:ClearAllPoints()
 		button:SetShown(not justBackpack or i == 1)
 
@@ -195,7 +199,17 @@ function Module:CreateInventoryBar()
 		b:SetParent(bagBar)
 		Module:SkinBag(b)
 
+		Module.BagButton_UpdateTextures(b)
 		tinsert(buttonList, b)
+	end
+
+	local KeyRing = _G.KeyRingButton
+	if KeyRing and not C["Inventory"].Enable then -- Just so we can have the keyring button
+		KeyRing:SetParent(bagBar)
+		KeyRing:SetScript("OnEnter", Module.KeyRing_OnEnter)
+		KeyRing:SetScript("OnLeave", Module.KeyRing_OnLeave)
+
+		tinsert(buttonList, KeyRing)
 	end
 
 	K.Mover(bagBar, "BagBar", "BagBar", bagPosition)

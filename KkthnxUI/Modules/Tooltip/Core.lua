@@ -98,8 +98,11 @@ function Module:InsertFactionFrame(faction)
 
 		self.factionFrame = f
 	end
-	self.factionFrame:SetAtlas("MountJournalIcons-" .. faction, true) --  charcreatetest-logo-horde
-	self.factionFrame:Show()
+
+	if faction then
+		self.factionFrame:SetAtlas("MountJournalIcons-" .. faction, true)
+		self.factionFrame:Show()
+	end
 end
 
 function Module:OnTooltipCleared()
@@ -115,10 +118,6 @@ function Module:OnTooltipCleared()
 	GameTooltip_ClearStatusBars(self)
 	GameTooltip_ClearProgressBars(self)
 	GameTooltip_ClearWidgetSet(self)
-
-	if self.StatusBar then
-		-- self.StatusBar:ClearWatch()
-	end
 end
 
 function Module:OnTooltipSetUnit()
@@ -160,8 +159,10 @@ function Module:OnTooltipSetUnit()
 		local status = (UnitIsAFK(unit) and AFK) or (UnitIsDND(unit) and DND) or (not UnitIsConnected(unit) and PLAYER_OFFLINE)
 		if status then
 			status = format(" |cffffcc00[%s]|r", status)
+		else
+			status = ""
 		end
-		GameTooltipTextLeft1:SetFormattedText("%s", name .. (status or ""))
+		GameTooltipTextLeft1:SetFormattedText("%s%s", name, status)
 
 		if C["Tooltip"].FactionIcon then
 			local faction = UnitFactionGroup(unit)
@@ -170,25 +171,27 @@ function Module:OnTooltipSetUnit()
 			end
 		end
 
-		-- if C["Tooltip"].LFDRole then
-		-- 	local unitColor
-		-- 	local unitRole = UnitGroupRolesAssigned(unit)
-		-- 	if IsInGroup() and (UnitInParty(unit) or UnitInRaid(unit)) and (unitRole ~= "NONE") then
-		-- 		if unitRole == "HEALER" then
-		-- 			unitRole = HEALER
-		-- 			unitColor = "|cff00ff96" -- RGB: 0, 255, 150
-		-- 		elseif unitRole == "TANK" then
-		-- 			unitRole = TANK
-		-- 			unitColor = "|cff2850a0" -- RGB: 40, 80, 160
-		-- 		elseif unitRole == "DAMAGER" then
-		-- 			unitRole = DAMAGE
-		-- 			unitColor = "|cffc41f3b" -- RGB: 196, 31, 59
-		-- 		end
+		if C["Tooltip"].LFDRole then
+			local unitRole = UnitGroupRolesAssigned(unit)
+			if IsInGroup() and (UnitInParty(unit) or UnitInRaid(unit)) and (unitRole ~= "NONE") then
+				local roleColors = {
+					HEALER = "|cff00ff96", -- RGB: 0, 255, 150
+					TANK = "|cff2850a0", -- RGB: 40, 80, 160
+					DAMAGER = "|cffc41f3b", -- RGB: 196, 31, 59
+				}
+				local roleNames = {
+					HEALER = HEALER,
+					TANK = TANK,
+					DAMAGER = DAMAGE,
+				}
+				local unitColor = roleColors[unitRole]
+				local unitRoleName = roleNames[unitRole]
 
-		-- 		self:AddLine(ROLE .. ": " .. unitColor .. unitRole .. "|r")
-		-- 	end
-		-- end
-
+				if unitColor and unitRoleName then
+					self:AddLine(ROLE .. ": " .. unitColor .. unitRoleName .. "|r")
+				end
+			end
+		end
 		local guildName, rank, rankIndex, guildRealm = GetGuildInfo(unit)
 		local hasText = GameTooltipTextLeft2:GetText()
 		if guildName and hasText then
@@ -265,20 +268,18 @@ function Module:OnTooltipSetUnit()
 	end
 
 	if not isPlayer and isShiftKeyDown then
-		local npcID = K.GetNPCID(guid)
+		local guid = UnitGUID(unit)
+		local npcID = guid and K.GetNPCID(guid)
 		if npcID then
-			self:AddLine(format(npcIDstring, "NpcID:", npcID))
+			local reaction = UnitReaction(unit, "player")
+			local standingText = reaction and hexColor .. _G["FACTION_STANDING_LABEL" .. reaction]
+			self:AddLine(format(npcIDstring, standingText or "", npcID))
 		end
 	end
 
-	self.StatusBar:SetStatusBarColor(r, g, b)
-
-	if isPlayer then
-		-- Module.InspectUnitItemLevel(self, unit)
-		-- Module.ShowUnitMythicPlusScore(self, unit)
+	if self.StatusBar then
+		self.StatusBar:SetStatusBarColor(r, g, b)
 	end
-	-- Module.ScanTargets(self, unit)
-	-- Module.CreatePetInfo(self, unit)
 end
 
 function Module:RefreshStatusBar(value)
@@ -451,28 +452,28 @@ end
 
 -- Fix comparison error on cursor
 function Module:GameTooltip_ComparisonFix(anchorFrame, shoppingTooltip1, shoppingTooltip2, _, secondaryItemShown)
-	local point = shoppingTooltip1:GetPoint(1) -- Check the first point
+	local point = shoppingTooltip1:GetPoint(1)
 	if not point then
 		return
 	end
 
 	if secondaryItemShown then
-		if point and point == "TOPLEFT" then
+		if point == "TOPLEFT" then
 			shoppingTooltip1:ClearAllPoints()
 			shoppingTooltip1:SetPoint("TOPLEFT", anchorFrame, "TOPRIGHT", 2, 0)
 			shoppingTooltip2:ClearAllPoints()
 			shoppingTooltip2:SetPoint("TOPLEFT", shoppingTooltip1, "TOPRIGHT", 2, 0)
-		elseif point and point == "TOPRIGHT" then
+		elseif point == "TOPRIGHT" then
 			shoppingTooltip1:ClearAllPoints()
 			shoppingTooltip1:SetPoint("TOPRIGHT", anchorFrame, "TOPLEFT", -2, 0)
 			shoppingTooltip2:ClearAllPoints()
 			shoppingTooltip2:SetPoint("TOPRIGHT", shoppingTooltip1, "TOPLEFT", -2, 0)
 		end
 	else
-		if point and point == "TOPLEFT" then
+		if point == "TOPLEFT" then
 			shoppingTooltip1:ClearAllPoints()
 			shoppingTooltip1:SetPoint("TOPLEFT", anchorFrame, "TOPRIGHT", 2, 0)
-		elseif point and point == "TOPRIGHT" then
+		elseif point == "TOPRIGHT" then
 			shoppingTooltip1:ClearAllPoints()
 			shoppingTooltip1:SetPoint("TOPRIGHT", anchorFrame, "TOPLEFT", -2, 0)
 		end

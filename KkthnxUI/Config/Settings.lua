@@ -284,6 +284,7 @@ C["AuraWatch"] = {
 	Enable = true,
 	ClickThrough = false,
 	IconScale = 1,
+	MinCD = 3,
 }
 
 -- General

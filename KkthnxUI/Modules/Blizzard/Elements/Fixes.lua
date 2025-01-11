@@ -35,27 +35,17 @@ do
 end
 
 do
-	-- Hook the GetClassColor function to return the custom Shaman color
-	hooksecurefunc("GetClassColor", function(englishClass)
-		if englishClass == "SHAMAN" then
-			return K.FixShamanColor.r, K.FixShamanColor.g, K.FixShamanColor.b, 1.0
+	local function SetShamanColor(colorTable, color)
+		if colorTable then
+			colorTable["SHAMAN"].r = color.r
+			colorTable["SHAMAN"].g = color.g
+			colorTable["SHAMAN"].b = color.b
+			colorTable["SHAMAN"].colorStr = color.colorStr
 		end
-	end)
-
-	-- Update chat color configuration for Shamans
-	local function UpdateShamanChatColor()
-		local shamanColor = CreateColor(K.FixShamanColor.r, K.FixShamanColor.g, K.FixShamanColor.b)
-		RAID_CLASS_COLORS["SHAMAN"] = shamanColor
-		RAID_CLASS_COLORS["SHAMAN"].colorStr = K.FixShamanColor.colorStr
 	end
 
-	-- Initialize the Shaman color functionality
-	local function InitializeShamanColor()
-		UpdateShamanChatColor()
-	end
-
-	-- Register the initialization event
-	K:RegisterEvent("PLAYER_LOGIN", InitializeShamanColor)
+	SetShamanColor(RAID_CLASS_COLORS, K.FixShamanColor)
+	SetShamanColor(CUSTOM_CLASS_COLORS, K.FixShamanColor)
 end
 
 do
