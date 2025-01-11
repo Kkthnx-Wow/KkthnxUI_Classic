@@ -16,9 +16,7 @@ local GameTooltip = GameTooltip
 local GetCVarBool = GetCVarBool
 local GetGameTime = GetGameTime
 local GetNumSavedInstances = GetNumSavedInstances
-local GetNumSavedWorldBosses = GetNumSavedWorldBosses
 local GetSavedInstanceInfo = GetSavedInstanceInfo
-local GetSavedWorldBossInfo = GetSavedWorldBossInfo
 local RequestRaidInfo = RequestRaidInfo
 local SecondsToTime = SecondsToTime
 local TIMEMANAGER_TICKER_12HOUR = TIMEMANAGER_TICKER_12HOUR
@@ -74,12 +72,6 @@ local function addTitle(text)
 	end
 end
 
-local function OnShiftDown()
-	if Module.Entered then
-		Module:OnEnter()
-	end
-end
-
 function Module:OnEnter()
 	Module.Entered = true
 
@@ -96,19 +88,6 @@ function Module:OnEnter()
 	GameTooltip:AddLine(" ")
 	GameTooltip:AddDoubleLine(L["Local Time"], GameTime_GetLocalTime(true), nil, nil, nil, 192 / 255, 192 / 255, 192 / 255)
 	GameTooltip:AddDoubleLine(L["Realm Time"], GameTime_GetGameTime(true), nil, nil, nil, 192 / 255, 192 / 255, 192 / 255)
-
-	-- World bosses
-	title = false
-	local numSavedWorldBosses = GetNumSavedWorldBosses()
-	if numSavedWorldBosses > 0 then
-		addTitle(RAID_INFO_WORLD_BOSS)
-		for i = 1, numSavedWorldBosses do
-			local name, id, reset = GetSavedWorldBossInfo(i)
-			if not (id == 11 or id == 12 or id == 13) then
-				GameTooltip:AddDoubleLine(name, SecondsToTime(reset, true, nil, 3), 1, 1, 1, 192 / 255, 192 / 255, 192 / 255)
-			end
-		end
-	end
 
 	-- Herioc/Mythic Dungeons
 	title = false
@@ -144,19 +123,30 @@ function Module:OnEnter()
 		end
 	end
 
+	if GameTooltip:NumLines() > 0 then
+		GameTooltip:AddLine(" ")
+	end
+
+	local dailyReset = C_DateAndTime.GetSecondsUntilDailyReset()
+	if dailyReset then
+		GameTooltip:AddDoubleLine("Daily Reset", SecondsToTime(dailyReset), nil, nil, nil, 192 / 255, 192 / 255, 192 / 255)
+	end
+
+	local weeklyReset = C_DateAndTime.GetSecondsUntilWeeklyReset()
+	if weeklyReset then
+		GameTooltip:AddDoubleLine(format("%s %s", WEEKLY, RESET), SecondsToTime(weeklyReset), nil, nil, nil, 192 / 255, 192 / 255, 192 / 255)
+	end
+
 	-- Help Info
 	GameTooltip:AddLine(" ")
 	GameTooltip:AddLine(K.LeftButton .. GAMETIME_TOOLTIP_TOGGLE_CALENDAR)
 	GameTooltip:AddLine(K.RightButton .. TIMEMANAGER_SHOW_STOPWATCH)
 	GameTooltip:Show()
-
-	K:RegisterEvent("MODIFIER_STATE_CHANGED", OnShiftDown)
 end
 
 local function OnLeave()
 	Module.Entered = true
 	K.HideTooltip()
-	K:UnregisterEvent("MODIFIER_STATE_CHANGED", OnShiftDown)
 end
 
 local function OnMouseUp(_, btn)

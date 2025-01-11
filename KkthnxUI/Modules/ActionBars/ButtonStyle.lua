@@ -75,7 +75,10 @@ function Module:StyleActionButton(button)
 
 	local autoCastable = _G[buttonName .. "AutoCastable"]
 	local border = button.Border
-	local checked = button:GetCheckedTexture()
+	local checked
+	if button.GetCheckedTexture then
+		checked = button:GetCheckedTexture()
+	end
 	local cooldown = button.cooldown
 	local flash = button.Flash or _G[buttonName .. "Flash"]
 	local floatingBG = _G[buttonName .. "FloatingBG"]

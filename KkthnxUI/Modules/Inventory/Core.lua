@@ -435,7 +435,7 @@ end
 local splitEnable
 local function saveSplitCount(self)
 	local count = self:GetText() or ""
-	C.db["Bags"]["SplitCount"] = tonumber(count) or 1
+	KkthnxUIDB.Variables[K.Realm][K.Name].SplitCount = tonumber(count) or 1
 end
 
 local function editBoxClearFocus(self)
@@ -664,12 +664,12 @@ local function favouriteOnClick(self)
 	end
 end
 
-StaticPopupDialogs["NDUI_WIPE_JUNK_LIST"] = {
-	text = L["Reset junklist warning"],
+StaticPopupDialogs["KKUI_WIPE_JUNK_LIST"] = {
+	text = "Are you sure you want to clear the custom junk list?",
 	button1 = YES,
 	button2 = NO,
 	OnAccept = function()
-		wipe(NDuiADB["CustomJunkList"])
+		wipe(KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList)
 	end,
 	whileDead = 1,
 }
@@ -697,6 +697,11 @@ function Module:CreateJunkButton()
 	end
 
 	JunkButton:SetScript("OnClick", function(self)
+		if IsAltKeyDown() and IsControlKeyDown() then
+			StaticPopup_Show("KKUI_WIPE_JUNK_LIST")
+			return
+		end
+
 		Module:SelectToggleButton(3)
 		customJunkEnable = not customJunkEnable
 		if customJunkEnable then
@@ -706,8 +711,8 @@ function Module:CreateJunkButton()
 		else
 			JunkButton.__turnOff()
 		end
-		self:GetScript("OnEnter")(self)
 		Module:UpdateAllBags()
+		self:GetScript("OnEnter")(self)
 	end)
 	JunkButton:SetScript("OnHide", JunkButton.__turnOff)
 	JunkButton.title = "Custom Junk List"
@@ -1388,7 +1393,7 @@ function Module:OnEnable()
 	Module.initComplete = true
 
 	K:RegisterEvent("TRADE_SHOW", Module.OpenBags)
-	--K:RegisterEvent("TRADE_CLOSED", module.CloseBags)
+	-- K:RegisterEvent("TRADE_CLOSED", Module.CloseBags)
 	K:RegisterEvent("AUCTION_HOUSE_SHOW", Module.OpenBags)
 	K:RegisterEvent("AUCTION_HOUSE_CLOSED", Module.CloseBags)
 
@@ -1408,23 +1413,9 @@ function Module:OnEnable()
 	end
 	BankFrameItemButton_Update = K.Noop
 
-	-- -- Shift key alert
-	-- local function onUpdate(self, elapsed)
-	-- 	if IsShiftKeyDown() then
-	-- 		self.elapsed = (self.elapsed or 0) + elapsed
-	-- 		if self.elapsed > 5 then
-	-- 			UIErrorsFrame:AddMessage(K.InfoColor .. L["StupidShiftKey"])
-	-- 			self.elapsed = 0
-	-- 		end
-	-- 	end
-	-- end
-	-- local shiftUpdater = CreateFrame("Frame", nil, f.main)
-	-- shiftUpdater:SetScript("OnUpdate", onUpdate)
-
 	-- Delay updates for data jam
 	local updater = CreateFrame("Frame", nil, f.main)
 	updater:Hide()
-
 	updater:SetScript("OnUpdate", function(self, elapsed)
 		self.delay = self.delay - elapsed
 		if self.delay < 0 then
@@ -1433,9 +1424,8 @@ function Module:OnEnable()
 		end
 	end)
 
-	-- Event listener for GET_ITEM_INFO_RECEIVED
 	K:RegisterEvent("GET_ITEM_INFO_RECEIVED", function()
-		updater.delay = 1
+		updater.delay = 1 -- Set the delay to 1 second
 		updater:Show()
 	end)
 end

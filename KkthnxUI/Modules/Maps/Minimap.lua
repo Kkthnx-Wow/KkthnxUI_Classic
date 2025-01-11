@@ -129,9 +129,8 @@ function Module:ReskinRegions()
 	end
 
 	if TimeManagerClockButton then
-		TimeManagerClockButton:ClearAllPoints()
-		TimeManagerClockButton:SetPoint("BOTTOM", K.UIFrameHider)
-		TimeManagerClockButton:Hide()
+		TimeManagerClockButton:SetParent(K.UIFrameHider)
+		TimeManagerClockButton:UnregisterAllEvents()
 	end
 
 	-- Invites Icon
@@ -244,12 +243,6 @@ function GetMinimapShape() -- LibDBIcon
 	end
 
 	return "SQUARE"
-end
-
-function Module:HideMinimapClock()
-	if TimeManagerClockButton then
-		TimeManagerClockButton:Hide()
-	end
 end
 
 local calendarButton
@@ -557,7 +550,6 @@ function Module:OnEnable()
 		"ReskinRegions",
 		"EasyTrackMenu",
 		"MinimapDifficulty",
-		"HideMinimapClock",
 		"ShowCalendar",
 		"UpdateMinimapScale",
 	}
