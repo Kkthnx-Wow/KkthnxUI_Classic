@@ -5,6 +5,7 @@ local thankCooldown = {} -- Tracks last thank time for each caster and spellID
 local currentAuras = {}
 local previousAuras = {}
 local globalThankCooldown = 0
+local shouldThank = true -- Flag to control thanking functionality
 
 local spellList = { 1126, 1459, 1243, 19740, 19742, 20217, 5697 }
 local emoteList = { "THANK", "BOW", "SALUTE" }
@@ -53,6 +54,10 @@ local function CacheAuras(targetTable)
 end
 
 local function HandleNewBuff(spellID, caster)
+	if not shouldThank then
+		return
+	end
+
 	local currentTime = GetTime()
 	if currentTime - globalThankCooldown < 2 then
 		return
@@ -88,6 +93,7 @@ local function HandlePlayerEnteringWorld()
 	PruneOldEntries()
 	CacheAuras(previousAuras)
 	CacheAuras(currentAuras)
+	K:UnregisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld) -- Unregister after handling
 end
 
 local function HandleUnitAura(_, unit)
@@ -100,12 +106,33 @@ local function HandleUnitAura(_, unit)
 	end
 end
 
+local function HandleAreaPOIsUpdated()
+	CacheAuras(previousAuras)
+	CacheAuras(currentAuras)
+end
+
+local function HandleLoadingScreenEnabled()
+	shouldThank = false
+end
+
+local function HandleLoadingScreenDisabled()
+	shouldThank = true
+	CacheAuras(previousAuras)
+	CacheAuras(currentAuras)
+end
+
 function Module:CreateAutoBuffThanks()
 	if C["Automation"].BuffThanks then
 		K:RegisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
 		K:RegisterEvent("UNIT_AURA", HandleUnitAura, "player")
+		K:RegisterEvent("AREA_POIS_UPDATED", HandleAreaPOIsUpdated)
+		K:RegisterEvent("LOADING_SCREEN_ENABLED", HandleLoadingScreenEnabled)
+		K:RegisterEvent("LOADING_SCREEN_DISABLED", HandleLoadingScreenDisabled)
 	else
 		K:UnregisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
 		K:UnregisterEvent("UNIT_AURA", HandleUnitAura, "player")
+		K:UnregisterEvent("AREA_POIS_UPDATED", HandleAreaPOIsUpdated)
+		K:UnregisterEvent("LOADING_SCREEN_ENABLED", HandleLoadingScreenEnabled)
+		K:UnregisterEvent("LOADING_SCREEN_DISABLED", HandleLoadingScreenDisabled)
 	end
 end

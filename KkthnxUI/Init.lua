@@ -66,6 +66,7 @@ K.IsEngravingEnabled = IsEngravingEnabled and IsEngravingEnabled()
 
 do
 	-- Lib Info
+	K.LibShowUIPanel = LibStub("LibShowUIPanel-1.0-KkthnxUI", true) or nil
 	K.LibEasyMenu = LibStub("LibEasyMenu-1.0-KkthnxUI", true) or nil
 	K.LibBase64 = LibStub("LibBase64-1.0-KkthnxUI", true) or nil
 	K.LibActionButton = LibStub("LibActionButton-1.0-KkthnxUI", true) or nil

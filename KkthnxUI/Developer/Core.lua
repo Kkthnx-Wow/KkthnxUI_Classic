@@ -85,11 +85,11 @@ do
 		return nil
 	end
 
-	-- Pool of randomized welcome messages
-	local welcomeMessages = {
+	-- Pool of randomized welcome messages with player name
+	local welcomeMessagesWithName = {
 		"Welcome aboard, %s!",
-		"Glad to have you here, %s! 😊",
-		"Hail and well met, %s! 🎉",
+		"Glad to have you here, %s!",
+		"Hail and well met, %s!",
 		"Welcome to the guild, %s!",
 		"Another brave soul joins us. Welcome!",
 		"Make yourself at home, %s!",
@@ -97,13 +97,20 @@ do
 		"We're thrilled to have you, %s!",
 		"A warm welcome to our new member!",
 		"Welcome to the guild family, %s!",
-		-- Generic messages without player name
+	}
+
+	-- Pool of randomized welcome messages with guild name
+	local welcomeMessagesWithGuild = {
+		"Welcome to %s!",
+		"Another champion joins %s! Welcome!",
+	}
+
+	-- Pool of generic welcome messages
+	local genericWelcomeMessages = {
 		"Welcome!",
 		"Welcome aboard!",
-		"Welcome to %s!",
 		"Glad to see a new face here!",
 		"Let's give a warm welcome to our newest member!",
-		"Another champion joins %s! Welcome!",
 		"Welcome to the family!",
 		"Welcome, adventurer!",
 	}
@@ -112,6 +119,10 @@ do
 	local function StripRealmName(playerName)
 		return string.match(playerName, "^(.-)%-.+$") or playerName
 	end
+
+	-- Cooldown tracking
+	local lastWelcomeTime = 0
+	local cooldownPeriod = 60 -- 1 minute cooldown
 
 	-- Function to handle the event
 	local function OnEvent(self, event, message)
@@ -127,24 +138,35 @@ do
 			-- Strip the realm name from the player's name
 			local playerName = StripRealmName(playerNameWithRealm)
 
+			-- Check cooldown
+			local currentTime = GetTime()
+			if currentTime - lastWelcomeTime < cooldownPeriod then
+				return
+			end
+
 			-- Schedule the welcome message with a random delay between 3 and 6 seconds
 			local delay = math.random(3, 6)
 			C_Timer.After(delay, function()
-				-- Select a random message from the pool
-				local randomIndex = math.random(1, #welcomeMessages)
-				local welcomeMessage = welcomeMessages[randomIndex]
+				local welcomeMessage
 
-				-- Format the message only if it contains '%s' for the player's name or guild name
-				if string.find(welcomeMessage, "%%s") then
-					if string.find(welcomeMessage, guildName) then
-						welcomeMessage = string.format(welcomeMessage, guildName)
-					else
-						welcomeMessage = string.format(welcomeMessage, playerName)
-					end
+				-- Randomly choose between player name, guild name, or generic message
+				local messageType = math.random(1, 3)
+				if messageType == 1 then
+					local randomIndex = math.random(1, #welcomeMessagesWithName)
+					welcomeMessage = string.format(welcomeMessagesWithName[randomIndex], playerName)
+				elseif messageType == 2 then
+					local randomIndex = math.random(1, #welcomeMessagesWithGuild)
+					welcomeMessage = string.format(welcomeMessagesWithGuild[randomIndex], guildName)
+				else
+					local randomIndex = math.random(1, #genericWelcomeMessages)
+					welcomeMessage = genericWelcomeMessages[randomIndex]
 				end
 
 				-- Send the welcome message to guild chat
 				SendChatMessage(welcomeMessage, "GUILD")
+
+				-- Update the last welcome time
+				lastWelcomeTime = GetTime()
 			end)
 		end
 	end

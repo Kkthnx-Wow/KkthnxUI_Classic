@@ -88,30 +88,35 @@ function Module:CreateStyle()
 	end)
 end
 
+-- Function to reset the tracking frame anchor
 local function ResetTrackingFrameAnchor()
 	MiniMapTracking:ClearAllPoints()
-	MiniMapTracking:SetPoint("RIGHT", Minimap, -5, 5)
+	MiniMapTracking:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", 2, 4)
 end
 
-function Module:ReskinRegions()
-	-- Configure the tracking icon
+-- Function to configure the tracking icon
+local function ConfigureTrackingIcon()
 	MiniMapTracking:SetScale(0.8)
 	MiniMapTracking:SetFrameLevel(999)
+
 	if MiniMapTrackingBorder then
 		MiniMapTrackingBorder:Hide()
 	end
-	MiniMapTrackingIcon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
+
+	MiniMapTrackingIcon:SetTexCoord(unpack(K.TexCoords))
 
 	-- Create a background frame for the tracking icon
-	local trackingIconBackground = CreateFrame("Frame", nil, MiniMapTracking, "BackdropTemplate")
-	trackingIconBackground:SetAllPoints(MiniMapTrackingIcon)
-	trackingIconBackground:SetFrameLevel(MiniMapTracking:GetFrameLevel())
-	trackingIconBackground:CreateBorder()
+	local trackingIconBorder = CreateFrame("Frame", "MiniMapTrackingBorderFrame", MiniMapTracking)
+	trackingIconBorder:SetAllPoints(MiniMapTrackingIcon)
+	trackingIconBorder:SetFrameLevel(MiniMapTracking:GetFrameLevel())
+	trackingIconBorder:CreateBorder()
 
 	-- Set the border color
-	trackingIconBackground.KKUI_Border:SetVertexColor(K.r, K.g, K.b)
+	trackingIconBorder.KKUI_Border:SetVertexColor(K.r, K.g, K.b)
+end
 
-	-- Reset the tracking frame anchor
+function Module:ReskinRegions()
+	ConfigureTrackingIcon()
 	ResetTrackingFrameAnchor()
 	hooksecurefunc("SetLookingForGroupUIAvailable", ResetTrackingFrameAnchor)
 
@@ -262,7 +267,8 @@ local function OnCalendarButtonClick()
 	end
 
 	lastClickTime = currentTime
-	K.Print("Oops! It seems you're trying to access the calendar, but this is Classic WoW. There is no calendar here! Enjoy the nostalgia!")
+	-- K.Print("Oops! It seems you're trying to access the calendar, but this is Classic WoW. There is no calendar here! Enjoy the nostalgia!")
+	K.Print("Please download and install alaCalendar for calendar functionality.")
 end
 
 -- Function to create a custom calendar button
@@ -302,7 +308,30 @@ function Module:ShowCalendar()
 		calendarText:SetText(GetCurrentDay()) -- Directly set the current day
 		calendarButton.calendarText = calendarText
 
-		calendarButton:SetScript("OnClick", OnCalendarButtonClick)
+		calendarButton:SetScript("OnClick", function()
+			local hasAlaCalendar = IsAddOnLoaded("alaCalendar")
+			if hasAlaCalendar then
+				K.TogglePanel(ALA_CALENDAR)
+			else
+				OnCalendarButtonClick()
+			end
+		end)
+
+		calendarButton:SetScript("OnEnter", function(self)
+			GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+			local hasAlaCalendar = IsAddOnLoaded("alaCalendar")
+			if hasAlaCalendar then
+				GameTooltip:AddLine("Click to open alaCalendar.", 1, 1, 1)
+			else
+				GameTooltip:AddLine("No supported addons to open a calendar.", 1, 0, 0)
+				GameTooltip:AddLine("Please download and install alaCalendar for calendar functionality.", 1, 1, 1)
+			end
+			GameTooltip:Show()
+		end)
+
+		calendarButton:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
 	end
 
 	calendarButton:Show()
@@ -321,20 +350,20 @@ end
 
 function Module:EasyTrackMenu()
 	local trackSpells = {
-		2383, --Find Herbs
-		2580, --Find Minerals
-		2481, --Find Treasure
-		1494, --Track Beasts
-		19883, --Track Humanoids
-		19884, --Track Undead
-		19885, --Track Hidden
-		19880, --Track Elementals
-		19878, --Track Demons
-		19882, --Track Giants
-		19879, --Track Dragonkin
-		5225, --Track Humanoids: Druid
-		5500, --Sense Demons
-		5502, --Sense Undead
+		2383, -- Find Herbs
+		2580, -- Find Minerals
+		2481, -- Find Treasure
+		1494, -- Track Beasts
+		19883, -- Track Humanoids
+		19884, -- Track Undead
+		19885, -- Track Hidden
+		19880, -- Track Elementals
+		19878, -- Track Demons
+		19882, -- Track Giants
+		19879, -- Track Dragonkin
+		5225, -- Track Humanoids: Druid
+		5500, -- Sense Demons
+		5502, -- Sense Undead
 	}
 
 	local menuList = {
@@ -385,12 +414,9 @@ function Module:EasyTrackMenu()
 	end
 
 	-- Click Func
-	local hasAlaCalendar = IsAddOnLoaded("alaCalendar")
 	Minimap:SetScript("OnMouseUp", function(self, btn)
 		if btn == "RightButton" then
 			toggleTrackMenu(self)
-		elseif btn == "MiddleButton" and hasAlaCalendar then
-			K:TogglePanel(ALA_CALENDAR)
 		else
 			Minimap_OnClick(self)
 		end

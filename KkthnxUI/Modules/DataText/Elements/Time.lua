@@ -63,12 +63,169 @@ local function OnUpdate(_, elapsed)
 	end
 end
 
+-- Blood Moon Tracker
+local BloodMoon = {
+	name = "Blood Moon",
+	level = 40,
+	type = "pvp",
+	cycle = 3 * 3600, -- Event repeats every 3 hours (in seconds)
+	duration = 30 * 60, -- Event lasts for 30 minutes (in seconds)
+	events = {}, -- History of events
+}
+
+-- Utility: Format Time (No Seconds)
+local function FormatTime(seconds)
+	local hours = math.floor(seconds / 3600)
+	local mins = math.floor((seconds % 3600) / 60)
+	if hours > 0 then
+		return string.format("%dh %dm", hours, mins)
+	else
+		return string.format("%dm", mins)
+	end
+end
+
+-- Calculate Event Status
+local function GetBloodMoonStatus()
+	local currentTime = GetServerTime()
+	local elapsed = currentTime % BloodMoon.cycle
+	local timeUntilStart = BloodMoon.cycle - elapsed
+	local timeUntilEnd = timeUntilStart - BloodMoon.duration
+
+	if elapsed < BloodMoon.duration then
+		-- Event is active
+		return "Active: ", FormatTime(BloodMoon.duration - elapsed)
+	elseif timeUntilStart <= 600 then
+		-- Starting soon
+		return "Starting Soon: ", FormatTime(timeUntilStart)
+	elseif timeUntilEnd <= 600 and timeUntilEnd > 0 then
+		-- Ending soon
+		return "Ending Soon: ", FormatTime(timeUntilEnd)
+	else
+		-- General status
+		return "Starts In: ", FormatTime(timeUntilStart)
+	end
+end
+
+-- Define the quest list with relevant data
+local nightmareQuestList = {
+	["Duskwood"] = { -- Level 25
+		level = 25,
+		quests = {
+			{ id = 81730 }, -- "Defeat Worgen
+			{ id = 81731 }, -- "Defeat Ogres
+			{ id = 81732 }, -- "Defeat Dragonkin
+			{ id = 81733 }, -- "Ogre Intelligence
+			{ id = 81734 }, -- "Worgen Intelligence
+			{ id = 81735 }, -- "Dragon Intelligence
+			{ id = 81736 }, -- "Recover Shadowscythe
+			{ id = 81737 }, -- "Recover Ogre Magi Text
+			{ id = 81738 }, -- "Recover Dragon Egg
+			{ id = 81739 }, -- "Nightmare Moss
+			{ id = 81740 }, -- "Cold Iron Ore
+			{ id = 81741 }, -- "Dream-Touched Dragonscale
+			{ id = 81742 }, -- "Defeat Ylanthrius
+			{ id = 81743 }, -- "Defeat Vvarc'zul
+			{ id = 81744 }, -- "Defeat Amokarok
+			{ id = 81745 }, -- "Rescue Kroll Mountainshade
+			{ id = 81746 }, -- "Rescue Alara Grovemender
+			{ id = 81747 }, -- "Rescue Elenora Marshwalker
+		},
+	},
+	["Ashenvale"] = { -- Level 40
+		level = 40,
+		quests = {
+			{ id = 81768 }, -- Defeat Satyrs
+			{ id = 81769 }, -- Defeat Treants
+			{ id = 81770 }, -- Defeat Dragonkin
+			{ id = 81771 }, -- Dragon Intelligence
+			{ id = 81772 }, -- Satyr Intelligence
+			{ id = 81773 }, -- Treant Intelligence
+			{ id = 81774 }, -- Recover Dreamengine
+			{ id = 81775 }, -- Recover Azsharan Prophecy
+			{ id = 81776 }, -- Recover Dream-Touched Dragonegg
+			{ id = 81777 }, -- Dreamroot
+			{ id = 81778 }, -- Fool's Gold Dust
+			{ id = 81779 }, -- Dream-Infused Dragonscale
+			{ id = 81780 }, -- Defeat Larsera
+			{ id = 81781 }, -- Defeat Zalius
+			{ id = 81782 }, -- Defeat Shredder 9000
+			{ id = 81783 }, -- Rescue Alyssian Windcaller
+			{ id = 81784 }, -- Rescue Doran Dreambough
+			{ id = 81785 }, -- Rescue Maseara Autumnmoon
+		},
+	},
+	["Hinterlands"] = { -- Level 50
+		level = 50,
+		quests = {
+			{ id = 81786 }, -- Defeat Moonkin
+			{ id = 81787 }, -- Defeat Giant Turtles
+			{ id = 81788 }, -- Defeat Dragonkin
+			{ id = 81789 }, -- Dragon Intelligence
+			{ id = 81832 }, -- Recover Dreampearl
+			{ id = 81817 }, --  Turtle Intelligence
+			{ id = 81820 }, --  Moonkin Intelligence
+			{ id = 81826 }, --  Recover Star-Touched Dragonegg
+			{ id = 81830 }, -- Recover Elunar Relic
+			{ id = 81833 }, -- Star Lotus
+			{ id = 81834 }, -- Starsilver Ore
+			{ id = 81835 }, -- Starshells
+			{ id = 81837 }, -- Defeat Florius
+			{ id = 81838 }, --  Defeat Doomkin
+			{ id = 81839 }, --  Defeat Ghamoo-Raja
+			{ id = 81850 }, -- Rescue Elianar Shadowdrinker
+			{ id = 81851 }, -- Rescue Serlina Starbright
+			{ id = 81852 }, -- Rescue Veanna Cloudsleeper
+		},
+	},
+	["Feralas"] = { -- Level 50
+		level = 50,
+		quests = {
+			{ id = 81855 }, -- Defeat Children of Cenarius
+			{ id = 81856 }, -- Defeat Harpies
+			{ id = 81857 }, -- Defeat Dragonkin
+			{ id = 81858 }, -- Dragon Intelligence
+			{ id = 81859 }, -- Cenarion Intelligence
+			{ id = 81860 }, -- Harpy Intelligence
+			{ id = 81861 }, -- Recover Moonglow Dragonegg
+			{ id = 81863 }, -- Recover Keeper's Notes
+			{ id = 81864 }, -- Recover Harpy Screed
+			{ id = 81865 }, -- Moonroot
+			{ id = 81866 }, -- Greater Moonstone
+			{ id = 81867 }, -- Greater Moondragon Scales
+			{ id = 81868 }, -- Defeat Tyrannikus
+			{ id = 81870 }, -- Defeat Alondrius
+			{ id = 81871 }, -- Defeat Slirena
+			{ id = 81872 }, -- Rescue Mellias Earthtender
+			{ id = 81873 }, -- Rescue Nerene Brooksinger
+			{ id = 81874 }, -- Rescue Jamniss Treemender
+		},
+	},
+}
+
+-- Function to count completed quests for a zone
+local function GetCompletedQuestCount(zone)
+	local quests = nightmareQuestList[zone].quests
+	local completedCount = 0
+	for _, quest in pairs(quests) do
+		if C_QuestLog.IsQuestFlaggedCompleted(quest.id) then
+			completedCount = completedCount + 1
+		end
+	end
+	return completedCount, #quests
+end
+
 local title
 local function addTitle(text)
 	if not title then
 		GameTooltip:AddLine(" ")
 		GameTooltip:AddLine(text .. ":")
 		title = true
+	end
+end
+
+local function OnShiftDown()
+	if Module.Entered then
+		Module:OnEnter()
 	end
 end
 
@@ -86,8 +243,8 @@ function Module:OnEnter()
 	local w, m, d, y = today.weekday, today.month, today.monthDay, today.year
 	GameTooltip:AddLine(string_format(FULLDATE, CALENDAR_WEEKDAY_NAMES[w], CALENDAR_FULLDATE_MONTH_NAMES[m], d, y), 0.4, 0.6, 1)
 	GameTooltip:AddLine(" ")
-	GameTooltip:AddDoubleLine(L["Local Time"], GameTime_GetLocalTime(true), nil, nil, nil, 192 / 255, 192 / 255, 192 / 255)
-	GameTooltip:AddDoubleLine(L["Realm Time"], GameTime_GetGameTime(true), nil, nil, nil, 192 / 255, 192 / 255, 192 / 255)
+	GameTooltip:AddDoubleLine(L["Local Time"], GameTime_GetLocalTime(true), nil, nil, nil, 0.75, 0.75, 0.75)
+	GameTooltip:AddDoubleLine(L["Realm Time"], GameTime_GetGameTime(true), nil, nil, nil, 0.75, 0.75, 0.75)
 
 	-- Herioc/Mythic Dungeons
 	title = false
@@ -98,7 +255,7 @@ function Module:OnEnter()
 			if extended then
 				r, g, b = 0.3, 1, 0.3
 			else
-				r, g, b = 192 / 255, 192 / 255, 192 / 255
+				r, g, b = 0.75, 0.75, 0.75
 			end
 
 			GameTooltip:AddDoubleLine(name .. " - " .. maxPlayers .. " " .. PLAYER .. " (" .. diffName .. ") (" .. encounterProgress .. "/" .. numEncounters .. ")", SecondsToTime(reset, true, nil, 3), 1, 1, 1, r, g, b)
@@ -114,7 +271,7 @@ function Module:OnEnter()
 			if extended then
 				r, g, b = 0.3, 1, 0.3
 			else
-				r, g, b = 192 / 255, 192 / 255, 192 / 255
+				r, g, b = 0.75, 0.75, 0.75
 			end
 
 			local progressColor = (numEncounters == encounterProgress) and "ff0000" or "00ff00"
@@ -123,30 +280,51 @@ function Module:OnEnter()
 		end
 	end
 
-	if GameTooltip:NumLines() > 0 then
-		GameTooltip:AddLine(" ")
-	end
-
+	title = false
+	addTitle("Reset Times")
 	local dailyReset = C_DateAndTime.GetSecondsUntilDailyReset()
 	if dailyReset then
-		GameTooltip:AddDoubleLine("Daily Reset", SecondsToTime(dailyReset), nil, nil, nil, 192 / 255, 192 / 255, 192 / 255)
+		GameTooltip:AddDoubleLine("Daily Reset", SecondsToTime(dailyReset), 1, 1, 1, 0.75, 0.75, 0.75)
 	end
 
 	local weeklyReset = C_DateAndTime.GetSecondsUntilWeeklyReset()
 	if weeklyReset then
-		GameTooltip:AddDoubleLine(format("%s %s", WEEKLY, RESET), SecondsToTime(weeklyReset), nil, nil, nil, 192 / 255, 192 / 255, 192 / 255)
+		GameTooltip:AddDoubleLine(format("%s %s", WEEKLY, RESET), SecondsToTime(weeklyReset), 1, 1, 1, 0.75, 0.75, 0.75)
+	end
+
+	if IsShiftKeyDown() then
+		-- Add Blood Moon STV
+		if K.Level >= BloodMoon.level - 10 then -- Recommended to be 40 but can go at 30?
+			title = false
+			addTitle("World Events")
+			local status, remaining = GetBloodMoonStatus() -- Get Blood Moon status
+			GameTooltip:AddDoubleLine(BloodMoon.name, status .. remaining, 1, 1, 1, 0.75, 0.75, 0.75) -- Add Blood Moon info
+		end
+
+		-- Add Nightmare Incursions
+		title = false
+		for zone, data in pairs(nightmareQuestList) do
+			if K.Level >= data.level - 5 then -- Idk when you can do them, so I am assuming 5 levels below the quest level?
+				addTitle("Nightmare Incursions")
+				local completedCount, totalCount = GetCompletedQuestCount(zone)
+				GameTooltip:AddDoubleLine(zone, string.format("%d / %d", completedCount, totalCount), 1, 1, 1, 0.75, 0.75, 0.75)
+			end
+		end
 	end
 
 	-- Help Info
 	GameTooltip:AddLine(" ")
-	GameTooltip:AddLine(K.LeftButton .. GAMETIME_TOOLTIP_TOGGLE_CALENDAR)
+	GameTooltip:AddLine(K.LeftButton .. GAMETIME_TOOLTIP_TOGGLE_CLOCK)
 	GameTooltip:AddLine(K.RightButton .. TIMEMANAGER_SHOW_STOPWATCH)
 	GameTooltip:Show()
+
+	K:RegisterEvent("MODIFIER_STATE_CHANGED", OnShiftDown)
 end
 
 local function OnLeave()
 	Module.Entered = true
 	K.HideTooltip()
+	K:UnregisterEvent("MODIFIER_STATE_CHANGED", OnShiftDown)
 end
 
 local function OnMouseUp(_, btn)
