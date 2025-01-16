@@ -65,16 +65,58 @@ function Module:LoadDefaultSkins()
 	end)
 end
 
+Module.SharedWindowData = {
+	area = "override",
+	xoffset = -16,
+	yoffset = 12,
+	bottomClampOverride = 152,
+	width = 714,
+	height = 487,
+	whileDead = 1,
+}
+
+function Module:EnlargeDefaultUIPanel(name, pushed)
+	local frame = _G[name]
+	if not frame then
+		return
+	end
+
+	UIPanelWindows[name] = Module.SharedWindowData
+	UIPanelWindows[name].pushable = pushed
+
+	frame:SetSize(Module.SharedWindowData.width, Module.SharedWindowData.height)
+	frame.TitleText:ClearAllPoints()
+	frame.TitleText:SetPoint("TOP", frame, 0, -18)
+
+	frame.scrollFrame:ClearAllPoints()
+	frame.scrollFrame:SetPoint("TOPRIGHT", frame, -65, -70)
+	frame.scrollFrame:SetPoint("BOTTOMRIGHT", frame, -65, 80)
+	frame.listScrollFrame:ClearAllPoints()
+	frame.listScrollFrame:SetPoint("TOPLEFT", frame, 19, -70)
+	frame.listScrollFrame:SetPoint("BOTTOMLEFT", frame, 19, 80)
+
+	local leftTex = frame:CreateTexture(nil, "BACKGROUND")
+	leftTex:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Skins\\UI-QuestLogDualPane-Left")
+	leftTex:SetSize(512, 512)
+	leftTex:SetPoint("TOPLEFT")
+
+	local rightTex = frame:CreateTexture(nil, "BACKGROUND")
+	rightTex:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Skins\\UI-QUESTLOGDUALPANE-RIGHT")
+	rightTex:SetSize(256, 512)
+	rightTex:SetPoint("TOPLEFT", leftTex, "TOPRIGHT")
+end
+
 function Module:OnEnable()
 	local loadSkinModules = {
 		"LoadDefaultSkins",
 		"QuestTracker",
+		"ReskinDeadlyBossMods",
+		"TradeSkillSkin",
 		-- "ReskinBartender4",
 		-- "ReskinNekometer",
 		-- "ReskinBigWigs",
 		-- "ReskinButtonForge",
 		-- "ReskinChocolateBar",
-		"ReskinDeadlyBossMods",
 		-- "ReskinDominos",
 		-- "ReskinRareScanner",
 		-- "ReskinSimulationcraft",

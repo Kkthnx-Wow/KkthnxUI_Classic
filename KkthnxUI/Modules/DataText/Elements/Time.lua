@@ -63,49 +63,46 @@ local function OnUpdate(_, elapsed)
 	end
 end
 
--- Blood Moon Tracker
+-- Blood Moon Tracker for WoW Lua
 local BloodMoon = {
 	name = "Blood Moon",
 	level = 40,
-	type = "pvp",
+	type = "PvP",
 	cycle = 3 * 3600, -- Event repeats every 3 hours (in seconds)
 	duration = 30 * 60, -- Event lasts for 30 minutes (in seconds)
-	events = {}, -- History of events
 }
 
--- Utility: Format Time (No Seconds)
+-- Utility: Format time into human-readable format
 local function FormatTime(seconds)
 	local hours = math.floor(seconds / 3600)
 	local mins = math.floor((seconds % 3600) / 60)
-	if hours > 0 then
-		return string.format("%dh %dm", hours, mins)
-	else
-		return string.format("%dm", mins)
-	end
+	return hours > 0 and string.format("%dh %dm", hours, mins) or string.format("%dm", mins)
 end
 
--- Calculate Event Status
+-- Get time since midnight in seconds
+local function GetTimeSinceMidnight()
+	local gameHour, gameMinute = GetGameTime()
+	return gameHour * 3600 + gameMinute * 60
+end
+
+-- Calculate Blood Moon event status
 local function GetBloodMoonStatus()
-	local currentTime = GetServerTime()
-	local elapsed = currentTime % BloodMoon.cycle
-	local timeUntilStart = BloodMoon.cycle - elapsed
-	local timeUntilEnd = timeUntilStart - BloodMoon.duration
+	local timeSinceMidnight = GetTimeSinceMidnight()
+	local elapsed = timeSinceMidnight % BloodMoon.cycle -- Time since the last event cycle started
+	local timeUntilNextEvent = BloodMoon.cycle - elapsed -- Time remaining until the next event cycle starts
+	local timeUntilEventEnd = BloodMoon.duration - elapsed -- Time remaining until the current event ends
 
 	if elapsed < BloodMoon.duration then
 		-- Event is active
-		return "Active: ", FormatTime(BloodMoon.duration - elapsed)
-	elseif timeUntilStart <= 600 then
-		-- Starting soon
-		return "Starting Soon: ", FormatTime(timeUntilStart)
-	elseif timeUntilEnd <= 600 and timeUntilEnd > 0 then
-		-- Ending soon
-		return "Ending Soon: ", FormatTime(timeUntilEnd)
+		return "Active ", FormatTime(timeUntilEventEnd)
+	elseif timeUntilNextEvent <= 600 then
+		-- Event is starting soon (10 minutes or less)
+		return "Starting Soon ", FormatTime(timeUntilNextEvent)
 	else
-		-- General status
-		return "Starts In: ", FormatTime(timeUntilStart)
+		-- Event is in cooldown (waiting for the next cycle)
+		return "Starts In ", FormatTime(timeUntilNextEvent)
 	end
 end
-
 -- Define the quest list with relevant data
 local nightmareQuestList = {
 	["Duskwood"] = { -- Level 25
@@ -293,12 +290,12 @@ function Module:OnEnter()
 	end
 
 	if IsShiftKeyDown() then
-		-- Add Blood Moon STV
-		if K.Level >= BloodMoon.level - 10 then -- Recommended to be 40 but can go at 30?
+		-- Add Blood Moon STV information to tooltip
+		if K.Level >= BloodMoon.level - 10 then -- Recommended level is 40 but allows level 30 players
 			title = false
 			addTitle("World Events")
-			local status, remaining = GetBloodMoonStatus() -- Get Blood Moon status
-			GameTooltip:AddDoubleLine(BloodMoon.name, status .. remaining, 1, 1, 1, 0.75, 0.75, 0.75) -- Add Blood Moon info
+			local status, remaining = GetBloodMoonStatus()
+			GameTooltip:AddDoubleLine(BloodMoon.name, string.format("%s%s", status, remaining), 1, 1, 1, 0.75, 0.75, 0.75)
 		end
 
 		-- Add Nightmare Incursions
