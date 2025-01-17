@@ -2,7 +2,7 @@ local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 local Module = K:GetModule("Miscellaneous")
 
 -- Caching global functions and variables
-local math_min, math_floor = math.min, math.floor
+local math_min = math.min
 local string_format = string.format
 local select, pairs = select, pairs
 
@@ -276,11 +276,6 @@ function Module:CreateExpbar()
 	rest:SetStatusBarColor(1, 0, 1, 0.4)
 	rest:SetFrameLevel(bar:GetFrameLevel() - 1)
 	bar.restBar = rest
-
-	local reward = bar:CreateTexture(nil, "OVERLAY")
-	reward:SetAtlas("ParagonReputation_Bag")
-	reward:SetSize(12, 14)
-	bar.reward = reward
 
 	local text = bar:CreateFontString(nil, "OVERLAY")
 	text:SetFontObject(K.UIFont)

@@ -899,6 +899,9 @@ local Skins = function(self)
 	Window:CreateSwitch("Skins", "QuestDifficulty", "Show Quest Difficulty Colors", "Displays quest difficulty colors in the QuestLog to indicate the difficulty level of quests.")
 	Window:CreateSwitch("Skins", "QuestLevels", "Show Quest Levels", "Displays the level of quests in the QuestLog for better visibility and organization.")
 
+	Window:CreateSection("TradeSkill Frame")
+	Window:CreateSwitch("Skins", "ImproveTradeSkill", "Enable Enhanced TradeSkill Frame", "Enhances the TradeSkill frame with additional features, improved layout, and better search functionality.")
+
 	Window:CreateSection("AddOn Skins")
 	Window:CreateSwitch("Skins", "DeadlyBossMods", L["Deadly Boss Mods Skin"])
 	-- Window:CreateSwitch("Skins", "Bartender4", L["Bartender4 Skin"])

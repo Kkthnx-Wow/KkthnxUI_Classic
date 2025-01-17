@@ -570,14 +570,12 @@ function Module:AddClassIcon(self)
 	end
 
 	self.Class = CreateFrame("Frame", nil, self)
-	self.Class:SetSize(self:GetHeight() * 2 + 3, self:GetHeight() * 2 + 3)
-	self.Class:SetPoint("BOTTOMLEFT", self.Castbar, "BOTTOMRIGHT", 3, 0)
-	self.Class:CreateShadow(true)
+	self.Class:SetSize(self.Health:GetHeight(), self.Health:GetHeight())
+	self.Class:SetPoint("LEFT", self.Health, "RIGHT", 6, 0)
+	self.Class:CreateShadow()
 
 	self.Class.Icon = self.Class:CreateTexture(nil, "OVERLAY")
 	self.Class.Icon:SetAllPoints()
-	self.Class.Icon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
-	self.Class.Icon:SetTexCoord(0, 0, 0, 0)
 end
 
 function Module:UpdateClassIcon(self, unit)
@@ -589,17 +587,27 @@ function Module:UpdateClassIcon(self, unit)
 	if UnitIsPlayer(unit) and (reaction and reaction <= 4) then
 		local _, class = UnitClass(unit)
 
-		if class and CLASS_ICON_TCOORDS[class] then
-			local texcoord = CLASS_ICON_TCOORDS[class]
-			self.Class.Icon:SetTexCoord(texcoord[1] + 0.015, texcoord[2] - 0.02, texcoord[3] + 0.018, texcoord[4] - 0.02)
+		if class then
+			local atlas = "classicon-" .. class:lower()
+			self.Class.Icon:SetAtlas(atlas, true)
 			self.Class:Show()
+
+			-- Set the backdrop border color to the class color
+			local classColor = K.Colors.class[class]
+			if classColor then
+				self.Class.Shadow:SetBackdropBorderColor(classColor[1], classColor[2], classColor[3], 0.8)
+			else
+				self.Class.Shadow:SetBackdropBorderColor(0, 0, 0, 0.8)
+			end
 		else
-			self.Class.Icon:SetTexCoord(0, 0, 0, 0)
+			self.Class.Icon:SetAtlas(nil)
 			self.Class:Hide()
+			self.Class.Shadow:SetBackdropBorderColor(0, 0, 0, 0.8)
 		end
 	else
-		self.Class.Icon:SetTexCoord(0, 0, 0, 0)
+		self.Class.Icon:SetAtlas(nil)
 		self.Class:Hide()
+		self.Class.Shadow:SetBackdropBorderColor(0, 0, 0, 0.8)
 	end
 end
 
@@ -821,7 +829,7 @@ function Module:CreatePlates()
 
 	self.Castbar.glowFrame = CreateFrame("Frame", nil, self.Castbar)
 	self.Castbar.glowFrame:SetPoint("CENTER", self.Castbar.Icon)
-	self.Castbar.glowFrame:SetSize(self:GetHeight() * 2 + 5, self:GetHeight() * 2 + 5)
+	self.Castbar.glowFrame:SetSize(self:GetHeight() * 2 + 5, self:GetHeight() * 2 + 10)
 
 	self.Castbar.spellTarget = K.CreateFontString(self.Castbar, C["Nameplate"].NameTextSize + 2)
 	self.Castbar.spellTarget:ClearAllPoints()

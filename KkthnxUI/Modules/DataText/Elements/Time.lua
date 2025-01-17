@@ -97,7 +97,7 @@ local function GetBloodMoonStatus()
 		return "Active ", FormatTime(timeUntilEventEnd)
 	elseif timeUntilNextEvent <= 600 then
 		-- Event is starting soon (10 minutes or less)
-		return "Starting Soon ", FormatTime(timeUntilNextEvent)
+		return "Starts Soon ", FormatTime(timeUntilNextEvent)
 	else
 		-- Event is in cooldown (waiting for the next cycle)
 		return "Starts In ", FormatTime(timeUntilNextEvent)

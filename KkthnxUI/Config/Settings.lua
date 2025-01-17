@@ -507,6 +507,7 @@ C["Skins"] = {
 	ChatBubbles = true,
 	DeadlyBossMods = false,
 	Details = false,
+	ImproveTradeSkill = false,
 	QuestDifficulty = false,
 	QuestLevels = false,
 	QuestLog = false,

@@ -89,10 +89,10 @@ function Module:EnlargeDefaultUIPanel(name, pushed)
 	frame.TitleText:SetPoint("TOP", frame, 0, -18)
 
 	frame.scrollFrame:ClearAllPoints()
-	frame.scrollFrame:SetPoint("TOPRIGHT", frame, -65, -70)
-	frame.scrollFrame:SetPoint("BOTTOMRIGHT", frame, -65, 80)
+	frame.scrollFrame:SetPoint("TOPRIGHT", frame, -68, -76)
+	frame.scrollFrame:SetPoint("BOTTOMRIGHT", frame, -68, 80)
 	frame.listScrollFrame:ClearAllPoints()
-	frame.listScrollFrame:SetPoint("TOPLEFT", frame, 19, -70)
+	frame.listScrollFrame:SetPoint("TOPLEFT", frame, 19, -76)
 	frame.listScrollFrame:SetPoint("BOTTOMLEFT", frame, 19, 80)
 
 	local leftTex = frame:CreateTexture(nil, "BACKGROUND")

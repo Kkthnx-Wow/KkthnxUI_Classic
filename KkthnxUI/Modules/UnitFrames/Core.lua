@@ -11,9 +11,7 @@ local unpack = unpack
 -- WoW API
 local CLASS_ICON_TCOORDS = CLASS_ICON_TCOORDS
 local CreateFrame = CreateFrame
-local GetRuneCooldown = GetRuneCooldown
 local IsInInstance = IsInInstance
--- local MAX_BOSS_FRAMES = MAX_BOSS_FRAMES
 local PlaySound = PlaySound
 local SOUNDKIT = SOUNDKIT
 local UIParent = UIParent
@@ -34,8 +32,6 @@ local phaseIconTexCoords = {
 	[2] = { 34 / 128, 66 / 128, 1 / 64, 33 / 64 },
 }
 local filteredStyle = {
-	--["arena"] = true,
-	--["boss"] = true,
 	["nameplate"] = true,
 	["target"] = true,
 }
@@ -122,34 +118,6 @@ function Module:UpdatePhaseIcon(isPhased)
 	self:SetTexCoord(unpack(phaseIconTexCoords[isPhased == 2 and 2 or 1]))
 end
 
-local showOverAbsorb = false
-function Module:PostUpdatePrediction(_, health, maxHealth, allIncomingHeal, allAbsorb)
-	if not showOverAbsorb then
-		self.overAbsorbBar:Hide()
-		return
-	end
-
-	local hasOverAbsorb
-	local overAbsorbAmount = health + allIncomingHeal + allAbsorb - maxHealth
-	if overAbsorbAmount > 0 then
-		if overAbsorbAmount > maxHealth then
-			hasOverAbsorb = true
-			overAbsorbAmount = maxHealth
-		end
-		self.overAbsorbBar:SetMinMaxValues(0, maxHealth)
-		self.overAbsorbBar:SetValue(overAbsorbAmount)
-		self.overAbsorbBar:Show()
-	else
-		self.overAbsorbBar:Hide()
-	end
-
-	if hasOverAbsorb then
-		self.overAbsorb:Show()
-	else
-		self.overAbsorb:Hide()
-	end
-end
-
 function Module:CreateHeader()
 	-- Register for mouse clicks and hook mouse enter/leave events
 	self:RegisterForClicks("AnyUp")
@@ -175,12 +143,8 @@ function Module:ToggleCastBarLatency(frame)
 	end
 
 	if C["Unitframe"].CastbarLatency then
-		-- frame:RegisterEvent("GLOBAL_MOUSE_UP", Module.OnCastSent, true) -- Fix quests with WorldFrame interaction
-		-- frame:RegisterEvent("GLOBAL_MOUSE_DOWN", Module.OnCastSent, true)
 		frame:RegisterEvent("CURRENT_SPELL_CAST_CHANGED", Module.OnCastSent, true)
 	else
-		-- frame:UnregisterEvent("GLOBAL_MOUSE_UP", Module.OnCastSent)
-		-- frame:UnregisterEvent("GLOBAL_MOUSE_DOWN", Module.OnCastSent)
 		frame:UnregisterEvent("CURRENT_SPELL_CAST_CHANGED", Module.OnCastSent)
 		if frame.Castbar then
 			frame.Castbar.__sendTime = nil
@@ -261,6 +225,7 @@ end
 
 local dispellType = {
 	["Magic"] = true,
+	[""] = true,
 }
 
 -- Function to update the stealable indicator
@@ -275,10 +240,13 @@ end
 
 function Module.PostUpdateIcon(element, unit, button, _, _, duration, expiration, debuffType)
 	local style = element.__owner.mystyle
-	button:SetSize(style == "nameplate" and element.size or element.size, style == "nameplate" and element.size * 1 or element.size)
+	local size = element.size
+
+	-- Set button size based on style
+	button:SetSize(size, style == "nameplate" and size or size)
 
 	-- Update appearance based on harmful status and style
-	if button.isDebuff and filteredStyle[style] and not button.isPlayer then
+	if button.isDebuff and filteredStyle and filteredStyle[style] and not button.isPlayer then
 		button.icon:SetDesaturated(true)
 	else
 		button.icon:SetDesaturated(false)
@@ -300,7 +268,7 @@ function Module.PostUpdateIcon(element, unit, button, _, _, duration, expiration
 		end
 	end
 
-	-- Call the function to update the stealable indicator
+	-- Update the stealable indicator
 	UpdateStealableIndicator(button, unit, debuffType)
 
 	-- Handle cooldown and timer display
@@ -315,35 +283,6 @@ function Module.PostUpdateIcon(element, unit, button, _, _, duration, expiration
 end
 
 function Module.AurasPostUpdateInfo(element, _, _, debuffsChanged)
-	-- Ensure consistent variable naming conventions
-	element.bolsterStacks = 0
-	element.bolsterInstanceID = nil
-
-	-- Loop through all buffs to find Bolster stacks
-	for auraInstanceID, data in next, element.allBuffs do
-		if data.spellId == 209859 then
-			if not element.bolsterInstanceID then
-				element.bolsterInstanceID = auraInstanceID
-				element.activeBuffs[auraInstanceID] = true
-			end
-			element.bolsterStacks = element.bolsterStacks + 1
-			if element.bolsterStacks > 1 then
-				element.activeBuffs[auraInstanceID] = nil
-			end
-		end
-	end
-
-	-- Update visible buttons with Bolster stacks
-	if element.bolsterStacks > 0 then
-		for i = 1, element.visibleButtons do
-			local button = element[i]
-			if element.bolsterInstanceID and element.bolsterInstanceID == button.auraInstanceID then
-				button.Count:SetText(element.bolsterStacks)
-				break
-			end
-		end
-	end
-
 	-- Update Dot status if debuffs changed
 	if debuffsChanged then
 		element.hasTheDot = nil
@@ -360,115 +299,47 @@ function Module.AurasPostUpdateInfo(element, _, _, debuffsChanged)
 end
 
 function Module.CustomFilter(element, unit, button, name, _, _, debuffType, _, _, caster, isStealable, _, spellID, _, _, _, nameplateShowAll)
-	-- Ensure consistent variable naming conventions
 	local style = element.__owner.mystyle
 	local showDebuffType = C["Unitframe"].OnlyShowPlayerDebuff
 
-	-- Add comments to clarify the purpose of certain sections
-	-- if style == "nameplate" or style == "boss" or style == "arena" then
 	if style == "nameplate" then
-		-- Filter out specific spells
-		if name and spellID == 209859 then -- Pass all bolster
-			return true
-		end
-		-- Filter based on nameplate type
+		-- Nameplate specific filtering
 		if element.__owner.plateType == "NameOnly" then
 			return C.NameplateWhiteList[spellID]
 		elseif C.NameplateBlackList[spellID] then
 			return false
-		-- Filter based on debuff type and dispellability
-		elseif (isStealable or element.alwaysShowStealable and dispellType[debuffType]) and not UnitIsPlayer(unit) and not button.isDebuff then
+		elseif (isStealable or (element.alwaysShowStealable and dispellType[debuffType])) and not UnitIsPlayer(unit) and not button.isDebuff then
 			return true
 		elseif C.NameplateWhiteList[spellID] then
 			return true
 		else
-			-- Filter based on aura filter settings
 			local auraFilter = C["Nameplate"].AuraFilter.Value
 			return (auraFilter == 3 and nameplateShowAll) or (auraFilter ~= 1 and button.isPlayer)
 		end
 	else
-		-- Filter based on showDebuffType setting
+		-- General unit frame filtering
 		return (showDebuffType and button.isPlayer) or (not showDebuffType and name)
 	end
 end
 
--- Post Update Runes
-local function OnUpdateRunes(self, elapsed)
-	local duration = self.duration + elapsed
-	self.duration = duration
-	self:SetValue(duration)
-
-	if self.timer then
-		local remain = self.runeDuration - duration
-		if remain > 0 then
-			self.timer:SetText(K.FormatTime(remain))
-		else
-			self.timer:SetText(nil)
-		end
-	end
-end
-
-function Module.PostUpdateRunes(element, runemap)
-	for index, runeID in next, runemap do
-		local rune = element[index]
-		local start, duration, runeReady = GetRuneCooldown(runeID)
-		if rune:IsShown() then
-			if runeReady then
-				rune:SetAlpha(1)
-				rune:SetScript("OnUpdate", nil)
-				if rune.timer then
-					rune.timer:SetText(nil)
-				end
-			elseif start then
-				rune:SetAlpha(0.6)
-				rune.runeDuration = duration
-				rune:SetScript("OnUpdate", OnUpdateRunes)
-			end
-		end
-	end
-end
-
-local function SetStatusBarColor(element, r, g, b)
-	for i = 1, #element do
-		element[i]:SetStatusBarColor(r, g, b)
-	end
-end
-
-function Module.PostUpdateClassPower(element, cur, max, diff, powerType, chargedPowerPoints)
-	local prevColor = element.prevColor
-	local thisColor
-
-	if not cur or cur == 0 then
-		thisColor = nil
-	else
-		thisColor = cur == max and 1 or 2
-		if not prevColor or prevColor ~= thisColor then
-			local r, g, b = 1, 0, 0
-			if thisColor == 2 then
-				local color = element.__owner.colors.power[powerType]
-				r, g, b = color[1], color[2], color[3]
-			end
-			SetStatusBarColor(element, r, g, b)
-			element.prevColor = thisColor
-		end
-	end
-
+function Module.PostUpdateClassPower(element, cur, max, diff, powerType)
 	if diff then
-		local barWidth = (element.__owner.ClassPowerBar:GetWidth() - (max - 1) * 6) / max
 		for i = 1, max do
-			local bar = element[i]
-			bar:SetWidth(barWidth)
+			element[i]:SetWidth((element.__owner.ClassPowerBar:GetWidth() - (max - 1) * 6) / max)
 		end
 	end
 
-	for i = 1, 7 do
-		local bar = element[i]
-		if not bar.chargeStar then
-			break
+	element.thisColor = cur == max and 1 or 2
+	if not element.prevColor or element.prevColor ~= element.thisColor then
+		local r, g, b = 1, 0, 0
+		if element.thisColor == 2 then
+			local color = element.__owner.colors.power[powerType]
+			r, g, b = color[1], color[2], color[3]
 		end
-
-		local showChargeStar = chargedPowerPoints and chargedPowerPoints[i]
-		bar.chargeStar:SetShown(showChargeStar)
+		for i = 1, #element do
+			element[i]:SetStatusBarColor(r, g, b)
+		end
+		element.prevColor = element.thisColor
 	end
 end
 
@@ -485,18 +356,11 @@ function Module:CreateClassPower(self)
 		barPoint = { "BOTTOMLEFT", self, "TOPLEFT", 0, 6 }
 	end
 
-	local isDK = K.Class == "DEATHKNIGHT"
-	local maxBar = isDK and 6 or 7
+	local maxBar = 6
 	local bars, bar = {}, CreateFrame("Frame", "$parentClassPowerBar", self)
 
 	bar:SetSize(barWidth, barHeight)
 	bar:SetPoint(unpack(barPoint))
-
-	if not bar.chargeParent then
-		bar.chargeParent = CreateFrame("Frame", nil, bar)
-		bar.chargeParent:SetAllPoints()
-		bar.chargeParent:SetFrameLevel(8)
-	end
 
 	for i = 1, maxBar do
 		local statusbar = CreateFrame("StatusBar", nil, bar)
@@ -516,30 +380,11 @@ function Module:CreateClassPower(self)
 			statusbar:SetPoint("LEFT", bars[i - 1], "RIGHT", 6, 0)
 		end
 
-		if isDK then
-			statusbar.timer = K.CreateFontString(statusbar, 10, "")
-		else
-			local chargeStar = bar.chargeParent:CreateTexture()
-			chargeStar:SetAtlas("VignetteKill")
-			chargeStar:SetDesaturated(true)
-			chargeStar:SetSize(22, 22)
-			chargeStar:SetPoint("CENTER", statusbar)
-			chargeStar:Hide()
-			statusbar.chargeStar = chargeStar
-		end
-
 		bars[i] = statusbar
 	end
 
-	if isDK then
-		bars.colorSpec, bars.sortOrder, bars.__max = true, "asc", 6
-		bars.PostUpdate = Module.PostUpdateRunes
-		self.Runes = bars
-	else
-		bars.PostUpdate = Module.PostUpdateClassPower
-		self.ClassPower = bars
-	end
-
+	bars.PostUpdate = Module.PostUpdateClassPower
+	self.ClassPower = bars
 	self.ClassPowerBar = bar
 end
 
@@ -610,12 +455,7 @@ function Module:UpdateTextScale()
 end
 
 function Module:CreateUnits()
-	local horizonRaid = C["Raid"].HorizonRaid
-	local numGroups = C["Raid"].NumGroups
-	local raidWidth, raidHeight = C["Raid"].Width, C["Raid"].Height
-	local reverse = C["Raid"].ReverseRaid
 	local showPartyFrame = C["Party"].Enable
-	local showTeamIndex = C["Raid"].ShowTeamIndex
 
 	if C["Nameplate"].Enable then
 		Module:SetupCVars()
@@ -631,7 +471,8 @@ function Module:CreateUnits()
 		oUF:SpawnNamePlates("oUF_NPs", Module.PostUpdatePlates)
 	end
 
-	do -- Playerplate-like PlayerFrame
+	-- Playerplate-like PlayerFrame
+	do
 		oUF:RegisterStyle("PlayerPlate", Module.CreatePlayerPlate)
 		oUF:SetActiveStyle("PlayerPlate")
 		local plate = oUF:Spawn("player", "oUF_PlayerPlate", true)
@@ -639,7 +480,8 @@ function Module:CreateUnits()
 		Module:TogglePlayerPlate()
 	end
 
-	do -- Fake nameplate for target class power
+	-- Fake nameplate for target class power
+	do
 		oUF:RegisterStyle("TargetPlate", Module.CreateTargetPlate)
 		oUF:SetActiveStyle("TargetPlate")
 		oUF:Spawn("player", "oUF_TargetPlate", true)
@@ -652,16 +494,19 @@ function Module:CreateUnits()
 		oUF:RegisterStyle("ToT", Module.CreateTargetOfTarget)
 		oUF:RegisterStyle("Pet", Module.CreatePet)
 
+		-- Spawn Player Frame
 		oUF:SetActiveStyle("Player")
 		local Player = oUF:Spawn("player", "oUF_Player")
 		Player:SetSize(C["Unitframe"].PlayerHealthWidth, C["Unitframe"].PlayerHealthHeight + C["Unitframe"].PlayerPowerHeight + 6)
 		K.Mover(Player, "PlayerUF", "PlayerUF", { "BOTTOM", UIParent, "BOTTOM", -260, 320 }, Player:GetWidth(), Player:GetHeight())
 
+		-- Spawn Target Frame
 		oUF:SetActiveStyle("Target")
 		local Target = oUF:Spawn("target", "oUF_Target")
 		Target:SetSize(C["Unitframe"].TargetHealthWidth, C["Unitframe"].TargetHealthHeight + C["Unitframe"].TargetPowerHeight + 6)
 		K.Mover(Target, "TargetUF", "TargetUF", { "BOTTOM", UIParent, "BOTTOM", 260, 320 }, Target:GetWidth(), Target:GetHeight())
 
+		-- Spawn Target of Target Frame
 		if not C["Unitframe"].HideTargetofTarget then
 			oUF:SetActiveStyle("ToT")
 			local TargetOfTarget = oUF:Spawn("targettarget", "oUF_ToT")
@@ -669,6 +514,7 @@ function Module:CreateUnits()
 			K.Mover(TargetOfTarget, "TotUF", "TotUF", { "TOPLEFT", Target, "BOTTOMRIGHT", 6, -6 }, TargetOfTarget:GetWidth(), TargetOfTarget:GetHeight())
 		end
 
+		-- Spawn Pet Frame
 		oUF:SetActiveStyle("Pet")
 		local Pet = oUF:Spawn("pet", "oUF_Pet")
 		Pet:SetSize(C["Unitframe"].PetHealthWidth, C["Unitframe"].PetHealthHeight + C["Unitframe"].PetPowerHeight + 6)
@@ -680,8 +526,8 @@ function Module:CreateUnits()
 		Module:UpdateTextScale()
 	end
 
-	local partyMover
-	if showPartyFrame then
+	-- Function to create party frames
+	local function CreatePartyFrames()
 		oUF:RegisterStyle("Party", Module.CreateParty)
 		oUF:SetActiveStyle("Party")
 
@@ -689,29 +535,27 @@ function Module:CreateUnits()
 		local partyMoverWidth = C["Party"].HealthWidth
 		local partyMoverHeight = C["Party"].HealthHeight + C["Party"].PowerHeight + 1 + partyYOffset * 8
 		local partyGroupingOrder = "NONE,DAMAGER,HEALER,TANK"
-
-		-- stylua: ignore
-		local party = oUF:SpawnHeader(
-			"oUF_Party", nil, "solo,party",
-			"showPlayer", C["Party"].ShowPlayer,
-			"showSolo", C["Party"].ShowPartySolo,
-			"showParty", true,
-			"showRaid", false,
-			"xoffset", partyXOffset,
-			"yOffset", partyYOffset,
-			"groupFilter", "1",
-			"groupingOrder", partyGroupingOrder,
-			"groupBy", "ASSIGNEDROLE",
-			"sortMethod", "NAME",
-			"point", "BOTTOM",
-			"columnAnchorPoint", "LEFT",
-			"oUF-initialConfigFunction", ([[
-				self:SetWidth(%d)
-				self:SetHeight(%d)
-			]]):format(C["Party"].HealthWidth, C["Party"].HealthHeight + C["Party"].PowerHeight + 6)
-		)
-
-		partyMover = K.Mover(party, "PartyFrame", "PartyFrame", { "TOPLEFT", UIParent, "TOPLEFT", 50, -300 }, partyMoverWidth, partyMoverHeight)
+		-- stylua: ignore start
+        local party = oUF:SpawnHeader("oUF_Party", nil, "solo,party",
+            "showPlayer", C["Party"].ShowPlayer,
+            "showSolo", C["Party"].ShowPartySolo,
+            "showParty", true,
+            "showRaid", false,
+            "xoffset", partyXOffset,
+            "yOffset", partyYOffset,
+            "groupFilter", "1",
+            "groupingOrder", partyGroupingOrder,
+            "groupBy", "ASSIGNEDROLE",
+            "sortMethod", "NAME",
+            "point", "BOTTOM",
+            "columnAnchorPoint", "LEFT",
+            "oUF-initialConfigFunction", ([[
+                self:SetWidth(%d)
+                self:SetHeight(%d)
+            ]]):format(C["Party"].HealthWidth, C["Party"].HealthHeight + C["Party"].PowerHeight + 6)
+        )
+		-- stylua: ignore end
+		local partyMover = K.Mover(party, "PartyFrame", "PartyFrame", { "TOPLEFT", UIParent, "TOPLEFT", 50, -300 }, partyMoverWidth, partyMoverHeight)
 		party:ClearAllPoints()
 		party:SetPoint("TOPLEFT", partyMover)
 
@@ -722,25 +566,23 @@ function Module:CreateUnits()
 			local partypetXOffset, partypetYOffset = 6, 25
 			local partpetMoverWidth = 60
 			local partpetMoverHeight = 34 * 5 + partypetYOffset * 4
-
-			-- stylua: ignore
-			local partyPet = oUF:SpawnHeader(
-				"oUF_PartyPet", nil, "solo,party",
-				"showPlayer", true,
-				"showSolo", false,
-				"showParty", true,
-				"showRaid", false,
-				"xoffset", partypetXOffset,
-				"yOffset", partypetYOffset,
-				"point", "BOTTOM",
-				"columnAnchorPoint", "LEFT",
-				"oUF-initialConfigFunction", ([[
-					self:SetWidth(%d)
-					self:SetHeight(%d)
-					self:SetAttribute("unitsuffix", "pet")
-				]]):format(60, 34)
-			)
-
+			-- stylua: ignore start
+            local partyPet = oUF:SpawnHeader("oUF_PartyPet", nil, "solo,party",
+                "showPlayer", true,
+                "showSolo", false,
+                "showParty", true,
+                "showRaid", false,
+                "xoffset", partypetXOffset,
+                "yOffset", partypetYOffset,
+                "point", "BOTTOM",
+                "columnAnchorPoint", "LEFT",
+                "oUF-initialConfigFunction", ([[
+                    self:SetWidth(%d)
+                    self:SetHeight(%d)
+                    self:SetAttribute("unitsuffix", "pet")
+                ]]):format(60, 34)
+            )
+			-- stylua: ignore end
 			local moverAnchor = { "TOPLEFT", partyMover, "TOPRIGHT", 6, -40 }
 			local petMover = K.Mover(partyPet, "PartyPetFrame", "PartyPetFrame", moverAnchor, partpetMoverWidth, partpetMoverHeight)
 			partyPet:ClearAllPoints()
@@ -748,7 +590,12 @@ function Module:CreateUnits()
 		end
 	end
 
-	if C["Raid"].Enable then
+	if showPartyFrame then
+		CreatePartyFrames()
+	end
+
+	-- Function to create raid frames
+	local function CreateRaidFrames()
 		SetCVar("predictedHealth", 1)
 		oUF:RegisterStyle("Raid", Module.CreateRaid)
 		oUF:SetActiveStyle("Raid")
@@ -765,114 +612,127 @@ function Module:CreateUnits()
 			_G.CompactRaidFrameManager:SetParent(K.UIFrameHider)
 		end
 
-		local raidMover
-		-- stylua: ignore
-		local function CreateGroup(name, i)
-			local group = oUF:SpawnHeader(
-				name, nil, "solo,party,raid",
-				"showPlayer", true,
-				"showSolo", not showPartyFrame and C["Raid"].ShowRaidSolo,
-				"showParty", not showPartyFrame,
-				"showRaid", true,
-				"xOffset", 6,
-				"yOffset", -6,
-				"groupFilter", tostring(i),
-				"groupingOrder", "1,2,3,4,5,6,7,8",
-				"groupBy", "GROUP",
-				"sortMethod", "INDEX",
-				"maxColumns", 1,
-				"unitsPerColumn", 5,
-				"columnSpacing", 5,
-				"point", horizonRaid and "LEFT" or "TOP",
-				"columnAnchorPoint", "LEFT",
-				"oUF-initialConfigFunction", ([[
-					self:SetWidth(%d)
-					self:SetHeight(%d)
-				]]):format(raidWidth, raidHeight)
-			)
+		local raidWidth = C["Raid"].Width
+		local raidHeight = C["Raid"].Height
+		local horizonRaid = C["Raid"].HorizonRaid
+		local reverse = C["Raid"].Reverse
+		local showTeamIndex = C["Raid"].ShowTeamIndex
+		local numGroups = C["Raid"].NumGroups
 
-			return group
-		end
+        -- stylua: ignore start
+        local function CreateGroup(name, i)
+            local group = oUF:SpawnHeader(name, nil, "solo,party,raid",
+                "showPlayer", true,
+                "showSolo", not showPartyFrame and C["Raid"].ShowRaidSolo,
+                "showParty", not showPartyFrame,
+                "showRaid", true,
+                "xOffset", 6,
+                "yOffset", -6,
+                "groupFilter", tostring(i),
+                "groupingOrder", "1,2,3,4,5,6,7,8",
+                "groupBy", "GROUP",
+                "sortMethod", "INDEX",
+                "maxColumns", 1,
+                "unitsPerColumn", 5,
+                "columnSpacing", 5,
+                "point", horizonRaid and "LEFT" or "TOP",
+                "columnAnchorPoint", "LEFT",
+                "oUF-initialConfigFunction", ([[
+                    self:SetWidth(%d)
+                    self:SetHeight(%d)
+                ]]):format(raidWidth, raidHeight)
+            )
+			-- stylua: ignore end
+            return group
+        end
 
-		local function CreateTeamIndex(header)
-			local parent = _G[header:GetName() .. "UnitButton1"]
-			if parent and not parent.teamIndex then
-				local teamIndex = K.CreateFontString(parent, 11, string_format(_G.GROUP_NUMBER, header.index), "")
-				teamIndex:ClearAllPoints()
-				teamIndex:SetPoint("BOTTOM", parent, "TOP", 0, 3)
-				teamIndex:SetTextColor(255 / 255, 204 / 255, 102 / 255)
+        -- Function to create team index
+        local function CreateTeamIndex(header)
+            local parent = _G[header:GetName() .. "UnitButton1"]
+            if parent and not parent.teamIndex then
+                local teamIndex = K.CreateFontString(parent, 11, string_format(_G.GROUP_NUMBER, header.index), "")
+                teamIndex:ClearAllPoints()
+                teamIndex:SetPoint("BOTTOM", parent, "TOP", 0, 3)
+                teamIndex:SetTextColor(255 / 255, 204 / 255, 102 / 255)
 
-				parent.teamIndex = teamIndex
-			end
-		end
+                parent.teamIndex = teamIndex
+            end
+        end
 
-		local groups = {}
-		for i = 1, numGroups do
-			groups[i] = CreateGroup("oUF_Raid" .. i, i)
-			groups[i].index = i
+        local groups = {}
+        for i = 1, numGroups do
+            groups[i] = CreateGroup("oUF_Raid" .. i, i)
+            groups[i].index = i
 
+            local raidMover
 			if i == 1 then
-				if horizonRaid then
-					raidMover = K.Mover(groups[i], "RaidFrame", "RaidFrame", { "TOPLEFT", UIParent, "TOPLEFT", 4, -180 }, (raidWidth + 5) * 5, (raidHeight + (showTeamIndex and 15 or 5)) * numGroups)
-					if reverse then
-						groups[i]:ClearAllPoints()
-						groups[i]:SetPoint("BOTTOMLEFT", raidMover)
-					end
-				else
-					raidMover = K.Mover(groups[i], "RaidFrame", "RaidFrame", { "TOPLEFT", UIParent, "TOPLEFT", 4, -180 }, (raidWidth + 5) * numGroups, (raidHeight + 5) * 5)
-					if reverse then
-						groups[i]:ClearAllPoints()
-						groups[i]:SetPoint("TOPRIGHT", raidMover)
-					end
-				end
+			    if horizonRaid then
+			        raidMover = K.Mover(groups[i], "RaidFrame", "RaidFrame", { "TOPLEFT", UIParent, "TOPLEFT", 4, -180 }, (raidWidth + 5) * 5, (raidHeight + (showTeamIndex and 15 or 5)) * numGroups)
+			        if reverse then
+			            groups[i]:ClearAllPoints()
+			            groups[i]:SetPoint("BOTTOMLEFT", raidMover)
+			        end
+			    else
+			        raidMover = K.Mover(groups[i], "RaidFrame", "RaidFrame", { "TOPLEFT", UIParent, "TOPLEFT", 4, -180 }, (raidWidth + 5) * numGroups, (raidHeight + 5) * 5)
+			        if reverse then
+			            groups[i]:ClearAllPoints()
+			            groups[i]:SetPoint("TOPRIGHT", raidMover)
+			        end
+			    end
 			else
-				if horizonRaid then
-					if reverse then
-						groups[i]:SetPoint("BOTTOMLEFT", groups[i - 1], "TOPLEFT", 0, showTeamIndex and 18 or 6)
-					else
-						groups[i]:SetPoint("TOPLEFT", groups[i - 1], "BOTTOMLEFT", 0, showTeamIndex and -18 or -6)
-					end
-				else
-					if reverse then
-						groups[i]:SetPoint("TOPRIGHT", groups[i - 1], "TOPLEFT", -6, 0)
-					else
-						groups[i]:SetPoint("TOPLEFT", groups[i - 1], "TOPRIGHT", 6, 0)
-					end
-				end
-			end
+                if horizonRaid then
+                    if reverse then
+                        groups[i]:SetPoint("BOTTOMLEFT", groups[i - 1], "TOPLEFT", 0, showTeamIndex and 18 or 6)
+                    else
+                        groups[i]:SetPoint("TOPLEFT", groups[i - 1], "BOTTOMLEFT", 0, showTeamIndex and -18 or -6)
+                    end
+                else
+                    if reverse then
+                        groups[i]:SetPoint("TOPRIGHT", groups[i - 1], "TOPLEFT", -6, 0)
+                    else
+                        groups[i]:SetPoint("TOPLEFT", groups[i - 1], "TOPRIGHT", 6, 0)
+                    end
+                end
+            end
 
-			if showTeamIndex then
-				CreateTeamIndex(groups[i])
-				groups[i]:HookScript("OnShow", CreateTeamIndex)
-			end
-		end
+            if showTeamIndex then
+                CreateTeamIndex(groups[i])
+                groups[i]:HookScript("OnShow", CreateTeamIndex)
+            end
+        end
 
-		if C["Raid"].MainTankFrames then
-			oUF:RegisterStyle("MainTank", Module.CreateRaid)
-			oUF:SetActiveStyle("MainTank")
+        if C["Raid"].MainTankFrames then
+            oUF:RegisterStyle("MainTank", Module.CreateRaid)
+            oUF:SetActiveStyle("MainTank")
 
-			local horizonTankRaid = C["Raid"].HorizonRaid
-			local raidTankWidth, raidTankHeight = C["Raid"].Width, C["Raid"].Height
-			-- stylua: ignore
-			local raidtank = oUF:SpawnHeader(
-				"oUF_MainTank", nil, "raid",
-				"showRaid", true,
-				"xoffset", 6,
-				"yOffset", -6,
-				"groupFilter", "MAINTANK",
-				"point", horizonTankRaid and "LEFT" or "TOP",
-				"columnAnchworPoint", "LEFT",
-				"template", C["Raid"].MainTankFrames and "oUF_MainTankTT" or "oUF_MainTank",
-				"oUF-initialConfigFunction", ([[
-					self:SetWidth(%d)
-					self:SetHeight(%d)
-				]]):format(raidTankWidth, raidTankHeight)
-			)
+            local horizonTankRaid = C["Raid"].HorizonRaid
+            local raidTankWidth, raidTankHeight = C["Raid"].Width, C["Raid"].Height
 
-			local raidtankMover = K.Mover(raidtank, "MainTankFrame", "MainTankFrame", { "TOPLEFT", UIParent, "TOPLEFT", 4, -50 }, raidTankWidth, raidTankHeight)
-			raidtank:ClearAllPoints()
-			raidtank:SetPoint("TOPLEFT", raidtankMover)
-		end
+			-- stylua: ignore start
+            local raidtank = oUF:SpawnHeader(
+                "oUF_MainTank", nil, "raid",
+                "showRaid", true,
+                "xoffset", 6,
+                "yOffset", -6,
+                "groupFilter", "MAINTANK",
+                "point", horizonTankRaid and "LEFT" or "TOP",
+                "columnAnchorPoint", "LEFT",
+                "template", C["Raid"].MainTankFrames and "oUF_MainTankTT" or "oUF_MainTank",
+                "oUF-initialConfigFunction", ([[
+                    self:SetWidth(%d)
+                    self:SetHeight(%d)
+                ]]):format(raidTankWidth, raidTankHeight)
+            )
+			-- stylua: ignore end
+
+            local raidtankMover = K.Mover(raidtank, "MainTankFrame", "MainTankFrame", { "TOPLEFT", UIParent, "TOPLEFT", 4, -50 }, raidTankWidth, raidTankHeight)
+            raidtank:ClearAllPoints()
+            raidtank:SetPoint("TOPLEFT", raidtankMover)
+        end
+	end
+
+	if C["Raid"].Enable then
+		CreateRaidFrames()
 	end
 end
 
@@ -921,16 +781,17 @@ end
 
 -- Function that plays a sound when the player changes their target
 function Module:PLAYER_TARGET_CHANGED()
-	CreateTargetSound(_, "target")
+	CreateTargetSound(nil, "target")
 end
 
+-- Function that plays a sound when the player's faction changes
 function Module:UNIT_FACTION(unit)
 	if unit ~= "player" then
 		return
 	end
 
 	-- Check if player is in a PvP zone
-	local isPvP = not not (UnitIsPVPFreeForAll("player") or UnitIsPVP("player"))
+	local isPvP = UnitIsPVPFreeForAll("player") or UnitIsPVP("player")
 
 	-- Play sound if player enters a PvP zone and it has not been played yet
 	if isPvP and not lastPvPSound then
