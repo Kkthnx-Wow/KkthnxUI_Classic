@@ -188,7 +188,7 @@ C["Inventory"] = {
 	JustBackpack = false,
 	-- BagSortMode = 1, -- Missing in GUI.lua
 	ShowNewItem = true,
-	SpecialBagsColor = false, -- Missing in GUI.lua
+	SpecialBagsColor = true,
 	UpgradeIcon = true,
 	iLvlToShow = 1,
 	GrowthDirection = {
@@ -511,6 +511,7 @@ C["Skins"] = {
 	QuestDifficulty = false,
 	QuestLevels = false,
 	QuestLog = false,
+	QuestTracker = false,
 
 	-- Bartender4 = false,
 	-- BigWigs = false,

@@ -552,6 +552,7 @@ local Inventory = function(self)
 	Window:CreateSwitch("Inventory", "DeleteButton", L["Bags Delete Button"])
 	-- Window:CreateSwitch("Inventory", "ReverseSort", L["Reverse the Sorting"], nil, UpdateBagSortOrder) -- Bag order
 	Window:CreateSwitch("Inventory", "ShowNewItem", L["Show New Item Glow"])
+	Window:CreateSwitch("Inventory", "SpecialBagsColor", "Color Special Bags", "Color Special Bags:|n- |cffabda74Hunter's Quiver or Ammo Pouch|r|n- |cff8787edWarlock's Soul Pouch|r|n- |cffc800c8Enchanting Mageweave Pouch|r|n- |cff008000Herbalist's Herb Pouch|r")
 	Window:CreateSwitch("Inventory", "UpgradeIcon", L["Show Upgrade Icon"])
 	Window:CreateSlider("Inventory", "BagsPerRow", L["Bags Per Row"], 1, 20, 1, nil, updateBagAnchor)
 	Window:CreateSlider("Inventory", "iLvlToShow", newFeatureIcon .. "ItemLevel Threshold", 1, 800, 1, "Functions only when filtering items with a lower item level. Separates items based on a specified item level threshold..")
@@ -901,6 +902,9 @@ local Skins = function(self)
 
 	Window:CreateSection("TradeSkill Frame")
 	Window:CreateSwitch("Skins", "ImproveTradeSkill", "Enable Enhanced TradeSkill Frame", "Enhances the TradeSkill frame with additional features, improved layout, and better search functionality.")
+
+	Window:CreateSection("QuestTracker Frame")
+	Window:CreateSwitch("Skins", "QuestTracker", "Enable Enhanced Quest Tracker", "Enhances the quest tracker with custom styling, collapse functionality, and automatic quest watching when enabled.")
 
 	Window:CreateSection("AddOn Skins")
 	Window:CreateSwitch("Skins", "DeadlyBossMods", L["Deadly Boss Mods Skin"])

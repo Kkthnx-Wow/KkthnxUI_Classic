@@ -1053,18 +1053,18 @@ function Module:OnEnable()
 	end
 
 	local bagGroupColor = {
-		[0] = { 1, 1, 1, 0.3 }, -- Container
-		[1] = false, -- Soul Bag
-		[2] = { 0, 0.5, 0, 0.25 }, -- Herb Bag
-		[3] = { 0.8, 0, 0.8, 0.25 }, -- Enchanting Bag
-		[4] = { 1, 0.8, 0, 0.25 }, -- Engineering Bag
-		[5] = { 0, 0.8, 0.8, 0.25 }, -- Gem Bag
-		[6] = { 0.5, 0.4, 0, 0.25 }, -- Mining Bag
-		[7] = { 0.8, 0.5, 0.5, 0.25 }, -- Leatherworking Bag
-		[8] = { 0.8, 0.8, 0.8, 0.25 }, -- Inscription Bag
-		[9] = { 0.4, 0.6, 1, 0.25 }, -- Toolbox
-		[10] = { 0.8, 0, 0, 0.25 }, -- Cooking Bag
-		[11] = { 0.2, 0.8, 0.2, 0.25 }, -- Material Bag
+		[-1] = { 0.67, 0.83, 0.45, 1 }, -- Quiver/Ammo Bag
+		[0] = { 1, 1, 1, 1 }, -- Container
+		[1] = { 0.53, 0.53, 0.93, 1 }, -- Soul Bag
+		[2] = { 0, 0.5, 0, 1 }, -- Herb Bag
+		[3] = { 0.8, 0, 0.8, 1 }, -- Enchanting Bag
+		[4] = { 1, 0.8, 0, 1 }, -- Engineering Bag
+		[5] = { 0, 0.8, 0.8, 1 }, -- Gem Bag
+		[6] = { 0.5, 0.4, 0, 1 }, -- Mining Bag
+		[7] = { 0.8, 0.5, 0.5, 1 }, -- Leatherworking Bag
+		[8] = { 0.8, 0.8, 0.8, 1 }, -- Inscription Bag
+		[9] = { 0.4, 0.6, 1, 1 }, -- Toolbox
+		[10] = { 0.8, 0, 0, 1 }, -- Cooking Bag
 	}
 
 	local function isItemNeedsLevel(item)
@@ -1158,9 +1158,9 @@ function Module:OnEnable()
 		if C["Inventory"].SpecialBagsColor then
 			local bagType = cargBags.BagGroups[item.bagId]
 			local color = bagGroupColor[bagType] or bagGroupColor[0]
-			self:SetBackdropColor(unpack(color))
+			self.KKUI_Background:SetVertexColor(unpack(color))
 		else
-			self:SetBackdropColor(0.04, 0.04, 0.04, 0.9)
+			self.KKUI_Background:SetVertexColor(1, 1, 1, 1)
 		end
 
 		-- Hide empty tooltip

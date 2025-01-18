@@ -17,20 +17,28 @@ function Module:CreateTarget()
 	local UnitframeTexture = K.GetTexture(C["General"].Texture)
 	local HealPredictionTexture = K.GetTexture(C["General"].Texture)
 
+	if not self then
+		return
+	end
+
+	-- Create Overlay
+	local Overlay = CreateFrame("Frame", nil, self) -- We will use this to overlay onto our special borders.
+	Overlay:SetFrameStrata(self:GetFrameStrata())
+	Overlay:SetFrameLevel(5)
+	Overlay:SetAllPoints()
+	Overlay:EnableMouse(false)
+	self.Overlay = Overlay
+
 	Module.CreateHeader(self)
 
+	-- Create Health
 	local Health = CreateFrame("StatusBar", nil, self)
 	Health:SetHeight(targetHeight)
 	Health:SetPoint("TOPLEFT")
 	Health:SetPoint("TOPRIGHT")
 	Health:SetStatusBarTexture(UnitframeTexture)
 	Health:CreateBorder()
-
-	local Overlay = CreateFrame("Frame", nil, self) -- We will use this to overlay onto our special borders.
-	Overlay:SetFrameStrata(self:GetFrameStrata())
-	Overlay:SetFrameLevel(6)
-	Overlay:SetAllPoints()
-	Overlay:EnableMouse(false)
+	self.Health = Health
 
 	Health.colorTapping = true
 	Health.colorDisconnected = true
@@ -60,12 +68,14 @@ function Module:CreateTarget()
 	Health.Value:SetFontObject(K.UIFont)
 	self:Tag(Health.Value, "[hp]")
 
+	-- Create Power
 	local Power = CreateFrame("StatusBar", nil, self)
-	Power:SetHeight(C["Unitframe"].TargetPowerHeight)
+	Power:SetHeight(C["Unitframe"].PlayerPowerHeight)
 	Power:SetPoint("TOPLEFT", Health, "BOTTOMLEFT", 0, -6)
 	Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, -6)
 	Power:SetStatusBarTexture(UnitframeTexture)
 	Power:CreateBorder()
+	self.Power = Power
 
 	Power.colorPower = true
 	Power.frequentUpdates = true
@@ -100,9 +110,9 @@ function Module:CreateTarget()
 		end
 	end
 
+	-- Create Portrait conditionally
 	if targetPortraitStyle ~= "NoPortraits" then
 		local Portrait
-
 		if targetPortraitStyle == "OverlayPortrait" then
 			Portrait = CreateFrame("PlayerModel", "KKUI_TargetPortrait", self)
 			Portrait:SetFrameStrata(self:GetFrameStrata())
@@ -133,6 +143,7 @@ function Module:CreateTarget()
 		self.Portrait = Portrait
 	end
 
+	-- Target Debuffs
 	if C["Unitframe"].TargetDebuffs then -- and C["Unitframe"].TargetDebuffsTop
 		local Debuffs = CreateFrame("Frame", nil, self)
 		Debuffs.spacing = 6
@@ -153,6 +164,7 @@ function Module:CreateTarget()
 		self.Debuffs = Debuffs
 	end
 
+	-- Target Buffs
 	if C["Unitframe"].TargetBuffs then -- and C["Unitframe"].TargetDebuffsTop
 		local Buffs = CreateFrame("Frame", nil, self)
 		Buffs:SetPoint("TOPLEFT", Power, "BOTTOMLEFT", 0, -6)
@@ -174,13 +186,14 @@ function Module:CreateTarget()
 		self.Buffs = Buffs
 	end
 
+	-- Target Castbar
 	if C["Unitframe"].TargetCastbar then
 		local Castbar = CreateFrame("StatusBar", "oUF_CastbarTarget", self)
 		Castbar:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
 		Castbar:SetFrameLevel(10)
 		Castbar:SetSize(C["Unitframe"].TargetCastbarWidth, C["Unitframe"].TargetCastbarHeight)
 		Castbar:CreateBorder()
-		Castbar.castTicks = {}
+		-- Castbar.castTicks = {}
 
 		Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY", nil, 7)
 		Castbar.Spark:SetSize(64, Castbar:GetHeight() - 2)
@@ -209,11 +222,6 @@ function Module:CreateTarget()
 		Castbar.Button:SetAllPoints(Castbar.Icon)
 		Castbar.Button:SetFrameLevel(Castbar:GetFrameLevel())
 
-		local stage = K.CreateFontString(Castbar, 20)
-		stage:ClearAllPoints()
-		stage:SetPoint("TOPLEFT", Castbar.Icon, 1, -1)
-		Castbar.stageString = stage
-
 		Castbar.decimal = "%.2f"
 
 		Castbar.Time = timer
@@ -233,20 +241,19 @@ function Module:CreateTarget()
 		self.Castbar = Castbar
 	end
 
+	-- Heal Prediction
 	if C["Unitframe"].ShowHealPrediction then
 		local frame = CreateFrame("Frame", nil, self)
 		frame:SetAllPoints(Health)
 
-		local normalTexture = K.GetTexture(C["General"].Texture)
-
 		local myBar = frame:CreateTexture(nil, "BORDER", nil, 5)
 		myBar:SetWidth(1)
-		myBar:SetTexture(normalTexture)
+		myBar:SetTexture(HealPredictionTexture)
 		myBar:SetVertexColor(0, 1, 0, 0.5)
 
 		local otherBar = frame:CreateTexture(nil, "BORDER", nil, 5)
 		otherBar:SetWidth(1)
-		otherBar:SetTexture(normalTexture)
+		otherBar:SetTexture(HealPredictionTexture)
 		otherBar:SetVertexColor(0, 1, 1, 0.5)
 
 		self.HealPredictionAndAbsorb = {
@@ -310,6 +317,7 @@ function Module:CreateTarget()
 	else
 		LeaderIndicator:SetPoint("TOPRIGHT", Health, 0, 10)
 	end
+	self.LeaderIndicator = LeaderIndicator
 
 	local AssistantIndicator = Overlay:CreateTexture(nil, "OVERLAY")
 	AssistantIndicator:SetSize(16, 16)
@@ -318,6 +326,7 @@ function Module:CreateTarget()
 	else
 		AssistantIndicator:SetPoint("TOPRIGHT", Health, 0, 10)
 	end
+	self.AssistantIndicator = AssistantIndicator
 
 	local RaidTargetIndicator = Overlay:CreateTexture(nil, "OVERLAY")
 	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
@@ -326,6 +335,7 @@ function Module:CreateTarget()
 		RaidTargetIndicator:SetPoint("TOP", Health, "TOP", 0, 8)
 	end
 	RaidTargetIndicator:SetSize(16, 16)
+	self.RaidTargetIndicator = RaidTargetIndicator
 
 	local ReadyCheckIndicator = Overlay:CreateTexture(nil, "OVERLAY")
 	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
@@ -334,6 +344,7 @@ function Module:CreateTarget()
 		ReadyCheckIndicator:SetPoint("CENTER", Health)
 	end
 	ReadyCheckIndicator:SetSize(targetHeight - 4, targetHeight - 4)
+	self.ReadyCheckIndicator = ReadyCheckIndicator
 
 	local ResurrectIndicator = Overlay:CreateTexture(nil, "OVERLAY")
 	ResurrectIndicator:SetSize(44, 44)
@@ -342,10 +353,12 @@ function Module:CreateTarget()
 	else
 		ResurrectIndicator:SetPoint("CENTER", Health)
 	end
+	self.ResurrectIndicator = ResurrectIndicator
 
 	local QuestIndicator = Overlay:CreateTexture(nil, "OVERLAY")
 	QuestIndicator:SetSize(20, 20)
 	QuestIndicator:SetPoint("TOPLEFT", Health, "TOPRIGHT", -6, 6)
+	self.QuestIndicator = QuestIndicator
 
 	if C["Unitframe"].DebuffHighlight then
 		local DebuffHighlight = Health:CreateTexture(nil, "OVERLAY")
@@ -355,7 +368,6 @@ function Module:CreateTarget()
 		DebuffHighlight:SetBlendMode("ADD")
 
 		self.DebuffHighlight = DebuffHighlight
-
 		self.DebuffHighlightAlpha = 0.45
 		self.DebuffHighlightFilter = true
 	end
@@ -367,6 +379,7 @@ function Module:CreateTarget()
 	Highlight:SetVertexColor(0.6, 0.6, 0.6)
 	Highlight:SetBlendMode("ADD")
 	Highlight:Hide()
+	self.Highlight = Highlight
 
 	self.ThreatIndicator = {
 		IsObjectType = K.Noop,
@@ -376,17 +389,4 @@ function Module:CreateTarget()
 	self.Range = {
 		Override = Module.UpdateRange,
 	}
-
-	self.Overlay = Overlay
-	self.Health = Health
-	self.Power = Power
-	self.Name = Name
-	self.Level = Level
-	self.LeaderIndicator = LeaderIndicator
-	self.AssistantIndicator = AssistantIndicator
-	self.RaidTargetIndicator = RaidTargetIndicator
-	self.ReadyCheckIndicator = ReadyCheckIndicator
-	self.ResurrectIndicator = ResurrectIndicator
-	self.QuestIndicator = QuestIndicator
-	self.Highlight = Highlight
 end

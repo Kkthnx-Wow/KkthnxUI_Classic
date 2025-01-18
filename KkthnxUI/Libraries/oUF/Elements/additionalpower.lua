@@ -53,40 +53,44 @@ The following options are listed by priority. The first check that returns true 
     self.AdditionalPower = AdditionalPower
 --]]
 
-if(select(2, UnitClass('player')) ~= 'DRUID') then return end
+if select(2, UnitClass("player")) ~= "DRUID" then
+	return
+end
 
 local _, ns = ...
 local oUF = ns.oUF
 
 local function UpdateColor(self, event, unit, powertype)
-	if(not (unit and unit == 'player') and powertype == 'MANA') then return end
+	if not (unit and unit == "player") and powertype == "MANA" then
+		return
+	end
 	local element = self.AdditionalPower
 
 	local r, g, b, t
-	if(element.colorPower) then
+	if element.colorPower then
 		t = self.colors.power[0]
-	elseif(element.colorClass and UnitIsPlayer(unit)) then
+	elseif element.colorClass and UnitIsPlayer(unit) then
 		local _, class = UnitClass(unit)
 		t = self.colors.class[class]
-	elseif(element.colorSmooth) then
+	elseif element.colorSmooth then
 		r, g, b = self:ColorGradient(element.cur or 1, element.max or 1, unpack(element.smoothGradient or self.colors.smooth))
 	end
 
-	if(t) then
+	if t then
 		r, g, b = t[1], t[2], t[3]
 	end
 
-	if(b) then
+	if b then
 		element:SetStatusBarColor(r, g, b)
 
 		local bg = element.bg
-		if(bg) then
+		if bg then
 			local mu = bg.multiplier or 1
 			bg:SetVertexColor(r * mu, g * mu, b * mu)
 		end
 	end
 
-	if(element.PostUpdateColor) then
+	if element.PostUpdateColor then
 		element:PostUpdateColor(unit, r, g, b)
 	end
 end
@@ -100,11 +104,13 @@ local function ColorPath(self, ...)
 	* unit  - the unit accompanying the event (string)
 	* ...   - the arguments accompanying the event
 	--]]
-	(self.AdditionalPower.UpdateColor or UpdateColor) (self, ...)
+	(self.AdditionalPower.UpdateColor or UpdateColor)(self, ...)
 end
 
 local function Update(self, event, unit, powertype)
-	if(not (unit and unit == 'player') and powertype == 'MANA') then return end
+	if not (unit and unit == "player") and powertype == "MANA" then
+		return
+	end
 
 	local element = self.AdditionalPower
 	--[[ Callback: AdditionalPower:PreUpdate(unit)
@@ -113,12 +119,12 @@ local function Update(self, event, unit, powertype)
 	* self - the AdditionalPower element
 	* unit - the unit for which the update has been triggered (string)
 	--]]
-	if(element.PreUpdate) then
+	if element.PreUpdate then
 		element:PreUpdate(unit)
 	end
 
-	local cur = UnitPower('player', 0)
-	local max = UnitPowerMax('player', 0)
+	local cur = UnitPower("player", 0)
+	local max = UnitPowerMax("player", 0)
 
 	element:SetMinMaxValues(0, max)
 	element:SetValue(cur)
@@ -134,7 +140,7 @@ local function Update(self, event, unit, powertype)
 	* cur  - the current value of the player's additional power (number)
 	* max  - the maximum value of the player's additional power (number)
 	--]]
-	if(element.PostUpdate) then
+	if element.PostUpdate then
 		return element:PostUpdate(unit, cur, max)
 	end
 end
@@ -148,7 +154,7 @@ local function Path(self, ...)
 	* unit  - the unit accompanying the event (string)
 	* ...   - the arguments accompanying the event
 	--]]
-	(self.AdditionalPower.Override or Update) (self, ...)
+	(self.AdditionalPower.Override or Update)(self, ...)
 
 	ColorPath(self, ...)
 end
@@ -156,43 +162,43 @@ end
 local function ElementEnable(self)
 	local element = self.AdditionalPower
 
-	if(element.frequentUpdates) then
-		self:RegisterEvent('UNIT_POWER_FREQUENT', Path)
+	if element.frequentUpdates then
+		self:RegisterEvent("UNIT_POWER_FREQUENT", Path)
 	else
-		self:RegisterEvent('UNIT_POWER_UPDATE', Path)
+		self:RegisterEvent("UNIT_POWER_UPDATE", Path)
 	end
 
-	self:RegisterEvent('UNIT_MAXPOWER', Path)
+	self:RegisterEvent("UNIT_MAXPOWER", Path)
 
 	element:Show()
 
-	Path(self, 'ElementEnable', 'player', 'MANA')
+	Path(self, "ElementEnable", "player", "MANA")
 end
 
 local function ElementDisable(self)
 	local element = self.AdditionalPower
 
-	if(element.frequentUpdates) then
-		self:RegisterEvent('UNIT_POWER_FREQUENT', Path)
+	if element.frequentUpdates then
+		self:RegisterEvent("UNIT_POWER_FREQUENT", Path)
 	else
-		self:RegisterEvent('UNIT_POWER_UPDATE', Path)
+		self:RegisterEvent("UNIT_POWER_UPDATE", Path)
 	end
 
-	self:UnregisterEvent('UNIT_MAXPOWER', Path)
+	self:UnregisterEvent("UNIT_MAXPOWER", Path)
 
 	self.AdditionalPower:Hide()
 
-	Path(self, 'ElementDisable', 'player', 'MANA')
+	Path(self, "ElementDisable", "player", "MANA")
 end
 
 local function Visibility(self)
 	local shouldEnable
 
-	if((UnitPowerType('player') ~= 0) and (UnitPowerMax('player', 0) ~= 0)) then
+	if (UnitPowerType("player") ~= 0) and (UnitPowerMax("player", 0) ~= 0) then
 		shouldEnable = true
 	end
 
-	if(shouldEnable) then
+	if shouldEnable then
 		ElementEnable(self)
 	else
 		ElementDisable(self)
@@ -207,22 +213,22 @@ local function VisibilityPath(self, ...)
 	* event - the event triggering the update (string)
 	* unit  - the unit accompanying the event (string)
 	--]]
-	return (self.AdditionalPower.OverrideVisibility or Visibility) (self, ...)
+	return (self.AdditionalPower.OverrideVisibility or Visibility)(self, ...)
 end
 
 local function ForceUpdate(element)
-	return VisibilityPath(element.__owner, 'ForceUpdate', element.__owner.unit)
+	return VisibilityPath(element.__owner, "ForceUpdate", element.__owner.unit)
 end
 
 local function Enable(self, unit)
 	local element = self.AdditionalPower
-	if(element and unit == 'player') then
+	if element and unit == "player" then
 		element.__owner = self
 		element.ForceUpdate = ForceUpdate
 
-		self:RegisterEvent('UNIT_DISPLAYPOWER', VisibilityPath)
+		self:RegisterEvent("UNIT_DISPLAYPOWER", VisibilityPath)
 
-		if(element:IsObjectType('StatusBar') and not element:GetStatusBarTexture()) then
+		if element:IsObjectType("StatusBar") and not element:GetStatusBarTexture() then
 			element:SetStatusBarTexture([[Interface\TargetingFrame\UI-StatusBar]])
 		end
 
@@ -232,11 +238,11 @@ end
 
 local function Disable(self)
 	local element = self.AdditionalPower
-	if(element) then
+	if element then
 		ElementDisable(self)
 
-		self:UnregisterEvent('UNIT_DISPLAYPOWER', VisibilityPath)
+		self:UnregisterEvent("UNIT_DISPLAYPOWER", VisibilityPath)
 	end
 end
 
-oUF:AddElement('AdditionalPower', VisibilityPath, Enable, Disable)
+oUF:AddElement("AdditionalPower", VisibilityPath, Enable, Disable)
