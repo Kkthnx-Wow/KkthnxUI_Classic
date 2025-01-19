@@ -253,7 +253,7 @@ local function StripTextures(object, kill)
 			local region = select(i, object:GetRegions()) -- Get region at index i
 
 			-- Check if region is a Texture type
-			if region and region.IsObjectType and region:IsObjectType("Texture") then
+			if region and region.IsObjectType and region:IsObjectType("Texture") and not region.isIgnored then
 				if kill and type(kill) == "boolean" then -- Kill the texture if boolean true is passed as kill argument
 					region:Kill()
 				elseif tonumber(kill) then -- Set alpha to 0 for specified texture index

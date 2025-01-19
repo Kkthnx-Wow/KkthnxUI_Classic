@@ -43,7 +43,6 @@ function Module:RaidTool_Header()
 		GameTooltip:ClearLines()
 		GameTooltip:AddLine("Group Members", 0.6, 0.8, 1)
 		GameTooltip:AddDoubleLine("Current Count:", K.InfoColor .. GetNumGroupMembers())
-		GameTooltip:AddLine(" ")
 		if IsInGroup() then
 			local tank = UnitGroupRolesAssigned("player") == "TANK"
 			local healer = UnitGroupRolesAssigned("player") == "HEALER"

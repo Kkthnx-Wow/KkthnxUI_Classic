@@ -75,6 +75,10 @@ local eventList = {
 local function OnEvent(event)
 	if event == "PLAYER_ENTERING_WORLD" then
 		DurabilityDataText:UnregisterEvent(event)
+		-- Stop animation when zoning in to prevent stuck animations
+		if lowDurabilityFrame.animGroup and lowDurabilityFrame.animGroup:IsPlaying() then
+			lowDurabilityFrame.animGroup:Stop()
+		end
 	end
 
 	local numSlots = UpdateAllSlots()
@@ -83,10 +87,13 @@ local function OnEvent(event)
 	if event == "PLAYER_REGEN_ENABLED" then
 		DurabilityDataText:UnregisterEvent(event)
 		DurabilityDataText:RegisterEvent("UPDATE_INVENTORY_DURABILITY")
+		-- Stop animation when combat ends
+		if lowDurabilityFrame.animGroup and lowDurabilityFrame.animGroup:IsPlaying() then
+			lowDurabilityFrame.animGroup:Stop()
+		end
 	else
 		if numSlots > 0 then
 			local r, g, b = getDurabilityColor(math_floor(localSlots[1][3] * 100), 100)
-			-- Set the text color to yellow and format the durability text
 			DurabilityDataText.Text:SetFormattedText("%s%%|r %s", K.RGBToHex(r, g, b) .. math.floor(localSlots[1][3] * 100), K.GreyColor .. "Dur")
 		else
 			DurabilityDataText.Text:SetText("Dur" .. ": " .. K.MyClassColor .. NONE)
@@ -112,7 +119,7 @@ local function OnEnter()
 	for i = 1, #localSlots do
 		if localSlots[i][3] ~= 1000 then
 			local slot = localSlots[i][1]
-			local cur = floor(localSlots[i][3] * 100)
+			local cur = math_floor(localSlots[i][3] * 100)
 			local slotIcon = localSlots[i][4]
 			GameTooltip:AddDoubleLine(slotIcon .. localSlots[i][2], cur .. "%", 1, 1, 1, getDurabilityColor(cur, 100))
 
@@ -172,7 +179,7 @@ function Module:ShowLowDurabilityWarning()
 		lowDurabilityFrame.animGroup:SetScript("OnFinished", function()
 			lowDurabilityFrame:Hide()
 			if isLowDurability() then
-				C_Timer.After(5, Module.ShowLowDurabilityWarning) -- Remind again after 5 seconds if still low
+				C_Timer.After(60, Module.ShowLowDurabilityWarning) -- Remind again after 60 seconds if still low
 			end
 		end)
 	end
@@ -216,3 +223,9 @@ function Module:CreateDurabilityDataText()
 	DurabilityDataText:SetScript("OnEnter", OnEnter)
 	DurabilityDataText:SetScript("OnLeave", OnLeave)
 end
+
+-- Manually update slots after repair to ensure data reflects changes
+hooksecurefunc("RepairAllItems", function()
+	UpdateAllSlots()
+	OnEvent("UPDATE_INVENTORY_DURABILITY")
+end)

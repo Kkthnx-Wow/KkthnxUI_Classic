@@ -527,23 +527,24 @@ K:RegisterEvent("ADDON_LOADED", addonStyled)
 
 Module:RegisterTooltips("KkthnxUI", function()
 	local tooltips = {
+		AutoCompleteBox,
 		ChatMenu,
-		EmoteMenu,
-		LanguageMenu,
-		VoiceMacroMenu,
-		GameTooltip,
 		EmbeddedItemTooltip,
-		ItemRefTooltip,
+		EmoteMenu,
+		FriendsTooltip,
+		GameTooltip,
+		GeneralDockManagerOverflowButtonList,
+		IMECandidatesFrame,
 		ItemRefShoppingTooltip1,
 		ItemRefShoppingTooltip2,
+		ItemRefTooltip,
+		LanguageMenu,
+		NamePlateTooltip,
+		QuickKeybindTooltip,
 		ShoppingTooltip1,
 		ShoppingTooltip2,
-		AutoCompleteBox,
-		FriendsTooltip,
-		GeneralDockManagerOverflowButtonList,
-		NamePlateTooltip,
+		VoiceMacroMenu,
 		WorldMapTooltip,
-		IMECandidatesFrame,
 	}
 	for _, f in pairs(tooltips) do
 		f:HookScript("OnShow", Module.ReskinTooltip)
@@ -615,6 +616,10 @@ Module:RegisterTooltips("KkthnxUI", function()
 			end
 		end)
 	end
+end)
+
+Module:RegisterTooltips("Blizzard_GroupFinder_VanillaStyle", function()
+	Module.ReskinTooltip(LFGBrowseSearchEntryTooltip)
 end)
 
 Module:RegisterTooltips("Blizzard_DebugTools", function()
