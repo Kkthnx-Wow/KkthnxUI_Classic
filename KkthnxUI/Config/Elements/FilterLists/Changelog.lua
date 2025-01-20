@@ -55,6 +55,20 @@ local KKUI_Changelog = {
 	-- },
 
 	{
+		Version = "[1.0.4] - 2025-01-20 - Patch 1.15.5 - Classic Era",
+		General = "This update is a HOTFIX.",
+
+		Sections = {
+			{
+				Header = "Hotfix",
+				Entries = {
+					"Fixed bad argument that was from left over code in inspectframe.",
+				},
+			},
+		},
+	},
+
+	{
 		Version = "[1.0.3] - 2025-01-20 - Patch 1.15.5 - Classic Era",
 		General = "This update focuses on improving the overall functionality and user experience of KkthnxUI. Highlights include updates to the Class AuraWatch lists, enhanced inventory features, and better configuration options for quest tracking and trade skill frames. Additionally, various bug fixes and visual enhancements have been implemented to ensure smoother gameplay.",
 

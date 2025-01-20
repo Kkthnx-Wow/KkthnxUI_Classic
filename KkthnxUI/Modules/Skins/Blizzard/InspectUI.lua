@@ -22,7 +22,6 @@ local function Update_InspectPaperDollItemSlotButton(button)
 
 	button.KKUI_Border:SetVertexColor(1, 1, 1)
 	if button.KKUI_SlotHighlight then
-		button.KKUI_SlotHighlight:SetBackdropBorderColor(r, g, b)
 		button.KKUI_SlotHighlight:Hide()
 	end
 end
