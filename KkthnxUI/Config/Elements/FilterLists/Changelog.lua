@@ -55,6 +55,68 @@ local KKUI_Changelog = {
 	-- },
 
 	{
+		Version = "[1.0.3] - 2025-01-20 - Patch 1.15.5 - Classic Era",
+		General = "This update focuses on improving the overall functionality and user experience of KkthnxUI. Highlights include updates to the Class AuraWatch lists, enhanced inventory features, and better configuration options for quest tracking and trade skill frames. Additionally, various bug fixes and visual enhancements have been implemented to ensure smoother gameplay.",
+
+		Sections = {
+			{
+				Header = "Core Updates",
+				Entries = {
+					"Updated Class AuraWatch lists for better accuracy and tracking.",
+					"Moved StatExpand and StatOrder options to the configuration for easier access.",
+					"Added checks into Auto Quest for enhanced reliability and functionality.",
+					"Updated Player and Target frame code for improved responsiveness.",
+					"Taint control improvements in inventory handling.",
+				},
+			},
+
+			{
+				Header = "Visual Enhancements",
+				Entries = {
+					"Added better slot quality highlighting for Character and Inspect views.",
+					"Updated Aspect Bar spells.",
+					"Added 2 new textures for UI elements: Button and Button 2.",
+					"Ensured Shaman class color displays as blue, not pink.",
+				},
+			},
+
+			{
+				Header = "New Features and Enhancements",
+				Entries = {
+					"Added enhanced configuration options for the quest tracker frame.",
+					"Implemented trade skill frame updates for a better-looking and more functional UI.",
+					"Added daily and weekly reset timers to the clock.",
+					"Updated inventory bar to show the Keyring button if not using the addon’s bag system.",
+					"Added a 'Train All' button to the trainer UI, with an option to toggle it on or off.",
+				},
+			},
+
+			{
+				Header = "Bug Fixes",
+				Entries = {
+					"Fixed nil value issue in AuraWatch_UpdateTimer.",
+					"Resolved issues with Buff Thanks functionality.",
+					"Addressed missing SpecialBagsColor option in the GUI.",
+					"Applied fixes to special bags not displaying properly during login.",
+					"Fixed MinCD issues in AuraWatch.",
+					"Corrected soundOnResurrect functionality for Classic Era.",
+					"Fixed minLevel display for unusable items in bags.",
+					"Resolved conflicts with LTM breaking functionality.",
+				},
+			},
+
+			{
+				Header = "Code Refactoring and Cleanup",
+				Entries = {
+					"Cleaned up unitframes core file for better maintainability.",
+					"Removed BloodMoon timer code (to be revisited later).",
+					"Updated license to reflect the year 2025.",
+				},
+			},
+		},
+	},
+
+	{
 		Version = "[1.0.2] - 2025-01-06 - Patch 1.15.5 - Classic Era",
 		General = "This update introduces several new features, visual improvements, and bug fixes to enhance your experience with KkthnxUI. Key updates include the addition of helm and cloak toggle buttons, better status bar textures, and fixes for longstanding issues.",
 
