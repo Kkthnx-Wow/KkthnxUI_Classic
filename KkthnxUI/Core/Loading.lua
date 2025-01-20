@@ -23,8 +23,6 @@ local function KKUI_VerifyDatabase()
 	charData.SplitCount = charData.SplitCount or 1
 	charData.TempAnchor = charData.TempAnchor or {}
 	charData.Tracking = charData.Tracking or { PvP = {}, PvE = {} }
-	charData.StatOrder = charData.StatOrder or "12345"
-	charData.StatExpand = charData.StatExpand or false
 
 	if charData.FavouriteItems then
 		local customItems = charData.CustomItems

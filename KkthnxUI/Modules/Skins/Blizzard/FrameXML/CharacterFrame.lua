@@ -34,8 +34,15 @@ local function PaperDollItemSlotButtonUpdate(frame)
 	if rarity and rarity > 1 then
 		local r, g, b = GetItemQualityColor(rarity)
 		frame.KKUI_Border:SetVertexColor(r, g, b)
+		if frame.KKUI_SlotHighlight then
+			frame.KKUI_SlotHighlight:SetBackdropBorderColor(r, g, b)
+			frame.KKUI_SlotHighlight:Show()
+		end
 	else
 		frame.KKUI_Border:SetVertexColor(1, 1, 1)
+		if frame.KKUI_SlotHighlight then
+			frame.KKUI_SlotHighlight:Hide()
+		end
 	end
 end
 
@@ -109,12 +116,16 @@ tinsert(C.defaultThemes, function()
 			slot:CreateBorder()
 			slot:StyleButton()
 
+			if not slot.KKUI_SlotHighlight then
+				slot.KKUI_SlotHighlight = CreateFrame("Frame", nil, slot, "BackdropTemplate")
+				slot.KKUI_SlotHighlight:SetBackdrop({ edgeFile = C["Media"].Borders.GlowBorder, edgeSize = 12 })
+				slot.KKUI_SlotHighlight:SetPoint("TOPLEFT", slot, -4, 4)
+				slot.KKUI_SlotHighlight:SetPoint("BOTTOMRIGHT", slot, 4, -4)
+				slot.KKUI_SlotHighlight:Hide()
+			end
+
 			icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 			icon:SetAllPoints()
-
-			-- if slot.subicon then
-			-- 	slot.subicon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-			-- end
 		end
 	end
 

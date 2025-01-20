@@ -45,11 +45,7 @@ local orderList = {}
 local function BuildListFromValue()
 	wipe(orderList)
 
-	if not KkthnxUIDB.Variables[K.Realm][K.Name]["StatOrder"] then
-		KkthnxUIDB.Variables[K.Realm][K.Name]["StatOrder"] = "12345"
-	end
-
-	for number in gmatch(KkthnxUIDB.Variables[K.Realm][K.Name]["StatOrder"], "%d") do
+	for number in gmatch(C["Misc"].StatOrder, "%d") do
 		tinsert(orderList, tonumber(number))
 	end
 end
@@ -83,7 +79,7 @@ local function BuildValueFromList()
 	for _, index in ipairs(orderList) do
 		str = str .. tostring(index)
 	end
-	KkthnxUIDB.Variables[K.Realm][K.Name]["StatOrder"] = str
+	C["Misc"].StatOrder = str
 
 	UpdateCategoriesAnchor()
 end
@@ -146,6 +142,7 @@ local function CreateHeaderArrow(parent, direct, func)
 	tex:SetAllPoints()
 	K.SetupArrow(tex, arrowDirec)
 	bu.__texture = tex
+
 	-- bu:SetScript("OnEnter", K.Texture_OnEnter)
 	-- bu:SetScript("OnLeave", K.Texture_OnLeave)
 
@@ -278,7 +275,7 @@ local function CreateStatHeader(parent, index, category)
 end
 
 local function ToggleMagicRes()
-	if KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"] then
+	if C["Misc"].StatExpand then
 		CharacterResistanceFrame:ClearAllPoints()
 		CharacterResistanceFrame:SetPoint("TOPLEFT", Module.StatPanel2, 28, -25)
 		CharacterResistanceFrame:SetParent(Module.StatPanel2)
@@ -322,7 +319,7 @@ local function UpdateStats()
 end
 
 local function ToggleStatPanel(texture)
-	if KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"] then
+	if C["Misc"].StatExpand then
 		K.SetupArrow(texture, "left")
 		leftDropDown:Hide()
 		rightDropDown:Hide()
@@ -417,8 +414,8 @@ function Module:CharacterStatePanel()
 	K.ReskinArrow(bu, "right", false)
 
 	bu:SetScript("OnClick", function(self)
-		KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"] = not KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"]
-		ExpandCharacterFrame(KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"])
+		C["Misc"].StatExpand = not C["Misc"].StatExpand
+		ExpandCharacterFrame(C["Misc"].StatExpand)
 		ToggleStatPanel(self.__texture)
 	end)
 
@@ -429,7 +426,7 @@ function Module:CharacterStatePanel()
 	end)
 
 	PaperDollFrame:HookScript("OnShow", function()
-		ExpandCharacterFrame(KkthnxUIDB.Variables[K.Realm][K.Name]["StatExpand"])
+		ExpandCharacterFrame(C["Misc"].StatExpand)
 	end)
 
 	-- Block LeatrixPlus toggle

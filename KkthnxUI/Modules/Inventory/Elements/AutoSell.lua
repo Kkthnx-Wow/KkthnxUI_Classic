@@ -16,7 +16,7 @@ local sellError = ERR_VENDOR_DOESNT_BUY -- Error message for when the vendor doe
 local function stopSelling(results)
 	sellStop = true
 	if sellCount > 0 and results then
-		K.Print(format(K.SystemColor .. "%s|r %s", "You have sold junk items for", K.FormatMoney(sellCount)))
+		K.Print(format(K.SystemColor .. "%s:|r %s", "You have sold junk items for", K.FormatMoney(sellCount)))
 	end
 	sellCount = 0
 end

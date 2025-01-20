@@ -11,7 +11,7 @@ local GetTime, SendChatMessage = GetTime, SendChatMessage
 local IsAltKeyDown, IsControlKeyDown, IsShiftKeyDown, InCombatLockdown = IsAltKeyDown, IsControlKeyDown, IsShiftKeyDown, InCombatLockdown
 local UnitExists, UninviteUnit = UnitExists, UninviteUnit
 local DoReadyCheck, GetReadyCheckStatus = DoReadyCheck, GetReadyCheckStatus
-local LeaveParty = C_PartyInfo.LeaveParty
+local LeaveParty = LeaveParty
 local ConvertToRaid = C_PartyInfo.ConvertToRaid
 local ConvertToParty = C_PartyInfo.ConvertToParty
 
@@ -31,7 +31,7 @@ function Module:RaidTool_Header()
 	K.Mover(frame, "Raid Tool", "RaidManager", { "TOP", UIParent, "TOP", 0, -4 })
 
 	-- Fake icon
-	local left = CreateFrame("Frame", nil, frame)
+	local left = CreateFrame("Button", nil, frame)
 	left:SetPoint("LEFT", frame, "RIGHT", 6, 0)
 	left:SetSize(28, 28)
 	left:SkinButton()
@@ -67,6 +67,17 @@ function Module:RaidTool_Header()
 	end)
 	left:SetScript("OnLeave", K.HideTooltip)
 
+	left:SetScript("OnClick", function(self, btn)
+		if btn == "LeftButton" then
+			if IsInGroup() and (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
+				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+				InitiateRolePoll()
+			else
+				UIErrorsFrame:AddMessage("You must be the group leader or assistant to initiate a role check.", 1, 0, 0)
+			end
+		end
+	end)
+
 	Module.RaidTool_Visibility(Module, frame)
 	K:RegisterEvent("GROUP_ROSTER_UPDATE", function()
 		Module.RaidTool_Visibility(Module, frame)
@@ -88,13 +99,6 @@ function Module:RaidTool_Header()
 				end
 
 				self.buttons[2].text:SetText(IsInRaid() and CONVERT_TO_PARTY or CONVERT_TO_RAID)
-			end
-		elseif btn == "RightButton" then
-			if IsInGroup() and (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
-				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-				InitiateRolePoll()
-			else
-				UIErrorsFrame:AddMessage("You must be the group leader or assistant to initiate a role check.", 1, 0, 0)
 			end
 		end
 	end)

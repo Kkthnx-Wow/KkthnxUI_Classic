@@ -1,20 +1,20 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Automation")
 
-local thankCooldown = {} -- Tracks last thank time for each caster and spellID
+-- Tracks last thank time for each caster and spellID combination
+local thankCooldown = {}
 local currentAuras = {}
-local previousAuras = {}
-local globalThankCooldown = 0
-local shouldThank = true -- Flag to control thanking functionality
+local shouldThank = true
 
 local spellList = { 1126, 1459, 1243, 19740, 19742, 20217, 5697 }
 local emoteList = { "THANK", "BOW", "SALUTE" }
 local buffsToThank = {}
 
-for _, spellID in ipairs(spellList) do
-	local spellName = GetSpellInfo(spellID)
-	if spellName then
-		buffsToThank[spellName] = true
+-- Debug mode toggle
+local debugMode = false
+local function DebugPrint(msg)
+	if debugMode then
+		print("|cFFFF0000[BuffThanks Debug]|r " .. msg)
 	end
 end
 
@@ -28,16 +28,17 @@ local function GetRandomEmote()
 	return emoteList[math.random(1, #emoteList)]
 end
 
-local function PruneOldEntries()
-	local currentTime = GetTime()
-	for caster, spells in pairs(thankCooldown) do
-		for spellID, timestamp in pairs(spells) do
-			if currentTime - timestamp > 3600 then
-				thankCooldown[caster][spellID] = nil
-			end
-		end
-		if not next(thankCooldown[caster]) then
-			thankCooldown[caster] = nil
+-- Helper function to generate a unique key for cooldown tracking
+local function GetCooldownKey(caster, spellID)
+	return caster .. ":" .. spellID
+end
+
+local function UpdateBuffsToThank()
+	ClearTable(buffsToThank)
+	for _, spellID in ipairs(spellList) do
+		local spellName = GetSpellInfo(spellID)
+		if spellName then
+			buffsToThank[spellName] = true
 		end
 	end
 end
@@ -49,7 +50,9 @@ local function CacheAuras(targetTable)
 		if not name then
 			break
 		end
-		targetTable[spellID] = { name = name, caster = caster }
+		if buffsToThank[name] then
+			targetTable[spellID] = { name = name, caster = caster }
+		end
 	end
 end
 
@@ -58,57 +61,32 @@ local function HandleNewBuff(spellID, caster)
 		return
 	end
 
-	local currentTime = GetTime()
-	if currentTime - globalThankCooldown < 2 then
-		return
-	end -- Global cooldown
-	thankCooldown[caster] = thankCooldown[caster] or {}
-	if thankCooldown[caster][spellID] and (currentTime - thankCooldown[caster][spellID] < 5) then
-		return
+	local key = GetCooldownKey(caster, spellID)
+	if thankCooldown[key] then
+		return -- Already thanked for this buff from this caster
 	end
 
-	thankCooldown[caster][spellID] = currentTime
+	thankCooldown[key] = true -- Mark as thanked
 
-	local delay = math.random(1, 20) / 10
 	local emote = GetRandomEmote()
-	C_Timer.After(delay, function()
-		DoEmote(emote, caster)
-	end)
-
-	globalThankCooldown = currentTime
-end
-
-local function CompareAndHandleAuras()
-	for spellID, data in pairs(currentAuras) do
-		if not previousAuras[spellID] then
-			local name, caster = data.name, data.caster
-			if name and caster and buffsToThank[name] and caster ~= UnitName("player") then
-				HandleNewBuff(spellID, caster)
-			end
-		end
-	end
-end
-
-local function HandlePlayerEnteringWorld()
-	PruneOldEntries()
-	CacheAuras(previousAuras)
-	CacheAuras(currentAuras)
-	K:UnregisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld) -- Unregister after handling
+	DebugPrint("Thanking " .. (caster or "Unknown") .. " for " .. GetSpellInfo(spellID))
+	DoEmote(emote, caster)
 end
 
 local function HandleUnitAura(_, unit)
 	if unit == "player" then
-		for spellID, data in pairs(currentAuras) do
-			previousAuras[spellID] = data
+		local newAuras = {}
+		CacheAuras(newAuras)
+		for spellID, data in pairs(newAuras) do
+			if not currentAuras[spellID] or (currentAuras[spellID].caster ~= data.caster) then
+				-- New buff or new caster for the buff
+				if data.caster and data.caster ~= UnitName("player") then
+					HandleNewBuff(spellID, data.caster)
+				end
+			end
 		end
-		CacheAuras(currentAuras)
-		CompareAndHandleAuras()
+		currentAuras = newAuras
 	end
-end
-
-local function HandleAreaPOIsUpdated()
-	CacheAuras(previousAuras)
-	CacheAuras(currentAuras)
 end
 
 local function HandleLoadingScreenEnabled()
@@ -117,21 +95,18 @@ end
 
 local function HandleLoadingScreenDisabled()
 	shouldThank = true
-	CacheAuras(previousAuras)
-	CacheAuras(currentAuras)
+	ClearTable(currentAuras) -- Clear current auras as they might have changed due to loading
+	CacheAuras(currentAuras) -- Re-cache current auras
 end
 
 function Module:CreateAutoBuffThanks()
 	if C["Automation"].BuffThanks then
-		K:RegisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
+		UpdateBuffsToThank() -- Initialize buff list
 		K:RegisterEvent("UNIT_AURA", HandleUnitAura, "player")
-		K:RegisterEvent("AREA_POIS_UPDATED", HandleAreaPOIsUpdated)
 		K:RegisterEvent("LOADING_SCREEN_ENABLED", HandleLoadingScreenEnabled)
 		K:RegisterEvent("LOADING_SCREEN_DISABLED", HandleLoadingScreenDisabled)
 	else
-		K:UnregisterEvent("PLAYER_ENTERING_WORLD", HandlePlayerEnteringWorld)
 		K:UnregisterEvent("UNIT_AURA", HandleUnitAura, "player")
-		K:UnregisterEvent("AREA_POIS_UPDATED", HandleAreaPOIsUpdated)
 		K:UnregisterEvent("LOADING_SCREEN_ENABLED", HandleLoadingScreenEnabled)
 		K:UnregisterEvent("LOADING_SCREEN_DISABLED", HandleLoadingScreenDisabled)
 	end

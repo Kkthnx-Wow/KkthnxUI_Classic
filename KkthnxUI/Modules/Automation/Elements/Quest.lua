@@ -137,31 +137,33 @@ QuickQuest:Register("QUEST_GREETING", function()
 		return
 	end
 
-	local active = GetNumActiveQuests()
-	if active > 0 then
-		local logQuests = GetQuestLogQuests(true)
-		for index = 1, active do
-			local name, complete = GetActiveTitle(index)
-			if complete then
-				local questID = logQuests[name]
-				if not questID then
-					C_GossipInfo_SelectActiveQuest(index)
-				else
-					local _, _, worldQuest = GetQuestTagInfo(questID)
-					if not worldQuest then
+	if UnitExists("npc") or QuestFrameGreetingPanel:IsShown() then
+		local active = GetNumActiveQuests()
+		if active > 0 then
+			local logQuests = GetQuestLogQuests(true)
+			for index = 1, active do
+				local name, complete = GetActiveTitle(index)
+				if complete then
+					local questID = logQuests[name]
+					if not questID then
 						C_GossipInfo_SelectActiveQuest(index)
+					else
+						local _, _, worldQuest = GetQuestTagInfo(questID)
+						if not worldQuest then
+							C_GossipInfo_SelectActiveQuest(index)
+						end
 					end
 				end
 			end
 		end
-	end
 
-	local available = GetNumAvailableQuests()
-	if available > 0 then
-		for index = 1, available do
-			local isTrivial = IsActiveQuestTrivial(index)
-			if not isTrivial then
-				C_GossipInfo_SelectAvailableQuest(index)
+		local available = GetNumAvailableQuests()
+		if available > 0 then
+			for index = 1, available do
+				local isTrivial = IsActiveQuestTrivial(index)
+				if not isTrivial then
+					C_GossipInfo_SelectAvailableQuest(index)
+				end
 			end
 		end
 	end
@@ -174,61 +176,63 @@ QuickQuest:Register("GOSSIP_SHOW", function()
 		return
 	end
 
-	local active = C_GossipInfo_GetNumActiveQuests()
-	if active > 0 then
-		for _, questInfo in ipairs(C_GossipInfo_GetActiveQuests()) do
-			local questID = questInfo.questID
-			if questInfo.isComplete and questID then
-				C_GossipInfo_SelectActiveQuest(questID)
+	if UnitExists("npc") or QuestFrameGreetingPanel:IsShown() then
+		local active = C_GossipInfo_GetNumActiveQuests()
+		if active > 0 then
+			for _, questInfo in ipairs(C_GossipInfo_GetActiveQuests()) do
+				local questID = questInfo.questID
+				if questInfo.isComplete and questID then
+					C_GossipInfo_SelectActiveQuest(questID)
+				end
 			end
 		end
-	end
 
-	local available = C_GossipInfo_GetNumAvailableQuests()
-	if available > 0 then
-		for _, questInfo in ipairs(C_GossipInfo_GetAvailableQuests()) do
-			local trivial = questInfo.isTrivial
-			if not trivial or IsTrackingHidden() then
-				C_GossipInfo_SelectAvailableQuest(questInfo.questID)
+		local available = C_GossipInfo_GetNumAvailableQuests()
+		if available > 0 then
+			for _, questInfo in ipairs(C_GossipInfo_GetAvailableQuests()) do
+				local trivial = questInfo.isTrivial
+				if not trivial or IsTrackingHidden() then
+					C_GossipInfo_SelectAvailableQuest(questInfo.questID)
+				end
 			end
 		end
-	end
 
-	local gossipInfoTable = C_GossipInfo_GetOptions()
-	if not gossipInfoTable then
-		return
-	end
-
-	local numOptions = #gossipInfoTable
-	local firstOptionID = gossipInfoTable[1] and gossipInfoTable[1].gossipOptionID
-
-	if firstOptionID then
-		if C["AutoQuestData"].AutoSelectFirstOptionList[npcID] then
-			return C_GossipInfo_SelectOption(firstOptionID)
+		local gossipInfoTable = C_GossipInfo_GetOptions()
+		if not gossipInfoTable then
+			return
 		end
 
-		if available == 0 and active == 0 and numOptions == 1 then
-			local _, instance, _, _, _, _, _, mapID = GetInstanceInfo()
-			if instance ~= "raid" and not C["AutoQuestData"].IgnoreGossipNPC[npcID] and not C["AutoQuestData"].IgnoreInstances[mapID] then
+		local numOptions = #gossipInfoTable
+		local firstOptionID = gossipInfoTable[1] and gossipInfoTable[1].gossipOptionID
+
+		if firstOptionID then
+			if C["AutoQuestData"].AutoSelectFirstOptionList[npcID] then
 				return C_GossipInfo_SelectOption(firstOptionID)
 			end
+
+			if available == 0 and active == 0 and numOptions == 1 then
+				local _, instance, _, _, _, _, _, mapID = GetInstanceInfo()
+				if instance ~= "raid" and not C["AutoQuestData"].IgnoreGossipNPC[npcID] and not C["AutoQuestData"].IgnoreInstances[mapID] then
+					return C_GossipInfo_SelectOption(firstOptionID)
+				end
+			end
 		end
-	end
 
-	-- Automatically select a quest with only one quest option
-	local numQuestGossips = 0
-	local questGossipID
+		-- Automatically select a quest with only one quest option
+		local numQuestGossips = 0
+		local questGossipID
 
-	for i = 1, numOptions do
-		local option = gossipInfoTable[i]
-		if option.name and (strfind(option.name, QUEST_STRING) or option.flags == QuestLabelPrepend) then
-			numQuestGossips = numQuestGossips + 1
-			questGossipID = option.gossipOptionID
+		for i = 1, numOptions do
+			local option = gossipInfoTable[i]
+			if option.name and (strfind(option.name, QUEST_STRING) or option.flags == QuestLabelPrepend) then
+				numQuestGossips = numQuestGossips + 1
+				questGossipID = option.gossipOptionID
+			end
 		end
-	end
 
-	if numQuestGossips == 1 and questGossipID then
-		return C_GossipInfo_SelectOption(questGossipID)
+		if numQuestGossips == 1 and questGossipID then
+			return C_GossipInfo_SelectOption(questGossipID)
+		end
 	end
 end)
 

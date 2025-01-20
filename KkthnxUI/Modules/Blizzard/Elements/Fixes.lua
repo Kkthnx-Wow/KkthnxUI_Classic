@@ -138,3 +138,61 @@ do
 	-- Initial check to disable 'scriptErrors' during addon load
 	EnsureScriptErrorsDisabled()
 end
+
+-- do
+-- 	-- This script ensures the RuneFrameControlButton is clicked to toggle the Rune Frame's state,
+-- 	-- preventing it from being shown by default unlike Blizzard's implementation where it's always open (which can be annoying).
+
+-- 	-- Create a frame to handle the toggling of Rune Frame visibility
+-- 	local runeVisibilityController = CreateFrame("Frame")
+
+-- 	-- Frames that, when shown, should trigger the Rune Frame toggle
+-- 	local framesToToggle = {
+-- 		"CharacterFrame",
+-- 		"ReputationFrame",
+-- 		"SkillFrame",
+-- 		"HonorFrame",
+-- 	}
+
+-- 	-- Tabs that, when clicked, should trigger the Rune Frame toggle
+-- 	local tabsToToggle = {
+-- 		"CharacterFrameTab1",
+-- 		"CharacterFrameTab3",
+-- 		"CharacterFrameTab4",
+-- 		"CharacterFrameTab5",
+-- 	}
+
+-- 	-- Function to toggle the Rune Frame
+-- 	local function toggleRuneFrame()
+-- 		if _G.RuneFrameControlButton then
+-- 			_G.RuneFrameControlButton:Click()
+-- 		end
+-- 	end
+
+-- 	-- Function to set up event hooks for toggling
+-- 	local function setupToggleHooks()
+-- 		-- Hook the OnShow event for frames to toggle the Rune Frame
+-- 		for _, frameName in ipairs(framesToToggle) do
+-- 			local frame = _G[frameName]
+-- 			if frame then
+-- 				frame:HookScript("OnShow", toggleRuneFrame)
+-- 			end
+-- 		end
+
+-- 		-- Hook the OnClick event for tabs to toggle the Rune Frame
+-- 		for _, tabName in ipairs(tabsToToggle) do
+-- 			local tab = _G[tabName]
+-- 			if tab then
+-- 				tab:HookScript("OnClick", toggleRuneFrame)
+-- 			end
+-- 		end
+-- 	end
+
+-- 	-- Register for the PLAYER_LOGIN event to ensure all UI elements are loaded before setting hooks
+-- 	runeVisibilityController:RegisterEvent("PLAYER_LOGIN")
+-- 	runeVisibilityController:SetScript("OnEvent", function(self, event)
+-- 		if event == "PLAYER_LOGIN" then
+-- 			setupToggleHooks()
+-- 		end
+-- 	end)
+-- end

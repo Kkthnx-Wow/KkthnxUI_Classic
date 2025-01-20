@@ -13,10 +13,18 @@ local function Update_InspectPaperDollItemSlotButton(button)
 	if quality and quality > 1 then
 		local r, g, b = GetItemQualityColor(quality)
 		button.KKUI_Border:SetVertexColor(r, g, b)
+		if button.KKUI_SlotHighlight then
+			button.KKUI_SlotHighlight:SetBackdropBorderColor(r, g, b)
+			button.KKUI_SlotHighlight:Show()
+		end
 		return
 	end
 
 	button.KKUI_Border:SetVertexColor(1, 1, 1)
+	if button.KKUI_SlotHighlight then
+		button.KKUI_SlotHighlight:SetBackdropBorderColor(r, g, b)
+		button.KKUI_SlotHighlight:Hide()
+	end
 end
 
 local function UpdateInspectModelFrameTexture()
@@ -45,12 +53,20 @@ C.themes["Blizzard_InspectUI"] = function()
 
 	for _, slot in next, { _G.InspectPaperDollItemsFrame:GetChildren() } do
 		local icon = _G[slot:GetName() .. "IconTexture"]
-		local cooldown = _G[slot:GetName() .. "Cooldown"]
+		-- local cooldown = _G[slot:GetName() .. "Cooldown"]
 
 		slot:StripTextures()
 		slot:CreateBorder()
 		slot:SetFrameLevel(slot:GetFrameLevel() + 2)
 		slot:StyleButton()
+
+		if not slot.KKUI_SlotHighlight then
+			slot.KKUI_SlotHighlight = CreateFrame("Frame", nil, slot, "BackdropTemplate")
+			slot.KKUI_SlotHighlight:SetBackdrop({ edgeFile = C["Media"].Borders.GlowBorder, edgeSize = 12 })
+			slot.KKUI_SlotHighlight:SetPoint("TOPLEFT", slot, -4, 4)
+			slot.KKUI_SlotHighlight:SetPoint("BOTTOMRIGHT", slot, 4, -4)
+			slot.KKUI_SlotHighlight:Hide()
+		end
 
 		icon:SetTexCoord(unpack(K.TexCoords))
 		icon:SetAllPoints()

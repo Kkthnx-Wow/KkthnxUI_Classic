@@ -41,13 +41,13 @@ local function createArrowButton(parent, anchor, direction)
 		button:SetPushedTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Down")
 		button:SetDisabledTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Disabled")
 		-- Add tooltip
-		K.AddTooltip(button, "ANCHOR_TOP", "|nScroll down to the next result.", "info")
+		K.AddTooltip(button, "ANCHOR_TOP", "Scroll down to the next result.", "system")
 	elseif direction == "up" then
 		button:SetNormalTexture("Interface\\Buttons\\UI-ScrollBar-ScrollUpButton-Up")
 		button:SetPushedTexture("Interface\\Buttons\\UI-ScrollBar-ScrollUpButton-Down")
 		button:SetDisabledTexture("Interface\\Buttons\\UI-ScrollBar-ScrollUpButton-Disabled")
 		-- Add tooltip
-		K.AddTooltip(button, "ANCHOR_TOP", "|nScroll up to the previous result.", "info")
+		K.AddTooltip(button, "ANCHOR_TOP", "Scroll up to the previous result.", "system")
 	end
 	button:SetHighlightTexture("Interface\\Buttons\\UI-ScrollBar-Button-Overlay")
 
@@ -73,7 +73,7 @@ function Module:CreateSearchWidget(parent, anchor)
 	end)
 
 	-- Add tooltip
-	K.AddTooltip(searchBox, "ANCHOR_TOP", "|nType the recipe name you need and press ENTER to search (case-insensitive).|n|nPress ESC to clear the input.", "system")
+	K.AddTooltip(searchBox, "ANCHOR_TOP", "Type the recipe name you need and press ENTER to search (case-insensitive).|n|nPress ESC to clear the input.", "system")
 
 	-- Create navigation buttons
 	local nextButton = createArrowButton(searchBox, searchBox, "down")
@@ -146,7 +146,7 @@ function Module:EnhancedTradeSkill()
 	TradeSkillFrame.listScrollFrame = _G.TradeSkillListScrollFrame
 	Module:EnlargeDefaultUIPanel("TradeSkillFrame", 1)
 
-	_G.TRADE_SKILLS_DISPLAYED = 22
+	_G.TRADE_SKILLS_DISPLAYED = 21
 	for i = 2, _G.TRADE_SKILLS_DISPLAYED do
 		local button = _G["TradeSkillSkill" .. i]
 		if not button then
@@ -218,6 +218,11 @@ function Module:EnhancedCraft()
 	end
 
 	CraftFrame:StripTextures()
+	_G.CraftRankFrameBorder:StripTextures()
+	_G.CraftListScrollFrame:StripTextures()
+	_G.CraftDetailScrollFrame:StripTextures()
+	-- _G.CraftDetailScrollChildFrame:StripTextures()
+
 	CraftFrame.TitleText = CraftFrameTitleText
 	CraftFrame.scrollFrame = _G.CraftDetailScrollFrame
 	CraftFrame.listScrollFrame = _G.CraftListScrollFrame
@@ -225,7 +230,25 @@ function Module:EnhancedCraft()
 
 	_G.CraftDetailScrollFrameScrollBar:SetAlpha(0) -- seems useless
 
-	_G.CRAFTS_DISPLAYED = 22
+	-- Adjust CraftListScrollFrameScrollBar
+	local craftListScrollBar = _G.CraftListScrollFrameScrollBar
+	if craftListScrollBar then
+		local point, relativeTo, relativePoint, xOffset, yOffset = craftListScrollBar:GetPoint()
+		craftListScrollBar:ClearAllPoints()
+		craftListScrollBar:SetPoint(point, relativeTo, relativePoint, xOffset + 5, yOffset + 2)
+		craftListScrollBar:SetHeight(304) -- Increase height by 2 pixels
+	end
+
+	-- Adjust CraftDetailScrollFrameScrollBar
+	local craftDetailScrollBar = _G.CraftDetailScrollFrameScrollBar
+	if craftDetailScrollBar then
+		local point, relativeTo, relativePoint, xOffset, yOffset = craftDetailScrollBar:GetPoint()
+		craftDetailScrollBar:ClearAllPoints()
+		craftDetailScrollBar:SetPoint(point, relativeTo, relativePoint, xOffset + 5, yOffset + 2)
+		craftDetailScrollBar:SetHeight(304)
+	end
+
+	_G.CRAFTS_DISPLAYED = 21
 	for i = 2, _G.CRAFTS_DISPLAYED do
 		local button = _G["Craft" .. i]
 		if not button then
@@ -236,10 +259,15 @@ function Module:EnhancedCraft()
 		button:SetPoint("TOPLEFT", _G["Craft" .. (i - 1)], "BOTTOMLEFT", 0, 1)
 	end
 
-	CraftFramePointsLabel:ClearAllPoints()
-	CraftFramePointsLabel:SetPoint("TOPLEFT", CraftFrame, "TOPLEFT", 100, -70)
-	CraftFramePointsText:ClearAllPoints()
-	CraftFramePointsText:SetPoint("LEFT", CraftFramePointsLabel, "RIGHT", 3, 0)
+	if CraftFramePointsLabel then
+		CraftFramePointsLabel:ClearAllPoints()
+		CraftFramePointsLabel:SetPoint("TOPLEFT", CraftFrame, "TOPLEFT", 100, -80)
+	end
+
+	if CraftFramePointsText then
+		CraftFramePointsText:ClearAllPoints()
+		CraftFramePointsText:SetPoint("LEFT", CraftFramePointsLabel, "RIGHT", 3, 0)
+	end
 
 	CraftCancelButton:ClearAllPoints()
 	CraftCancelButton:SetPoint("BOTTOMRIGHT", CraftFrame, "BOTTOMRIGHT", -42, 54)

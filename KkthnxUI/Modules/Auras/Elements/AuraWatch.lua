@@ -458,7 +458,7 @@ function Module:AuraWatch_SetupCD(index, name, icon, start, duration, _, type, i
 		frame.duration = duration
 		frame.start = start
 		frame.elapsed = 0
-		frame:SetScript("OnUpdate", A.AuraWatch_UpdateTimer)
+		frame:SetScript("OnUpdate", Module.AuraWatch_UpdateTimer)
 	end
 	frame.type = type
 	frame.spellID = id
