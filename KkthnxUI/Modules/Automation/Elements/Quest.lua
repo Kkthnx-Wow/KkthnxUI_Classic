@@ -246,7 +246,10 @@ QuickQuest:Register("QUEST_DETAIL", function()
 	end
 end)
 
-QuickQuest:Register("QUEST_ACCEPT_CONFIRM", AcceptQuest)
+QuickQuest:Register("QUEST_ACCEPT_CONFIRM", function()
+	ConfirmAcceptQuest()
+	StaticPopup_Hide("QUEST_ACCEPT")
+end)
 
 QuickQuest:Register("QUEST_ACCEPTED", function()
 	if QuestFrame:IsShown() then
@@ -334,20 +337,33 @@ QuickQuest:Register("QUEST_COMPLETE", function()
 	end
 end)
 
-local function AttemptAutoComplete(event)
+local function AttemptAutoComplete(event, questID)
 	if UnitIsDeadOrGhost("player") then
-		QuickQuest:Register("PLAYER_REGEN_ENABLED", AttemptAutoComplete)
+		QuickQuest:Register("PLAYER_REGEN_ENABLED", function()
+			AttemptAutoComplete("PLAYER_REGEN_ENABLED", questID)
+		end)
 		return
 	else
-		C_Timer.After(1, AttemptAutoComplete)
+		C_Timer.After(1, function()
+			AttemptAutoComplete(nil, questID)
+		end)
 	end
 
 	if event == "PLAYER_REGEN_ENABLED" then
 		QuickQuest:UnregisterEvent(event)
 	end
+
+	if questID then
+		local questIndex = GetQuestLogIndexByID(questID)
+		if questIndex and GetQuestLogIsAutoComplete(questIndex) then
+			ShowQuestComplete(questIndex)
+		end
+	end
 end
-QuickQuest:Register("PLAYER_LOGIN", AttemptAutoComplete)
-QuickQuest:Register("QUEST_AUTOCOMPLETE", AttemptAutoComplete)
+
+QuickQuest:Register("QUEST_AUTOCOMPLETE", function(_, questID)
+	AttemptAutoComplete("QUEST_AUTOCOMPLETE", questID)
+end)
 
 -- Handle ignore list
 local function UpdateIgnoreList()

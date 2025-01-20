@@ -1,5 +1,5 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
-local Announcements = K:GetModule("Announcements")
+local Module = K:GetModule("Announcements")
 
 local bit_band, math_random = bit.band, math.random
 local DoEmote = DoEmote
@@ -20,7 +20,7 @@ local pvpEmotes = {
 }
 -- stylua: ignore end
 
-function Announcements:DisplayKillPopup(targetName, count)
+function Module:DisplayKillPopup(targetName, count)
 	local frame = CreateFrame("Frame", "KillPopup", UIParent)
 	frame:SetSize(250, 50)
 	frame:SetPoint("CENTER", UIParent, "CENTER", 0, 300)
@@ -43,14 +43,14 @@ function Announcements:DisplayKillPopup(targetName, count)
 	frame.fadeOut:Play()
 end
 
-function Announcements:OnCombatLogEvent()
+function Module:OnCombatLogEvent()
 	local _, eventType, _, _, casterName, _, _, _, targetName, targetFlags = CombatLogGetCurrentEventInfo()
 
 	if eventType == "PARTY_KILL" and casterName == K.Name then
 		local isPlayer = bit_band(targetFlags, COMBATLOG_OBJECT_TYPE_PLAYER) > 0
 		if isPlayer then
 			killCounter[targetName] = (killCounter[targetName] or 0) + 1
-			self:DisplayKillPopup(targetName, killCounter[targetName])
+			Module:DisplayKillPopup(targetName, killCounter[targetName])
 
 			if C["Announcements"].PvPEmote then
 				local emote = pvpEmotes and pvpEmotes[math_random(#pvpEmotes)] or "hug"
@@ -60,7 +60,7 @@ function Announcements:OnCombatLogEvent()
 	end
 end
 
-function Announcements:CreateKillingBlow()
+function Module:CreateKillingBlow()
 	if C["Announcements"].PvPEmote then
 		K:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", self.OnCombatLogEvent)
 	else
@@ -70,7 +70,7 @@ end
 
 -- Test command for the popup
 local function TestPopupCommand()
-	Announcements:DisplayKillPopup("BobbyBob", 20) -- Example: showing one kill for "TestPlayer"
+	Module:DisplayKillPopup("BobbyBob", 20) -- Example: showing one kill for "TestPlayer"
 end
 
 -- Registering the slash command

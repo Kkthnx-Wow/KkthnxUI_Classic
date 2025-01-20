@@ -1388,7 +1388,9 @@ function Module:OnEnable()
 	C_Container.SetInsertItemsLeftToRight(false)
 
 	-- Init
+	C["Inventory"].GatherEmpty = not C["Inventory"].GatherEmpty
 	ToggleAllBags()
+	C["Inventory"].GatherEmpty = not C["Inventory"].GatherEmpty
 	ToggleAllBags()
 	Module.initComplete = true
 
