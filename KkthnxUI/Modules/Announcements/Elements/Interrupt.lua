@@ -2,7 +2,16 @@ local K, C, L = KkthnxUI[1], KkthnxUI[2], KkthnxUI[3]
 local Module = K:GetModule("Announcements")
 
 -- Localize API functions
-local string_format, GetInstanceInfo, IsActiveBattlefieldArena, IsArenaSkirmish, IsInGroup, IsInRaid, IsPartyLFG, UnitInParty, UnitInRaid = string.format, GetInstanceInfo, IsActiveBattlefieldArena, IsArenaSkirmish, IsInGroup, IsInRaid, IsPartyLFG, UnitInParty, UnitInRaid
+local string_format = string.format
+local GetInstanceInfo = GetInstanceInfo
+local IsActiveBattlefieldArena = IsActiveBattlefieldArena
+local IsArenaSkirmish = IsArenaSkirmish
+local IsInGroup = IsInGroup
+local IsInRaid = IsInRaid
+local IsPartyLFG = IsPartyLFG
+local UnitInParty = UnitInParty
+local UnitInRaid = UnitInRaid
+local GetSpellInfo = GetSpellInfo
 
 local AURA_TYPE_BUFF = AURA_TYPE_BUFF
 local infoType = {}

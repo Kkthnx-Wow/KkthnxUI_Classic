@@ -20,7 +20,6 @@ C["Media"] = {
 		GlowTexture = mediaFolder .. "Textures\\GlowTex.tga",
 		LogoSmallTexture = mediaFolder .. "Textures\\LogoSmall.tga",
 		LogoTexture = mediaFolder .. "Textures\\Logo.tga",
-		MouseoverTexture = mediaFolder .. "Textures\\Mouseover.tga",
 		NewClassIconsTexture = mediaFolder .. "Unitframes\\NEW-ICONS-CLASSES.blp",
 		Spark128Texture = mediaFolder .. "Textures\\Spark_128.tga",
 		Spark16Texture = mediaFolder .. "Textures\\Spark_16.tga",

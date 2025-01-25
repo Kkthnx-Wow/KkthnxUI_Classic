@@ -138,12 +138,13 @@ tinsert(C.defaultThemes, function()
 		-- Create the texture only once
 		local texture = CharacterModelFrame:CreateTexture(nil, "ARTWORK")
 		texture:SetPoint("TOPLEFT", 0, 0)
-		texture:SetPoint("BOTTOMRIGHT", 0, -0) -- Stretch down by 20 pixels
+		texture:SetPoint("BOTTOMRIGHT", 0, -90) -- Stretch down by 20 pixels
 		CharacterModelFrame.KKUI_Texture = texture
 	end
 
 	-- Set the texture properties
-	CharacterModelFrame.KKUI_Texture:SetTexture("Interface\\Transmogrify\\TransmogBackground" .. K.Race:gsub("%s+", ""))
+	CharacterModelFrame.KKUI_Texture:SetTexture("Interface\\Garrison\\OrderHallTalents" .. K.Class)
+	CharacterModelFrame.KKUI_Texture:SetVertexColor(0.5, 0.5, 0.5, 0.9)
 	CharacterModelFrame.KKUI_Texture:SetTexCoord(0.00195312, 0.576172, 0.00195312, 0.966797)
 	CharacterModelFrame.KKUI_Texture:SetHorizTile(false)
 	CharacterModelFrame.KKUI_Texture:SetVertTile(false)

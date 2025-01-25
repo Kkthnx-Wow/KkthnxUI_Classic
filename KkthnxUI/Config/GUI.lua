@@ -222,63 +222,91 @@ local function UpdateInterruptAlert()
 end
 
 local function UpdateUnitPlayerSize()
-	local width = C["Unitframe"].PlayerHealthWidth
-	local healthHeight = C["Unitframe"].PlayerHealthHeight
-	local powerHeight = C["Unitframe"].PlayerPowerHeight
-	local height = healthHeight + powerHeight + 6
+	-- Retrieve dimensions from config, ensuring they are not nil
+	local width = C["Unitframe"].PlayerHealthWidth or 200 -- Default width
+	local healthHeight = C["Unitframe"].PlayerHealthHeight or 34 -- Default health height
+	local powerHeight = C["Unitframe"].PlayerPowerHeight or 16 -- Default power height
+	local gap = 6 -- Gap between health and power bars
+
+	-- Calculate total height
+	local height = healthHeight + powerHeight + gap
 
 	if not _G.oUF_Player then
 		return
 	end
 
-	_G.oUF_Player:SetSize(width, height)
-	_G.oUF_Player.Health:SetHeight(healthHeight)
-	_G.oUF_Player.Power:SetHeight(powerHeight)
+	-- Only update if dimensions have changed to improve performance
+	if _G.oUF_Player:GetWidth() ~= width or _G.oUF_Player:GetHeight() ~= height then
+		_G.oUF_Player:SetSize(width, height)
+		_G.oUF_Player.Health:SetHeight(healthHeight)
+		_G.oUF_Player.Power:SetHeight(powerHeight)
+	end
 
-	if C["Unitframe"].PortraitStyle.Value ~= "NoPortraits" then
-		if _G.KKUI_PlayerPortrait then
-			_G.KKUI_PlayerPortrait:SetSize(healthHeight + powerHeight + 6, healthHeight + powerHeight + 6)
-		end
+	-- Update portrait if it's not set to 'NoPortraits'
+	if C["Unitframe"].PortraitStyle.Value ~= "NoPortraits" and _G.KKUI_PlayerPortrait then
+		local portraitSize = height -- Use height for square portraits
+		-- Adjust size if necessary, considering different portrait styles might require different sizing logic
+		_G.KKUI_PlayerPortrait:SetSize(portraitSize, portraitSize)
 	end
 end
 
 local function UpdateUnitTargetSize()
-	local width = C["Unitframe"].TargetHealthWidth
-	local healthHeight = C["Unitframe"].TargetHealthHeight
-	local powerHeight = C["Unitframe"].TargetPowerHeight
-	local height = healthHeight + powerHeight + 6
+	-- Retrieve dimensions from config, ensuring they are not nil
+	local width = C["Unitframe"].TargetHealthWidth or 200 -- Default width
+	local healthHeight = C["Unitframe"].TargetHealthHeight or 34 -- Default health height
+	local powerHeight = C["Unitframe"].TargetPowerHeight or 16 -- Default power height
+	local gap = 6 -- Gap between health and power bars
+
+	-- Calculate total height
+	local height = healthHeight + powerHeight + gap
 
 	if not _G.oUF_Target then
 		return
 	end
 
-	_G.oUF_Target:SetSize(width, height)
-	_G.oUF_Target.Health:SetHeight(healthHeight)
-	_G.oUF_Target.Power:SetHeight(powerHeight)
+	-- Only update if dimensions have changed to improve performance
+	if _G.oUF_Target:GetWidth() ~= width or _G.oUF_Target:GetHeight() ~= height then
+		_G.oUF_Target:SetSize(width, height)
+		_G.oUF_Target.Health:SetHeight(healthHeight)
+		_G.oUF_Target.Power:SetHeight(powerHeight)
+	end
 
-	if C["Unitframe"].PortraitStyle.Value ~= "NoPortraits" then
-		if _G.KKUI_TargetPortrait then
-			_G.KKUI_TargetPortrait:SetSize(healthHeight + powerHeight + 6, healthHeight + powerHeight + 6)
-		end
+	-- Update portrait if it's not set to 'NoPortraits'
+	if C["Unitframe"].PortraitStyle.Value ~= "NoPortraits" and _G.KKUI_TargetPortrait then
+		local portraitSize = height -- Use height for square portraits
+		-- Adjust size if necessary, considering different portrait styles might require different sizing logic
+		_G.KKUI_TargetPortrait:SetSize(portraitSize, portraitSize)
 	end
 end
 
 local function UpdateUnitPartySize()
-	local width = C["Party"].HealthWidth
-	local healthHeight = C["Party"].HealthHeight
-	local powerHeight = C["Party"].PowerHeight
-	local height = healthHeight + powerHeight + 6
+	-- Retrieve dimensions from config, ensuring they are not nil
+	local width = C["Party"].HealthWidth or 150 -- Default width
+	local healthHeight = C["Party"].HealthHeight or 22 -- Default health height
+	local powerHeight = C["Party"].PowerHeight or 12 -- Default power height
+	local gap = 6 -- Gap between health and power bars
+
+	-- Calculate total height
+	local height = healthHeight + powerHeight + gap
 
 	for i = 1, _G.MAX_PARTY_MEMBERS do
 		local bu = _G["oUF_PartyUnitButton" .. i]
 		if bu then
-			bu:SetSize(width, height)
-			bu.Health:SetHeight(healthHeight)
-			bu.Power:SetHeight(powerHeight)
+			-- Only update if dimensions have changed to improve performance
+			if bu:GetWidth() ~= width or bu:GetHeight() ~= height then
+				bu:SetSize(width, height)
+				bu.Health:SetHeight(healthHeight)
+				bu.Power:SetHeight(powerHeight)
+			end
 
+			-- Update portrait for each party member if not 'NoPortraits'
 			if C["Unitframe"].PortraitStyle.Value ~= "NoPortraits" then
-				if _G.KKUI_PartyPortrait then
-					_G.KKUI_PartyPortrait:SetSize(healthHeight + powerHeight + 6, healthHeight + powerHeight + 6)
+				-- Note: This assumes there's a unique portrait for each party member.
+				-- If not, you might need to adjust this to reference the correct portrait per member.
+				local portrait = _G["KKUI_PartyPortrait" .. i]
+				if portrait then
+					local portraitSize = height -- Use height for square portraits
+					portrait:SetSize(portraitSize, portraitSize)
 				end
 			end
 		end
@@ -286,19 +314,24 @@ local function UpdateUnitPartySize()
 end
 
 local function UpdateUnitRaidSize()
-	local width = C["Raid"].Width
-	local healthHeight = C["Raid"].Height
+	-- Retrieve dimensions from config, ensuring they are not nil
+	local width = C["Raid"].Width or 70 -- Default width
+	local healthHeight = C["Raid"].Height or 44 -- Default height
 	local height = healthHeight
 
-	for i = 1, _G.MAX_RAID_MEMBERS do
-		if InCombatLockdown() then
-			return
-		end
+	-- Check if we're in combat to avoid protected frame errors
+	if InCombatLockdown() then
+		return
+	end
 
+	for i = 1, _G.MAX_RAID_MEMBERS do
 		local bu = _G["oUF_Raid" .. i .. "UnitButton" .. i]
 		if bu then
-			bu:SetSize(width, height)
-			bu.Health:SetHeight(healthHeight)
+			-- Only update if dimensions have changed to improve performance
+			if bu:GetWidth() ~= width or bu:GetHeight() ~= height then
+				bu:SetSize(width, height)
+				bu.Health:SetHeight(healthHeight)
+			end
 		end
 	end
 end

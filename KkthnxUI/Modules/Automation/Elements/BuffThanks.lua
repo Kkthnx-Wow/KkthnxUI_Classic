@@ -3,20 +3,11 @@ local Module = K:GetModule("Automation")
 
 -- Tracks last thank time for each caster and spellID combination
 local thankCooldown = {}
-local currentAuras = {}
 local shouldThank = true
 
 local spellList = { 1126, 1459, 1243, 19740, 19742, 20217, 5697 }
 local emoteList = { "THANK", "BOW", "SALUTE" }
 local buffsToThank = {}
-
--- Debug mode toggle
-local debugMode = false
-local function DebugPrint(msg)
-	if debugMode then
-		print("|cFFFF0000[BuffThanks Debug]|r " .. msg)
-	end
-end
 
 local function ClearTable(tbl)
 	for k in pairs(tbl) do
@@ -33,6 +24,7 @@ local function GetCooldownKey(caster, spellID)
 	return caster .. ":" .. spellID
 end
 
+-- Build Spell list (this ignores ranks)
 local function UpdateBuffsToThank()
 	ClearTable(buffsToThank)
 	for _, spellID in ipairs(spellList) do
@@ -43,71 +35,76 @@ local function UpdateBuffsToThank()
 	end
 end
 
-local function CacheAuras(targetTable)
-	ClearTable(targetTable)
-	for i = 1, 40 do
-		local name, _, _, _, _, _, caster, _, _, spellID = UnitBuff("player", i)
-		if not name then
-			break
-		end
-		if buffsToThank[name] then
-			targetTable[spellID] = { name = name, caster = caster }
-		end
+-- Event handler for the module
+function Module:OnEvent(event, ...)
+	if event == "COMBAT_LOG_EVENT_UNFILTERED" then
+		self:OnCombatEvent(CombatLogGetCurrentEventInfo())
+	elseif event == "PLAYER_ENTERING_WORLD" then
+		self:PLAYER_ENTERING_WORLD()
+	elseif event == "PLAYER_LEAVING_WORLD" then
+		self:PLAYER_LEAVING_WORLD()
 	end
 end
 
-local function HandleNewBuff(spellID, caster)
+-- We're about to enter a loading screen, unregister our combat parser
+function Module:PLAYER_LEAVING_WORLD()
+	K:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", self.OnCombatEvent)
+	shouldThank = false
+end
+
+-- We're exiting the loading screen, start monitoring for new buffs again
+function Module:PLAYER_ENTERING_WORLD()
+	K:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", self.OnCombatEvent)
+	self._enter = GetTime()
+	shouldThank = true
+end
+
+-- Handle new buff application
+function Module:OnCombatEvent(...)
 	if not shouldThank then
 		return
 	end
 
-	local key = GetCooldownKey(caster, spellID)
-	if thankCooldown[key] then
-		return -- Already thanked for this buff from this caster
+	local _, subevent, _, sourceGUID, sourceName, _, _, destGUID, _, _, _, spellID, spellName = ...
+	local now = GetTime()
+
+	-- Avoid thanking right after entering the world due to possible cached events
+	if self._enter and now - self._enter < 2 then
+		return
 	end
 
-	thankCooldown[key] = true -- Mark as thanked
+	if subevent == "SPELL_AURA_APPLIED" then
+		-- Clear expired thank cooldowns
+		for key, value in pairs(thankCooldown) do
+			if value < now then
+				thankCooldown[key] = nil
+			end
+		end
 
-	local emote = GetRandomEmote()
-	DebugPrint("Thanking " .. (caster or "Unknown") .. " for " .. GetSpellInfo(spellID))
-	DoEmote(emote, caster)
-end
-
-local function HandleUnitAura(_, unit)
-	if unit == "player" then
-		local newAuras = {}
-		CacheAuras(newAuras)
-		for spellID, data in pairs(newAuras) do
-			if not currentAuras[spellID] or (currentAuras[spellID].caster ~= data.caster) then
-				-- New buff or new caster for the buff
-				if data.caster and data.caster ~= UnitName("player") then
-					HandleNewBuff(spellID, data.caster)
+		-- Make sure it's cast on us from another source and they are not in our raid group / party
+		if (destGUID and sourceGUID) and (destGUID == UnitGUID("player")) and (sourceGUID ~= destGUID) and not thankCooldown[GetCooldownKey(sourceName, spellID)] and not (UnitInParty(sourceName) or UnitInRaid(sourceName)) then
+			if buffsToThank[spellName] then
+				local srcType = strsplit("-", sourceGUID)
+				-- Make sure the other source is a player
+				if srcType == "Player" then
+					thankCooldown[GetCooldownKey(sourceName, spellID)] = now + 30 -- 30 seconds cooldown for thanking
+					local emote = GetRandomEmote()
+					DoEmote(emote, sourceName)
 				end
 			end
 		end
-		currentAuras = newAuras
 	end
 end
 
-local function HandleLoadingScreenEnabled()
-	shouldThank = false
-end
-
-local function HandleLoadingScreenDisabled()
-	shouldThank = true
-	ClearTable(currentAuras) -- Clear current auras as they might have changed due to loading
-	CacheAuras(currentAuras) -- Re-cache current auras
-end
-
+-- Register events for BuffThanks
 function Module:CreateAutoBuffThanks()
 	if C["Automation"].BuffThanks then
 		UpdateBuffsToThank() -- Initialize buff list
-		K:RegisterEvent("UNIT_AURA", HandleUnitAura, "player")
-		K:RegisterEvent("LOADING_SCREEN_ENABLED", HandleLoadingScreenEnabled)
-		K:RegisterEvent("LOADING_SCREEN_DISABLED", HandleLoadingScreenDisabled)
+		K:RegisterEvent("PLAYER_ENTERING_WORLD", self.OnEvent)
+		K:RegisterEvent("PLAYER_LEAVING_WORLD", self.OnEvent)
 	else
-		K:UnregisterEvent("UNIT_AURA", HandleUnitAura, "player")
-		K:UnregisterEvent("LOADING_SCREEN_ENABLED", HandleLoadingScreenEnabled)
-		K:UnregisterEvent("LOADING_SCREEN_DISABLED", HandleLoadingScreenDisabled)
+		K:UnregisterEvent("PLAYER_ENTERING_WORLD", self.OnEvent)
+		K:UnregisterEvent("PLAYER_LEAVING_WORLD", self.OnEvent)
+		K:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", self.OnCombatEvent)
 	end
 end

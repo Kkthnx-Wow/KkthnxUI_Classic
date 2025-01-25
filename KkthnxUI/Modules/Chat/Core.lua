@@ -319,13 +319,6 @@ local cycles = {
 	},
 
 	{
-		chatType = "INSTANCE_CHAT",
-		IsActive = function()
-			return IsPartyLFG()
-		end,
-	},
-
-	{
 		chatType = "GUILD",
 		IsActive = function()
 			return IsInGuild()

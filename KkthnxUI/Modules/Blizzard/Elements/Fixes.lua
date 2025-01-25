@@ -49,63 +49,41 @@ do
 end
 
 do
-	-- This script fixes the quest icon textures in the QuestFrameGreetingPanel.
-	-- It checks if the QuestFrameFixer addon is loaded and returns early if it is to avoid conflicts.
-	-- It then initializes the quest title buttons and their associated icon textures.
-	-- When the QuestFrameGreetingPanel is shown, it updates the quest icon textures to the active or available quest icon based on whether the quest is active.
+	local function UpdateGreetingFrame()
+		local i = 1
+		local title = _G["QuestTitleButton" .. i]
+		while title and title:IsVisible() do
+			local text = title:GetFontString()
+			local textString = gsub(title:GetText(), "|c[Ff][Ff]%x%x%x%x%x%x(.+)|r", "%1")
+			title:SetText(textString)
 
-	local _G = _G
-	local tinsert = table.insert
-	local GetFileIDFromPath = GetFileIDFromPath
-	local MAX_NUM_QUESTS = MAX_NUM_QUESTS
-
-	-- Check if QuestFrameFixer addon is loaded
-	if IsAddOnLoaded("QuestFrameFixer") then
-		return
-	end
-
-	local ACTIVE_QUEST_ICON_FILEID = GetFileIDFromPath("Interface\\GossipFrame\\ActiveQuestIcon")
-	local AVAILABLE_QUEST_ICON_FILEID = GetFileIDFromPath("Interface\\GossipFrame\\AvailableQuestIcon")
-
-	local questTitleButtons = {}
-	local questIconTextures = {}
-
-	-- Initialize quest title buttons and icon textures
-	for i = 1, MAX_NUM_QUESTS do
-		local questTitleButton = _G["QuestTitleButton" .. i]
-		if questTitleButton then
-			tinsert(questTitleButtons, questTitleButton)
-			local questIconTexture = _G[questTitleButton:GetName() .. "QuestIcon"]
-			if questIconTexture then
-				tinsert(questIconTextures, questIconTexture)
+			local icon = _G["QuestTitleButton" .. i .. "QuestIcon"]
+			if title.isActive == 1 then
+				icon:SetTexture(132048)
+				icon:SetDesaturation(1)
 			else
-				-- Debugging: Log missing quest icon texture
-				print("Missing quest icon texture for button: " .. questTitleButton:GetName())
+				icon:SetTexture(132049)
+				icon:SetDesaturation(0)
 			end
-		else
-			-- Debugging: Log missing quest title button
-			print("Missing quest title button: QuestTitleButton" .. i)
-		end
-	end
 
-	-- Hook the OnShow event of the QuestFrameGreetingPanel
-	QuestFrameGreetingPanel:HookScript("OnShow", function()
-		for i, questTitleButton in ipairs(questTitleButtons) do
-			if questTitleButton:IsVisible() then
-				local questIconTexture = questIconTextures[i]
-				if questIconTexture then
-					if questTitleButton.isActive == 1 then
-						questIconTexture:SetTexture(ACTIVE_QUEST_ICON_FILEID)
-					else
-						questIconTexture:SetTexture(AVAILABLE_QUEST_ICON_FILEID)
-					end
-				else
-					-- Debugging: Log missing quest icon texture
-					print("Missing quest icon texture for visible button: " .. questTitleButton:GetName())
+			local numEntries = GetNumQuestLogEntries()
+			for y = 1, numEntries do
+				local titleText, _, _, _, _, isComplete, _, questId = GetQuestLogTitle(y)
+				if not titleText then
+					break
+				elseif strmatch(titleText, textString) and (isComplete == 1 or IsQuestComplete(questId)) then
+					icon:SetDesaturation(0)
+					break
 				end
 			end
+
+			i = i + 1
+			title = _G["QuestTitleButton" .. i]
 		end
-	end)
+	end
+
+	_G.QuestFrameGreetingPanel:HookScript("OnUpdate", UpdateGreetingFrame)
+	hooksecurefunc("QuestFrameGreetingPanel_OnShow", UpdateGreetingFrame)
 end
 
 do
@@ -139,60 +117,15 @@ do
 	EnsureScriptErrorsDisabled()
 end
 
--- do
--- 	-- This script ensures the RuneFrameControlButton is clicked to toggle the Rune Frame's state,
--- 	-- preventing it from being shown by default unlike Blizzard's implementation where it's always open (which can be annoying).
-
--- 	-- Create a frame to handle the toggling of Rune Frame visibility
--- 	local runeVisibilityController = CreateFrame("Frame")
-
--- 	-- Frames that, when shown, should trigger the Rune Frame toggle
--- 	local framesToToggle = {
--- 		"CharacterFrame",
--- 		"ReputationFrame",
--- 		"SkillFrame",
--- 		"HonorFrame",
--- 	}
-
--- 	-- Tabs that, when clicked, should trigger the Rune Frame toggle
--- 	local tabsToToggle = {
--- 		"CharacterFrameTab1",
--- 		"CharacterFrameTab3",
--- 		"CharacterFrameTab4",
--- 		"CharacterFrameTab5",
--- 	}
-
--- 	-- Function to toggle the Rune Frame
--- 	local function toggleRuneFrame()
--- 		if _G.RuneFrameControlButton then
--- 			_G.RuneFrameControlButton:Click()
--- 		end
--- 	end
-
--- 	-- Function to set up event hooks for toggling
--- 	local function setupToggleHooks()
--- 		-- Hook the OnShow event for frames to toggle the Rune Frame
--- 		for _, frameName in ipairs(framesToToggle) do
--- 			local frame = _G[frameName]
--- 			if frame then
--- 				frame:HookScript("OnShow", toggleRuneFrame)
--- 			end
--- 		end
-
--- 		-- Hook the OnClick event for tabs to toggle the Rune Frame
--- 		for _, tabName in ipairs(tabsToToggle) do
--- 			local tab = _G[tabName]
--- 			if tab then
--- 				tab:HookScript("OnClick", toggleRuneFrame)
--- 			end
--- 		end
--- 	end
-
--- 	-- Register for the PLAYER_LOGIN event to ensure all UI elements are loaded before setting hooks
--- 	runeVisibilityController:RegisterEvent("PLAYER_LOGIN")
--- 	runeVisibilityController:SetScript("OnEvent", function(self, event)
--- 		if event == "PLAYER_LOGIN" then
--- 			setupToggleHooks()
--- 		end
--- 	end)
--- end
+do
+	-- Fix for CommunitiesGuildInfoFrame MOTD scrollframe
+	-- This is a temporary fix until Blizzard fixes it
+	hooksecurefunc("CommunitiesGuildInfoFrame_UpdateText", function(self, infoText)
+		local motdScrollFrame = CommunitiesFrameGuildDetailsFrameInfoMOTDScrollFrame
+		if motdScrollFrame then
+			if motdScrollFrame:GetHeight() ~= 180 then
+				motdScrollFrame:SetHeight(180)
+			end
+		end
+	end)
+end

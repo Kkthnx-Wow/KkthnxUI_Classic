@@ -27,18 +27,19 @@ local function Update_InspectPaperDollItemSlotButton(button)
 end
 
 local function UpdateInspectModelFrameTexture()
-	local _, targetRace = UnitRace("target")
-	if targetRace then
+	local _, targetClass = UnitClass("target")
+	if targetClass then
 		if not InspectModelFrame.KKUI_Texture then
 			-- Create the texture only once
 			local texture = InspectModelFrame:CreateTexture(nil, "BACKGROUND")
 			texture:SetPoint("TOPLEFT", 0, 0)
-			texture:SetPoint("BOTTOMRIGHT", 0, -18) -- Stretch down by 20 pixels
+			texture:SetPoint("BOTTOMRIGHT", 0, -110) -- Stretch down by 20 pixels
 			InspectModelFrame.KKUI_Texture = texture
 		end
 
 		-- Set the texture properties
-		InspectModelFrame.KKUI_Texture:SetTexture("Interface\\Transmogrify\\TransmogBackground" .. targetRace:gsub("%s+", ""))
+		InspectModelFrame.KKUI_Texture:SetTexture("Interface\\Garrison\\OrderHallTalents" .. targetClass)
+		InspectModelFrame.KKUI_Texture:SetVertexColor(0.5, 0.5, 0.5, 0.9)
 		InspectModelFrame.KKUI_Texture:SetTexCoord(0.00195312, 0.576172, 0.00195312, 0.966797)
 		InspectModelFrame.KKUI_Texture:SetHorizTile(false)
 		InspectModelFrame.KKUI_Texture:SetVertTile(false)

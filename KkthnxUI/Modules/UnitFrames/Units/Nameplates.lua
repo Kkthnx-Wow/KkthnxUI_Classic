@@ -990,7 +990,7 @@ end
 local DisabledElements = {
 	"Health",
 	"Castbar",
-	"HealthPrediction",
+	"HealPredictionAndAbsorb",
 	"ThreatIndicator",
 }
 function Module:UpdatePlateByType()
@@ -1002,8 +1002,13 @@ function Module:UpdatePlateByType()
 	local raidtarget = self.RaidTargetIndicator
 	local questIcon = self.questIcon
 
-	name:ClearAllPoints()
-	raidtarget:ClearAllPoints()
+	if name then
+		name:ClearAllPoints()
+	end
+
+	if raidtarget then
+		raidtarget:ClearAllPoints()
+	end
 
 	if self.plateType == "NameOnly" then
 		for _, element in pairs(DisabledElements) do
@@ -1012,15 +1017,30 @@ function Module:UpdatePlateByType()
 			end
 		end
 
-		name:SetJustifyH("CENTER")
-		name:SetPoint("CENTER", self, "BOTTOM")
+		if name then
+			name:SetJustifyH("CENTER")
+			name:SetPoint("CENTER", self, "BOTTOM")
+		end
 
-		level:Hide()
-		hpval:Hide()
-		title:Show()
-		guild:Show()
+		if level then
+			level:Hide()
+		end
 
-		raidtarget:SetPoint("BOTTOM", name, "TOP", 0, 6)
+		if hpval then
+			hpval:Hide()
+		end
+
+		if title then
+			title:Show()
+		end
+
+		if guild then
+			guild:Show()
+		end
+
+		if raidtarget then
+			raidtarget:SetPoint("BOTTOM", name, "TOP", 0, 6)
+		end
 
 		if questIcon then
 			questIcon:SetPoint("LEFT", name, "RIGHT", -6, 0)
@@ -1032,16 +1052,31 @@ function Module:UpdatePlateByType()
 			end
 		end
 
-		name:SetJustifyH("LEFT")
-		name:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
-		name:SetPoint("BOTTOMRIGHT", level, "TOPRIGHT", -21, 4)
+		if name then
+			name:SetJustifyH("LEFT")
+			name:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
+			name:SetPoint("BOTTOMRIGHT", level, "TOPRIGHT", -21, 4)
+		end
 
-		level:Show()
-		hpval:Show()
-		title:Hide()
-		guild:Hide()
+		if level then
+			level:Show()
+		end
 
-		raidtarget:SetPoint("TOPRIGHT", self, "TOPLEFT", -5, 20)
+		if hpval then
+			hpval:Show()
+		end
+
+		if title then
+			title:Hide()
+		end
+
+		if guild then
+			guild:Hide()
+		end
+
+		if raidtarget then
+			raidtarget:SetPoint("TOPRIGHT", self, "TOPLEFT", -5, 20)
+		end
 
 		if questIcon then
 			questIcon:SetPoint("LEFT", self, "RIGHT", 1, 0)

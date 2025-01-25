@@ -143,9 +143,6 @@ local function CreateHeaderArrow(parent, direct, func)
 	K.SetupArrow(tex, arrowDirec)
 	bu.__texture = tex
 
-	-- bu:SetScript("OnEnter", K.Texture_OnEnter)
-	-- bu:SetScript("OnLeave", K.Texture_OnLeave)
-
 	bu:SetSize(18, 18)
 	bu.__owner = parent
 	bu:SetScript("OnClick", func)
@@ -277,7 +274,7 @@ end
 local function ToggleMagicRes()
 	if C["Misc"].StatExpand then
 		CharacterResistanceFrame:ClearAllPoints()
-		CharacterResistanceFrame:SetPoint("TOPLEFT", Module.StatPanel2, 28, -25)
+		CharacterResistanceFrame:SetPoint("TOPLEFT", Module.StatPanel2, 28, -28)
 		CharacterResistanceFrame:SetParent(Module.StatPanel2)
 		CharacterModelFrame:SetSize(231, 320) -- size in retail
 
@@ -349,11 +346,9 @@ function Module:CharacterStatePanel()
 	for i = 1, CharacterFrame:GetNumChildren() do
 		local child = select(i, CharacterFrame:GetChildren())
 		if child and child.leftStatsDropDown then
-			--K.ReskinDropDown(child.leftStatsDropDown)
 			leftDropDown = child.leftStatsDropDown
 		end
 		if child and child.rightStatsDropDown then
-			--K.ReskinDropDown(child.rightStatsDropDown)
 			rightDropDown = child.rightStatsDropDown
 		end
 	end
@@ -366,7 +361,7 @@ function Module:CharacterStatePanel()
 
 	local scrollFrame = CreateFrame("ScrollFrame", nil, statPanel, "UIPanelScrollFrameTemplate")
 	scrollFrame:SetPoint("TOPLEFT", 0, -60)
-	scrollFrame:SetPoint("BOTTOMRIGHT", 0, 2)
+	scrollFrame:SetPoint("BOTTOMRIGHT", 0, 6)
 	scrollFrame.ScrollBar:Hide()
 	scrollFrame.ScrollBar.Show = K.Noop
 	local stat = CreateFrame("Frame", nil, scrollFrame)
@@ -381,6 +376,21 @@ function Module:CharacterStatePanel()
 		end
 		scrollBar:SetValue(scrollBar:GetValue() - step)
 	end)
+
+	if not scrollFrame.KKUI_Texture then
+		-- Create the texture only once
+		local texture = KKUI_StatPanel:CreateTexture(nil, "ARTWORK")
+		texture:SetPoint("TOPLEFT", KKUI_StatPanel.InsetBg, 4, -4)
+		texture:SetPoint("BOTTOMRIGHT", KKUI_StatPanel.InsetBg, -4, -110) -- Stretch down by 20 pixels
+		scrollFrame.KKUI_Texture = texture
+	end
+
+	-- Set the texture properties
+	scrollFrame.KKUI_Texture:SetTexture("Interface\\Garrison\\OrderHallTalents" .. K.Class)
+	scrollFrame.KKUI_Texture:SetVertexColor(0.3, 0.3, 0.3, 0.9)
+	scrollFrame.KKUI_Texture:SetTexCoord(0.00195312, 0.576172, 0.00195312, 0.966797)
+	scrollFrame.KKUI_Texture:SetHorizTile(false)
+	scrollFrame.KKUI_Texture:SetVertTile(false)
 
 	-- Player iLvl
 	CreatePlayerILvl(stat, STAT_AVERAGE_ITEM_LEVEL)

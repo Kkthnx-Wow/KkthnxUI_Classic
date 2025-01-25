@@ -1,6 +1,5 @@
 local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Miscellaneous")
-local TT = K:GetModule("Tooltip")
 
 -- Basic Lua functions
 local pairs = pairs

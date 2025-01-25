@@ -2,36 +2,33 @@ local K, C = KkthnxUI[1], KkthnxUI[2]
 local Module = K:GetModule("Announcements")
 
 -- Localize WoW API functions
-local GetSpellLink = GetSpellLink
-local GetSpellInfo = GetSpellInfo
+local GetSpellLink = C_Spell.GetSpellLink
+local GetSpellName = C_Spell.GetSpellName
 local IsInGroup = IsInGroup
 local SendChatMessage = SendChatMessage
 local UnitName = UnitName
 
-local lastTime = 0
-local itemList = {
-	[226241] = true, -- 宁神圣典
-	[256230] = true, -- 静心圣典
-	[185709] = true, -- 焦糖鱼宴
-	[259409] = true, -- 海帆盛宴
-	[259410] = true, -- 船长盛宴
-	[276972] = true, -- 秘法药锅
-	[286050] = true, -- 鲜血大餐
-	[265116] = true, -- 工程战复
+local spellList = {
+	[211527] = true, -- Cozy Sleeping Bag
+	[22700] = true, -- Field Repair Bot 74A
 }
 
-function Module:ItemAlert_Update(unit, _, spellID)
+local groupUnits = { ["player"] = true }
+for i = 1, 4 do
+	groupUnits["party" .. i] = true
+end
+for i = 1, 40 do
+	groupUnits["raid" .. i] = true
+end
+
+function Module:ItemAlert_Update(unit, castID, spellID)
 	if not C["Announcements"].ItemAlert then
 		return
 	end
 
-	if (UnitInRaid(unit) or UnitInParty(unit)) and spellID and itemList[spellID] and lastTime ~= GetTime() then
-		local who = UnitName(unit)
-		local link = GetSpellLink(spellID)
-		local name = GetSpellInfo(spellID)
-		SendChatMessage(format("%s placed %s", who, link or name), K.CheckChat())
-
-		lastTime = GetTime()
+	if groupUnits[unit] and spellList[spellID] and (spellList[spellID] ~= castID) then
+		SendChatMessage(format("%s placed %s", UnitName(unit), GetSpellLink(spellID) or GetSpellName(spellID)), K.CheckChat())
+		spellList[spellID] = castID
 	end
 end
 

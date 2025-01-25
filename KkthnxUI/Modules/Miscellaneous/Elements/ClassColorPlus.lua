@@ -19,28 +19,6 @@ local function classColor(class, showRGB)
 	end
 end
 
--- Get Class Icon with Fallback
-local function getClassIcon(class)
-	local atlasName = class and "groupfinder-icon-class-" .. string.lower(class) or nil
-	if atlasName and C_Texture.GetAtlasInfo(atlasName) then
-		return CreateAtlasMarkup(atlasName, 16, 16)
-	else
-		-- Fallback to a generic icon
-		return CreateAtlasMarkup("UI-LFG-RoleIcon-Pending", 16, 16)
-	end
-end
-
--- Get Class Icon with Blank Fallback
--- local function getClassIcon(class)
--- 	local atlasName = class and "groupfinder-icon-class-" .. string.lower(class) or nil
--- 	if atlasName and C_Texture.GetAtlasInfo(atlasName) then
--- 		return CreateAtlasMarkup(atlasName, 16, 16)
--- 	else
--- 		-- Fallback to a blank space
--- 		return ""
--- 	end
--- end
-
 -- Get Faction Icon with Fallback
 local function getFactionIcon(faction)
 	local iconPath = faction == "Horde" and "communities-create-button-wow-horde" or faction == "Alliance" and "communities-create-button-wow-alliance" or nil
@@ -51,17 +29,6 @@ local function getFactionIcon(faction)
 		return CreateAtlasMarkup("UI-LFG-RoleIcon-Pending", 12, 15)
 	end
 end
-
--- Get Faction Icon with Blank Fallback
--- local function getFactionIcon(faction)
--- 	local iconPath = faction == "Horde" and "communities-create-button-wow-horde" or faction == "Alliance" and "communities-create-button-wow-alliance" or nil
--- 	if iconPath and C_Texture.GetAtlasInfo(iconPath) then
--- 		return CreateAtlasMarkup(iconPath, 12, 15)
--- 	else
--- 		-- Fallback to a blank space
--- 		return ""
--- 	end
--- end
 
 local function diffColor(level)
 	return K.RGBToHex(GetQuestDifficultyColor(level))
@@ -121,10 +88,9 @@ local function friendsFrame()
 			if button.buttonType == FRIENDS_BUTTON_TYPE_WOW then
 				local info = C_FriendList.GetFriendInfoByIndex(button.id)
 				if info and info.connected then
-					local classIcon = getClassIcon(info.className)
 					local factionIcon = getFactionIcon(UnitFactionGroup("player"))
 					local levelText = info.level and "[" .. diffColor(info.level) .. info.level .. "|r]" or "[??]" -- Fallback to ??
-					nameText = classColor(info.className) .. info.name .. "|r - " .. factionIcon .. " " .. classIcon .. " " .. levelText
+					nameText = classColor(info.className) .. info.name .. "|r - " .. factionIcon .. " " .. levelText
 					if info.area == playerArea then
 						infoText = format("|cff00ff00%s|r", info.area)
 					end
@@ -133,10 +99,9 @@ local function friendsFrame()
 				local _, presenceName, _, _, _, gameID, client, isOnline = BNGetFriendInfo(button.id)
 				if isOnline and client == BNET_CLIENT_WOW then
 					local _, charName, _, _, _, faction, _, class, _, zoneName, level = BNGetGameAccountInfo(gameID)
-					local classIcon = getClassIcon(class)
 					local factionIcon = getFactionIcon(faction)
 					local levelText = level and "[" .. diffColor(level) .. level .. "|r]" or "[??]" -- Fallback to ??
-					nameText = classColor(class) .. presenceName .. "|r - " .. factionIcon .. " " .. classIcon .. " " .. (charName or UNKNOWN) .. " " .. levelText
+					nameText = classColor(class) .. presenceName .. "|r - " .. factionIcon .. " " .. (charName or UNKNOWN) .. " " .. levelText
 					if zoneName == playerArea then
 						infoText = format("|cff00ff00%s|r", zoneName)
 					end
