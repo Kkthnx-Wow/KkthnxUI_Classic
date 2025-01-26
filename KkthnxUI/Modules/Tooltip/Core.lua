@@ -499,6 +499,7 @@ function Module:OnEnable()
 		"CreateTooltipIcons",
 		"CreateTooltipID",
 		"CreateNodeInfo",
+		"CreateTargetedInfo",
 	}
 
 	for _, funcName in ipairs(loadTooltipModules) do
