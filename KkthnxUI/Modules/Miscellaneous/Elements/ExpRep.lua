@@ -209,7 +209,7 @@ local function OnExpRepMouseUp(_, button)
 				local remainingXPPercent = ((xpToNextLevel - currentXP) / xpToNextLevel) * 100
 				local nextLevel = UnitLevel("player") + 1
 				local xpMessage = string.format("%.2f%% experience left until I reach level %d", remainingXPPercent, nextLevel)
-				SendChatMessage(xpMessage, "PARTY")
+				SendChatMessage(xpMessage, K.CheckChat())
 			end
 			lastMessageTime = currentTime
 		else

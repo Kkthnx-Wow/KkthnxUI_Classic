@@ -18,34 +18,6 @@ local pvpEmotes = {
 }
 -- stylua: ignore end
 
-local function GetClassColor(class)
-	return RAID_CLASS_COLORS[class] or { r = 1, g = 1, b = 1 }
-end
-
--- Function to parse class from GUID
-local function GetClassFromGUID(guid)
-	if not guid then
-		return "UNKNOWN"
-	end
-	local _, _, classAndRace = string.find(guid, "0x0000000000000000, 0x(.+)")
-	if classAndRace then
-		local classID = tonumber(classAndRace:sub(1, 1), 16)
-		local classes = {
-			[0x0] = "WARRIOR",
-			[0x1] = "PALADIN",
-			[0x2] = "HUNTER",
-			[0x3] = "ROGUE",
-			[0x4] = "PRIEST",
-			[0x6] = "SHAMAN",
-			[0x7] = "MAGE",
-			[0x8] = "WARLOCK",
-			[0xA] = "DRUID",
-		}
-		return classes[classID] or "UNKNOWN"
-	end
-	return "UNKNOWN"
-end
-
 function Module:DisplayKillPopup(targetName, class)
 	local frame = _G["PlayerKillBanner"]
 	if not frame then
@@ -72,14 +44,17 @@ function Module:DisplayKillPopup(targetName, class)
 		frame.bottomFillagree = createTexture(frame, "ARTWORK", 66, 28, "CENTER", frame.bannerBottom, 0, -36, { 0.865234, 0.994141, 0.314453, 0.369141 })
 	end
 
-	local classColor = GetClassColor(class)
-
 	if not frame.killText then
 		frame.killText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-		frame.killText:SetFont(select(1, frame.killText:GetFont()), 24, select(3, frame.killText:GetFont()))
+		frame.killText:SetFont(select(1, frame.killText:GetFont()), 32, "")
 		frame.killText:SetPoint("CENTER", frame.bannerMiddle, 0, 0)
 	end
-	frame.killText:SetText(string.format("|cFFFFFFFFKilled|r |cFF%02x%02x%02x%s|r", classColor.r * 255, classColor.g * 255, classColor.b * 255, targetName))
+	frame.killText:SetText("|cFFB22222" .. targetName .. "|r")
+
+	-- Hide the frame immediately if it's already visible
+	if frame:IsVisible() then
+		frame:Hide()
+	end
 
 	-- Fade out animation
 	if not frame.fadeOut then
@@ -95,6 +70,10 @@ function Module:DisplayKillPopup(targetName, class)
 	end
 
 	frame:Show()
+	PlaySoundFile("Interface\\AddOns\\KkthnxUI\\Media\\Sounds\\KillingBlow.ogg", "Master")
+	if frame.fadeOut then
+		frame.fadeOut:Stop()
+	end
 	frame.fadeOut:Play()
 end
 
@@ -104,19 +83,20 @@ function Module:OnCombatLogEvent()
 	if subevent == "PARTY_KILL" and sourceName == K.Name then
 		local isPlayer = bit_band(destFlags, COMBATLOG_OBJECT_TYPE_PLAYER) > 0
 		if isPlayer then
-			-- Check if destGUID is not nil and not an empty string before parsing
+			local frame = _G["PlayerKillBanner"]
+			if frame and frame:IsVisible() then
+				frame.fadeOut:Stop()
+				frame:Hide()
+			end
 			if destGUID and destGUID ~= "" then
-				local targetClass = GetClassFromGUID(destGUID)
-				Module:DisplayKillPopup(destName, targetClass)
+				Module:DisplayKillPopup(destName)
 			else
-				-- Log or handle the case where destGUID is not available
 				print("GUID not available for:", destName)
-				-- Optionally, you might decide to show a generic popup here
 				Module:DisplayKillPopup(destName, "UNKNOWN")
 			end
 
 			if C["Announcements"].PvPEmote then
-				local emote = pvpEmotes and pvpEmotes[math_random(#pvpEmotes)] or "hug"
+				local emote = pvpEmotes[math_random(#pvpEmotes)] or "hug"
 				DoEmote(emote, destName)
 			end
 		end
@@ -133,9 +113,9 @@ end
 
 -- Test command for the popup
 local function TestPopupCommand()
-	Module:DisplayKillPopup("Kkthnxbye", "HUNTER")
+	Module:DisplayKillPopup(K.Name)
 end
 
 -- Registering the slash command
-SLASH_TESTPOPUP1 = "/testkill"
+SLASH_TESTPOPUP1 = "/tk"
 SlashCmdList["TESTPOPUP"] = TestPopupCommand

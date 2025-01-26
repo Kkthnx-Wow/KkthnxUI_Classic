@@ -967,6 +967,7 @@ local Tooltip = function(self)
 	Window:CreateSwitch("Tooltip", "CombatHide", L["Hide Tooltip in Combat"])
 	Window:CreateSwitch("Tooltip", "Icons", L["Item Icons"])
 	Window:CreateSwitch("Tooltip", "ShowIDs", L["Show Tooltip IDs"])
+	Window:CreateSwitch("Tooltip", "ShowNodeInfo", "Display Herbalism and Mining Info In Tooltips", "This setting allows you to toggle the display of skill level information for Herbalism and Mining nodes in tooltips on the minimap only.|n|nWhen enabled, the node name will be colored based on your skill level relative to the node's requirement, providing quick visual feedback on whether you can gather or mine the node")
 
 	-- Appearance section
 	Window:CreateSection("Appearance")

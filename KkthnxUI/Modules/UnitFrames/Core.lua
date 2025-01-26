@@ -462,7 +462,6 @@ function Module:CreateUnits()
 		Module:BlockAddons()
 		Module:CreateUnitTable()
 		Module:CreatePowerUnitTable()
-		Module:UpdateGroupRoles()
 		Module:QuestIconCheck()
 		Module:RefreshPlateOnFactionChanged()
 

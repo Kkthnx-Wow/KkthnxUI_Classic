@@ -4,7 +4,6 @@ local Module = K:GetModule("Unitframes")
 -- Lua functions
 local math_rad = math.rad
 local pairs = pairs
-local string_format = string.format
 local table_wipe = table.wipe
 local tonumber = tonumber
 local unpack = unpack
@@ -17,36 +16,26 @@ local C_NamePlate_SetNamePlateFriendlySize = C_NamePlate.SetNamePlateFriendlySiz
 local C_NamePlate_SetNamePlateEnemyClickThrough = C_NamePlate.SetNamePlateEnemyClickThrough
 local C_NamePlate_SetNamePlateFriendlyClickThrough = C_NamePlate.SetNamePlateFriendlyClickThrough
 local CreateFrame = CreateFrame
-local GetNumGroupMembers = GetNumGroupMembers
-local GetNumSubgroupMembers = GetNumSubgroupMembers
 local GetPlayerInfoByGUID = GetPlayerInfoByGUID
 local INTERRUPTED = INTERRUPTED
 local InCombatLockdown = InCombatLockdown
-local IsInGroup = IsInGroup
-local IsInRaid = IsInRaid
 local SetCVar = SetCVar
 local UnitClassification = UnitClassification
 local UnitExists = UnitExists
 local UnitGUID = UnitGUID
-local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local UnitIsConnected = UnitIsConnected
 local UnitIsPlayer = UnitIsPlayer
 local UnitIsTapDenied = UnitIsTapDenied
 local UnitIsUnit = UnitIsUnit
 local UnitName = UnitName
--- local UnitNameplateShowsWidgetsOnly = UnitNameplateShowsWidgetsOnly
 local UnitPlayerControlled = UnitPlayerControlled
 local UnitReaction = UnitReaction
 local UnitThreatSituation = UnitThreatSituation
 local hooksecurefunc = hooksecurefunc
 
 -- Custom data
-local mdtCacheData = {} -- Cache for data of abilities used by players
 local customUnits = {} -- Custom unit data
-local groupRoles = {} -- Group roles for players
 local showPowerList = {} -- List of players who have their power displayed
-local isInGroup = false -- Boolean to track if the player is in a group
-local isInInstance = false -- Boolean to track if the player is in an instance
 
 -- Unit classification
 local NPClassifies = {
@@ -54,14 +43,6 @@ local NPClassifies = {
 	rare = { 1, 1, 1, true },
 	rareelite = { 1, 0.1, 0.1 },
 	worldboss = { 0, 1, 0 },
-}
-
--- Specific NPCs to show
-local ShowTargetNPCs = {
-	-- [165251] = true,	-- 仙林狐狸
-	[40357] = true, -- 格瑞姆巴托火元素
-	[164702] = true, -- 食腐蛆虫
-	[174773] = true, -- 怨毒怪
 }
 
 -- Init
@@ -190,48 +171,6 @@ function Module:UpdateUnitPower()
 	else
 		self.powerText:Hide()
 	end
-end
-
--- Off-tank threat color
--- Function to refresh the group roles
-local function refreshGroupRoles()
-	-- Check if player is in raid or group
-	local isInRaid = IsInRaid()
-	isInGroup = isInRaid or IsInGroup()
-
-	-- Wipe the groupRoles table
-	table_wipe(groupRoles)
-
-	-- If player is in group
-	if isInGroup then
-		-- Get the number of players in group
-		local numPlayers = (isInRaid and GetNumGroupMembers()) or GetNumSubgroupMembers()
-
-		-- Define the unit prefix (raid or party)
-		local unit = (isInRaid and "raid") or "party"
-
-		-- Loop through each player in the group
-		for i = 1, numPlayers do
-			-- Define the unit index (e.g. raid1, party2)
-			local index = unit .. i
-
-			-- If the unit exists, add their name and role to the groupRoles table
-			if UnitExists(index) then
-				groupRoles[UnitName(index)] = UnitGroupRolesAssigned(index)
-			end
-		end
-	end
-end
-
-local function resetGroupRoles()
-	isInGroup = IsInRaid() or IsInGroup()
-	table_wipe(groupRoles)
-end
-
-function Module:UpdateGroupRoles()
-	refreshGroupRoles()
-	K:RegisterEvent("GROUP_ROSTER_UPDATE", refreshGroupRoles)
-	K:RegisterEvent("GROUP_LEFT", resetGroupRoles)
 end
 
 -- Update unit color
@@ -441,6 +380,7 @@ function Module:AddTargetIndicator(self)
 	Module.UpdateTargetIndicator(self)
 end
 
+local isInInstance
 local function CheckInstanceStatus()
 	isInInstance = IsInInstance()
 end
@@ -480,54 +420,6 @@ function Module:UpdateForQuestie(npcID)
 		if foundObjective then
 			self.questIcon:Show()
 			self.questCount:SetText(progressText)
-		end
-	end
-end
-
-function Module:UpdateCodexQuestUnit(name)
-	if name and CodexMap.tooltips[name] then
-		for _, meta in pairs(CodexMap.tooltips[name]) do
-			local questData = meta["quest"]
-			local quests = CodexDB.quests.loc
-
-			if questData then
-				for questIndex = 1, GetNumQuestLogEntries() do
-					local _, _, _, header, _, _, _, questId = GetQuestLogTitle(questIndex)
-					if not header and quests[questId] and questData == quests[questId].T then
-						local objectives = GetNumQuestLeaderBoards(questIndex)
-						local foundObjective, progressText = nil
-						if objectives then
-							for i = 1, objectives do
-								local text, type = GetQuestLogLeaderBoard(i, questIndex)
-								if type == "monster" then
-									local _, _, monsterName, objNum, objNeeded = strfind(text, Codex:SanitizePattern(QUEST_MONSTERS_KILLED))
-									if meta["spawn"] == monsterName then
-										progressText = objNeeded - objNum
-										foundObjective = true
-										break
-									end
-								elseif table.getn(meta["item"]) > 0 and type == "item" and meta["dropRate"] then
-									local _, _, itemName, objNum, objNeeded = strfind(text, Codex:SanitizePattern(QUEST_OBJECTS_FOUND))
-									for _, item in pairs(meta["item"]) do
-										if item == itemName then
-											progressText = objNeeded - objNum
-											foundObjective = true
-											break
-										end
-									end
-								end
-							end
-						end
-
-						if foundObjective and progressText > 0 then
-							self.questIcon:Show()
-							self.questCount:SetText(progressText)
-						elseif not foundObjective then
-							self.questIcon:Show()
-						end
-					end
-				end
-			end
 		end
 	end
 end
@@ -987,12 +879,7 @@ function Module:RefreshAllPlates()
 	Module:ResizeTargetPower()
 end
 
-local DisabledElements = {
-	"Health",
-	"Castbar",
-	"HealPredictionAndAbsorb",
-	"ThreatIndicator",
-}
+local DisabledElements = { "Health", "Castbar", "HealthPrediction", "ThreatIndicator" }
 function Module:UpdatePlateByType()
 	local name = self.nameText
 	local level = self.levelText

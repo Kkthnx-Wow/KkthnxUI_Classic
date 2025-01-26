@@ -176,6 +176,15 @@ function Module:OnEnable()
 		return
 	end
 
+	if IsAddOnLoaded("Leatrix_Maps") and LeaMapsDB and LeaMapsDB["UseDefaultMap"] == "Off" then
+		local border = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
+		border:SetPoint("TOPLEFT", -4, 4)
+		border:SetPoint("BOTTOMRIGHT", 4, -4)
+		border:CreateBorder(nil, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and 32, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and -10, nil, "")
+
+		WorldMapFrameCloseButton:SkinCloseButton(nil, -2, -2, 20)
+	end
+
 	-- Exit if conflicting addons are loaded
 	if IsAddOnLoaded("Leatrix_Maps") or IsAddOnLoaded("Mapster") then
 		return

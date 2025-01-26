@@ -151,11 +151,26 @@ local function RebuildMicroMenu()
 		"SpellbookMicroButton",
 		"TalentMicroButton",
 		"QuestLogMicroButton",
-		GetActiveGuildButton(), -- Dynamically determines Guild/Socials button
 		"WorldMapMicroButton",
 		"HelpMicroButton",
 		"MainMenuMicroButton",
 	}
+
+	-- Check if the addon is loaded and insert the button in the 5th position
+	if IsAddOnLoaded("ClassicAchievements") and CA_Settings and CA_Settings.microbutton then
+		table.insert(buttonInfo, 4, "AchievementMicroButton")
+	end
+
+	-- Determine which button to insert
+	local guildButton
+	if C_CVar.GetCVarBool("useClassicGuildUI") then
+		guildButton = "SocialsMicroButton"
+	else
+		guildButton = "GuildMicroButton"
+	end
+
+	-- Insert the button into the 5th position
+	table.insert(buttonInfo, 5, guildButton)
 
 	for i, buttonName in ipairs(buttonInfo) do
 		CreateMicroButton(KKUI_MenuBar, buttonName, C["ActionBar"].FadeMicroMenu)
@@ -164,13 +179,6 @@ local function RebuildMicroMenu()
 		else
 			MicroButtons[i]:SetPoint("LEFT", KKUI_MenuBar, "LEFT", 0, 0)
 		end
-	end
-end
-
--- Handles CVAR updates
-local function HandleCVARUpdate(event, cvarName)
-	if cvarName == "useClassicGuildUI" then
-		RebuildMicroMenu()
 	end
 end
 
@@ -187,7 +195,9 @@ function Module:CreateMicroMenu()
 	KKUI_MenuBar:SetSize(218, 30)
 	KKUI_MenuBar:SetAlpha(FadeMicroMenuEnabled and 0 or 1)
 	KKUI_MenuBar:EnableMouse(false)
-	K.Mover(KKUI_MenuBar, "Menubar", "Menubar", { "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -4, 4 })
+
+	local xPosition = IsAddOnLoaded("ClassicAchievements") and CA_Settings and CA_Settings.microbutton and -32 or -4
+	K.Mover(KKUI_MenuBar, "Menubar", "Menubar", { "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", xPosition, 4 })
 
 	-- Initial build of the micro menu
 	RebuildMicroMenu()
@@ -200,7 +210,4 @@ function Module:CreateMicroMenu()
 			MicroButtonPortrait:SetPoint("BOTTOMRIGHT", CharacterMicroButton, "BOTTOMRIGHT", -2, 2)
 		end
 	end)
-
-	-- Hook into CVAR updates to rebuild the menu dynamically
-	K:RegisterEvent("CVAR_UPDATE", HandleCVARUpdate)
 end

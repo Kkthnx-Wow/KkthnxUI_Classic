@@ -545,6 +545,7 @@ C["Tooltip"] = {
 	Icons = true,
 	LFDRole = false,
 	ShowIDs = false,
+	ShowNodeInfo = false,
 	TargetBy = true,
 	CursorMode = {
 		Options = {

@@ -82,11 +82,11 @@ do
 	end
 
 	-- Event handler for player level changes
-	local function OnPlayerLevelUp(event, level)
-		CheckLevel(level)
+	local function OnPlayerLevelChanged(_, _, newLevel)
+		CheckLevel(newLevel)
 	end
 
-	-- Register for player level up events
-	eventFrame:RegisterEvent("PLAYER_LEVEL_UP")
-	eventFrame:SetScript("OnEvent", OnPlayerLevelUp)
+	-- Register for player level changed events
+	eventFrame:RegisterEvent("PLAYER_LEVEL_CHANGED")
+	eventFrame:SetScript("OnEvent", OnPlayerLevelChanged)
 end

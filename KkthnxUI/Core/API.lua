@@ -369,14 +369,15 @@ local function SkinButton(self, override, ...)
 end
 
 -- Skin Close Button
-local function SkinCloseButton(self, parent, xOffset, yOffset)
+local function SkinCloseButton(self, parent, xOffset, yOffset, size)
 	-- Define the parent frame and x,y offset of the close button
 	parent = parent or self:GetParent()
 	xOffset = xOffset or -6
 	yOffset = yOffset or -6
+	size = size or 16
 
 	-- Set the size of the close button and its position relative to the parent frame
-	self:SetSize(16, 16)
+	self:SetSize(size, size)
 	self:ClearAllPoints()
 	self:SetPoint("TOPRIGHT", parent, "TOPRIGHT", xOffset, yOffset)
 

@@ -498,6 +498,7 @@ function Module:OnEnable()
 	local loadTooltipModules = {
 		"CreateTooltipIcons",
 		"CreateTooltipID",
+		"CreateNodeInfo",
 	}
 
 	for _, funcName in ipairs(loadTooltipModules) do
