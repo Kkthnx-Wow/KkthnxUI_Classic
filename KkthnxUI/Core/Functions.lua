@@ -35,28 +35,42 @@ do
 		print("|cff3c9bedKkthnxUI:|r", ...)
 	end
 
+	-- Numberize
 	function K.ShortValue(n)
-		local prefixStyle = C["General"].NumberPrefixStyle.Value
-		local abs_n = abs(n)
-		local suffix, div = "", 1
+		-- Locale data for number caps
+		local localeCaps = {
+			["enUS"] = { Cap1 = "w", Cap2 = "y", Cap3 = "z" },
+			["koKR"] = { Cap1 = "만", Cap2 = "억", Cap3 = "조" },
+			["zhCN"] = { Cap1 = "万", Cap2 = "亿", Cap3 = "兆" },
+			["zhTW"] = { Cap1 = "萬", Cap2 = "億", Cap3 = "兆" },
+		}
 
-		-- Calculate the appropriate suffix and division factor.
-		if abs_n >= 1e12 then
-			suffix, div = (prefixStyle == 1 and "t" or "z"), 1e12
-		elseif abs_n >= 1e9 then
-			suffix, div = (prefixStyle == 1 and "b" or "y"), 1e9
-		elseif abs_n >= 1e6 then
-			suffix, div = (prefixStyle == 1 and "m" or "w"), 1e6
-		elseif abs_n >= 1e3 then
-			suffix, div = (prefixStyle == 1 and "k" or "w"), 1e3
-		end
+		local caps = localeCaps[GetLocale()] or localeCaps["enUS"] -- Default to English if locale not found
 
-		-- Format the shortened value.
-		local val = n / div
-		if div > 1 and val < 10 then
-			return string_format("%.1f%s", val, suffix)
+		if C["General"].NumberPrefixStyle.Value == 1 then
+			if n >= 1e12 then
+				return format("%.2ft", n / 1e12)
+			elseif n >= 1e9 then
+				return format("%.2fb", n / 1e9)
+			elseif n >= 1e6 then
+				return format("%.2fm", n / 1e6)
+			elseif n >= 1e3 then
+				return format("%.1fk", n / 1e3)
+			else
+				return format("%.0f", n)
+			end
+		elseif C["General"].NumberPrefixStyle.Value == 2 then
+			if n >= 1e12 then
+				return format("%.2f" .. caps.Cap3, n / 1e12)
+			elseif n >= 1e8 then
+				return format("%.2f" .. caps.Cap2, n / 1e8)
+			elseif n >= 1e4 then
+				return format("%.1f" .. caps.Cap1, n / 1e4)
+			else
+				return format("%.0f", n)
+			end
 		else
-			return string_format("%d%s", val, suffix)
+			return format("%.0f", n)
 		end
 	end
 
