@@ -182,7 +182,7 @@ function Module:OnEnable()
 		border:SetPoint("BOTTOMRIGHT", 4, -4)
 		border:CreateBorder(nil, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and 32, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and -10, nil, "")
 
-		WorldMapFrameCloseButton:SkinCloseButton(nil, -2, -2, 20)
+		WorldMapFrameCloseButton:SkinCloseButton(WorldMapFrame, -2, -2, 20)
 	end
 
 	-- Exit if conflicting addons are loaded

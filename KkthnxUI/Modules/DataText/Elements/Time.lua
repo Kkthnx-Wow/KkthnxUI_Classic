@@ -66,6 +66,78 @@ local function OnUpdate(self, elapsed)
 	end
 end
 
+-- Function to calculate the reset day of the week
+local function GetResetDay(resetSeconds)
+	local currentTime = time() -- Current Unix time
+	local resetTime = currentTime + resetSeconds
+	local weekday = date("%A", resetTime) -- Get the day of the week
+	return weekday
+end
+
+-- Function to format remaining time into days, hours, and minutes
+local function FormatTimeRemaining(reset)
+	local days = math.floor(reset / 86400) -- Convert seconds to days
+	local hours = math.floor((reset % 86400) / 3600) -- Convert remaining seconds to hours
+	local minutes = math.floor((reset % 3600) / 60) -- Convert remaining seconds to minutes
+
+	return string.format("%d days, %d hours, %d minutes", days, hours, minutes)
+end
+
+-- Function to determine raid name color
+local function GetRaidColor(name)
+	if name:lower():find("molten core") then
+		return "|cFFFF7D0A" -- Orange
+	elseif name:lower():find("blackwing lair") then
+		return "|cFF707070" -- Lighter Grey (Better contrast)
+	elseif name:lower():find("ahn'quiraj") or name:lower():find("aq") then
+		return "|cFF00FF00" -- Green
+	elseif name:lower():find("naxxramas") then
+		return "|cFF0070DD" -- Blue
+	end
+	return "|cFFFFFFFF" -- White for other raids
+end
+
+-- Function to update lockouts
+local function UpdateLockouts()
+	local raidLockoutText = "|cFFFFD100Raids:|r\n"
+	local dungeonLockoutText = "|cFFFFD100Dungeons:|r\n"
+	local hasRaids, hasDungeons = false, false
+
+	for i = 1, GetNumSavedInstances() do
+		local name, _, reset, _, _, _, _, _, _, difficulty = GetSavedInstanceInfo(i)
+		local reset = tonumber(reset)
+		local difficulty = tonumber(difficulty)
+
+		-- Skip invalid entries
+		if difficulty == 1 or difficulty == 2 then
+			-- Skip Normal and Heroic for Classic clients
+		else
+			local resetFormatted = FormatTimeRemaining(reset)
+			local resetDay = reset and GetResetDay(reset) or "Unknown"
+
+			-- Ensure we don't display "Unknown" for Classic's Normal difficulty
+			local difficultyName = "Normal"
+
+			local raidColor = GetRaidColor(name or "Unknown Instance")
+
+			local lockoutText = string.format("%s%s (%s)\n%s\nResets on |cFFFFFFFF%s|r\n", raidColor, name or "Unknown Instance", difficultyName, resetFormatted, resetDay)
+
+			raidLockoutText = raidLockoutText .. lockoutText
+			hasRaids = true
+		end
+	end
+
+	local finalText = ""
+	if hasRaids then
+		finalText = finalText .. raidLockoutText .. "\n"
+	end
+	if finalText == "" then
+		finalText = "No active lockouts."
+	end
+
+	content:SetText(finalText)
+end
+
 -- Helper function for adding titles to tooltips
 local title
 local function addTitle(text)
@@ -92,24 +164,6 @@ function Module:OnEnter()
 	GameTooltip:AddDoubleLine(L["Local Time"], GameTime_GetLocalTime(true), nil, nil, nil, 0.75, 0.75, 0.75)
 	GameTooltip:AddDoubleLine(L["Realm Time"], GameTime_GetGameTime(true), nil, nil, nil, 0.75, 0.75, 0.75)
 
-	-- Define a table for raid difficulties
-	local RAID_DIFFICULTIES = { 2, 23, 148, 174, 185, 198, 201, 215 }
-
-	title = false
-	for i = 1, GetNumSavedInstances() do
-		local name, _, reset, diff, locked, extended, _, isRaid, maxPlayers, diffName, numEncounters, encounterProgress = GetSavedInstanceInfo(i)
-
-		-- Check if the instance is a raid with the specific difficulties
-		if tContains(RAID_DIFFICULTIES, diff) and (locked or extended) then
-			addTitle(L["Saved Raid(s)"])
-			local r, g, b = extended and { 0.3, 1, 0.3 } or { 0.75, 0.75, 0.75 }
-
-			local progressColor = (numEncounters == encounterProgress) and "ff0000" or "00ff00"
-			local progressStr = format(" |cff%s(%s/%s)|r", progressColor, encounterProgress, numEncounters)
-			GameTooltip:AddDoubleLine(name .. " - " .. diffName .. progressStr, SecondsToTime(reset, true, nil, 3), 1, 1, 1, unpack(r, g, b))
-		end
-	end
-
 	title = false
 	addTitle("Reset Times")
 	local dailyReset = C_DateAndTime.GetSecondsUntilDailyReset()
@@ -121,6 +175,45 @@ function Module:OnEnter()
 	if weeklyReset then
 		GameTooltip:AddDoubleLine(format("%s %s", WEEKLY, RESET), SecondsToTime(weeklyReset), 1, 1, 1, 0.75, 0.75, 0.75)
 	end
+
+	local raidLockoutText = "|cFFFFD100Raids:|r\n"
+	local hasRaids = false
+
+	for i = 1, GetNumSavedInstances() do
+		local name, _, reset, _, _, _, _, _, _, difficulty = GetSavedInstanceInfo(i)
+		local reset = tonumber(reset)
+		local difficulty = tonumber(difficulty)
+
+		-- Skip invalid entries
+		if difficulty == 1 or difficulty == 2 then
+			-- Skip Normal and Heroic for Classic clients
+		else
+			local resetFormatted = FormatTimeRemaining(reset)
+			local resetDay = reset and GetResetDay(reset) or "Unknown"
+
+			-- Ensure we don't display "Unknown" for Classic's Normal difficulty
+			local difficultyName = "Normal"
+
+			local raidColor = GetRaidColor(name or "Unknown Instance")
+
+			local lockoutText = string.format("%s%s (%s)\n%s\nResets on |cFFFFFFFF%s|r\n", raidColor, name or "Unknown Instance", difficultyName, resetFormatted, resetDay)
+
+			raidLockoutText = raidLockoutText .. lockoutText
+			hasRaids = true
+		end
+	end
+
+	local finalText = ""
+	if hasRaids then
+		finalText = finalText .. raidLockoutText .. "\n"
+	end
+
+	if finalText == "" then
+		finalText = "No active lockouts."
+	end
+
+	GameTooltip:AddLine(" ")
+	GameTooltip:AddLine(finalText, 0.75, 0.75, 0.75)
 
 	GameTooltip:AddLine(" ")
 	GameTooltip:AddLine(K.LeftButton .. GAMETIME_TOOLTIP_TOGGLE_CLOCK)

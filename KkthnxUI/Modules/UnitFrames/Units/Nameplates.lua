@@ -879,7 +879,7 @@ function Module:RefreshAllPlates()
 	Module:ResizeTargetPower()
 end
 
-local DisabledElements = { "Health", "Castbar", "HealthPrediction", "ThreatIndicator" }
+local DisabledElements = { "Health", "Castbar", "HealPredictionAndAbsorb", "ThreatIndicator" }
 function Module:UpdatePlateByType()
 	local name = self.nameText
 	local level = self.levelText

@@ -49,41 +49,121 @@ do
 end
 
 do
-	local function UpdateGreetingFrame()
-		local i = 1
-		local title = _G["QuestTitleButton" .. i]
-		while title and title:IsVisible() do
-			local text = title:GetFontString()
-			local textString = gsub(title:GetText(), "|c[Ff][Ff]%x%x%x%x%x%x(.+)|r", "%1")
-			title:SetText(textString)
+	local _G = _G
+	local tinsert = tinsert
+	local GetFileIDFromPath = GetFileIDFromPath
+	local MAX_NUM_QUESTS = MAX_NUM_QUESTS
 
-			local icon = _G["QuestTitleButton" .. i .. "QuestIcon"]
-			if title.isActive == 1 then
-				icon:SetTexture(132048)
-				icon:SetDesaturation(1)
-			else
-				icon:SetTexture(132049)
-				icon:SetDesaturation(0)
-			end
+	local ACTIVE_QUEST_ICON_FILEID = GetFileIDFromPath("Interface\\GossipFrame\\ActiveQuestIcon")
+	local AVAILABLE_QUEST_ICON_FILEID = GetFileIDFromPath("Interface\\GossipFrame\\AvailableQuestIcon")
 
-			local numEntries = GetNumQuestLogEntries()
-			for y = 1, numEntries do
-				local titleText, _, _, _, _, isComplete, _, questId = GetQuestLogTitle(y)
-				if not titleText then
-					break
-				elseif strmatch(titleText, textString) and (isComplete == 1 or IsQuestComplete(questId)) then
-					icon:SetDesaturation(0)
-					break
+	local titleLines = {}
+	local questIconTextures = {}
+	for i = 1, MAX_NUM_QUESTS do
+		local titleLine = _G["QuestTitleButton" .. i]
+		tinsert(titleLines, titleLine)
+		tinsert(questIconTextures, _G[titleLine:GetName() .. "QuestIcon"])
+	end
+
+	QuestFrameGreetingPanel:HookScript("OnShow", function()
+		for i, titleLine in ipairs(titleLines) do
+			if titleLine:IsVisible() then
+				local bulletPointTexture = questIconTextures[i]
+				if titleLine.isActive == 1 then
+					bulletPointTexture:SetTexture(ACTIVE_QUEST_ICON_FILEID)
+				else
+					bulletPointTexture:SetTexture(AVAILABLE_QUEST_ICON_FILEID)
 				end
 			end
+		end
+	end)
+end
 
-			i = i + 1
-			title = _G["QuestTitleButton" .. i]
+do
+	local _G = _G
+	local tinsert = tinsert
+	local wipe = wipe
+	local gsub = gsub
+	local GetNumQuestLogEntries = GetNumQuestLogEntries
+	local GetQuestLogTitle = GetQuestLogTitle
+	local IsQuestComplete = IsQuestComplete
+	local C_QuestLog = C_QuestLog
+	local MAX_NUM_QUESTS = MAX_NUM_QUESTS
+	local QuestFrameGreetingPanel = QuestFrameGreetingPanel
+
+	local escapes = {
+		["|c%x%x%x%x%x%x%x%x"] = "", -- color start
+		["|r"] = "", -- color end
+	}
+	local function unescape(str)
+		for k, v in pairs(escapes) do
+			str = gsub(str, k, v)
+		end
+		return str
+	end
+
+	local completedActiveQuests = {}
+	local function getCompletedQuestsInLog()
+		wipe(completedActiveQuests)
+		local numEntries = GetNumQuestLogEntries()
+		local questLogTitleText, isComplete, questId, _
+		for i = 1, numEntries, 1 do
+			_, _, _, _, _, isComplete, _, questId = GetQuestLogTitle(i)
+			if isComplete == 1 or IsQuestComplete(questId) then
+				questLogTitleText = C_QuestLog.GetQuestInfo(questId)
+				completedActiveQuests[questLogTitleText] = true
+			end
+		end
+		return completedActiveQuests
+	end
+
+	local function setDesaturation(maxLines, lineMap, iconMap, activePred)
+		local completedQuests = getCompletedQuestsInLog()
+		for i = 1, maxLines do
+			local line = lineMap[i]
+			local icon = iconMap[i]
+			icon:SetDesaturated(nil)
+			if line:IsVisible() and activePred(line) then
+				local questName = unescape(line:GetText())
+				if not completedQuests[questName] then
+					icon:SetDesaturated(1)
+				end
+			end
 		end
 	end
 
-	_G.QuestFrameGreetingPanel:HookScript("OnUpdate", UpdateGreetingFrame)
-	hooksecurefunc("QuestFrameGreetingPanel_OnShow", UpdateGreetingFrame)
+	local function getLineAndIconMaps(maxLines, titleIdent, iconIdent)
+		local lines = {}
+		local icons = {}
+		for i = 1, maxLines do
+			local titleLine = _G[titleIdent .. i]
+			tinsert(lines, titleLine)
+			tinsert(icons, _G[titleLine:GetName() .. iconIdent])
+		end
+		return lines, icons
+	end
+
+	local questFrameTitleLines, questFrameIconTextures = getLineAndIconMaps(MAX_NUM_QUESTS, "QuestTitleButton", "QuestIcon")
+	QuestFrameGreetingPanel:HookScript("OnShow", function()
+		setDesaturation(MAX_NUM_QUESTS, questFrameTitleLines, questFrameIconTextures, function(line)
+			return line.isActive == 1
+		end)
+	end)
+
+	local oldSetup = GossipActiveQuestButtonMixin.Setup
+	function GossipActiveQuestButtonMixin:Setup(...)
+		oldSetup(self, ...)
+		if self.GetElementData ~= nil then
+			local info = self.GetElementData().info
+			if info ~= nil then
+				if not info.isComplete and not IsQuestComplete(info.questID) then
+					self.Icon:SetDesaturated(1)
+				else
+					self.Icon:SetDesaturated(nil)
+				end
+			end
+		end
+	end
 end
 
 do

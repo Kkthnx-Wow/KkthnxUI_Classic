@@ -67,6 +67,7 @@ function Module:OnEnable()
 		"CreateGUIGameMenuButton",
 		"CreateMinimapButton",
 		"CreateQuickDeleteDialog",
+		"CreateQuickMenuButton",
 		"CreateTicketStatusFrameMove",
 		"CreateTradeTargetInfo",
 		"TogglePetHappiness",
@@ -642,6 +643,99 @@ function Module:TogglePetHappiness()
 			happinessFrame:Hide()
 		end
 	end
+end
+
+-- Buttons to enhance popup menu
+function Module:CustomMenu_AddFriend(rootDescription, data, name)
+	rootDescription:CreateButton(K.InfoColor .. ADD_CHARACTER_FRIEND, function()
+		local fullName = data.server and data.name .. "-" .. data.server or data.name
+		C_FriendList.AddFriend(name or fullName)
+	end)
+end
+
+local guildInviteString = gsub(CHAT_GUILD_INVITE_SEND, HEADER_COLON, "")
+function Module:CustomMenu_GuildInvite(rootDescription, data, name)
+	rootDescription:CreateButton(K.InfoColor .. guildInviteString, function()
+		local fullName = data.server and data.name .. "-" .. data.server or data.name
+		C_GuildInfo.Invite(name or fullName)
+	end)
+end
+
+function Module:CustomMenu_CopyName(rootDescription, data, name)
+	rootDescription:CreateButton(K.InfoColor .. COPY_NAME, function()
+		local editBox = ChatEdit_ChooseBoxForSend()
+		local hasText = (editBox:GetText() ~= "")
+		ChatEdit_ActivateChat(editBox)
+		editBox:Insert(name or data.name)
+		if not hasText then
+			editBox:HighlightText()
+		end
+	end)
+end
+
+function Module:CustomMenu_Whisper(rootDescription, data)
+	rootDescription:CreateButton(K.InfoColor .. WHISPER, function()
+		ChatFrame_SendTell(data.name)
+	end)
+end
+
+function Module:CreateQuickMenuButton()
+	-- if not C["Misc"].MenuButton then
+	-- 	return
+	-- end
+
+	--hooksecurefunc(UnitPopupManager, "OpenMenu", function(_, which)
+	--	print("MENU_UNIT_"..which)
+	--end)
+
+	Menu.ModifyMenu("MENU_UNIT_SELF", function(_, rootDescription, data)
+		Module:CustomMenu_CopyName(rootDescription, data)
+		Module:CustomMenu_Whisper(rootDescription, data)
+	end)
+
+	Menu.ModifyMenu("MENU_UNIT_TARGET", function(_, rootDescription, data)
+		Module:CustomMenu_CopyName(rootDescription, data)
+	end)
+
+	Menu.ModifyMenu("MENU_UNIT_PLAYER", function(_, rootDescription, data)
+		Module:CustomMenu_GuildInvite(rootDescription, data)
+	end)
+
+	Menu.ModifyMenu("MENU_UNIT_FRIEND", function(_, rootDescription, data)
+		Module:CustomMenu_AddFriend(rootDescription, data)
+		Module:CustomMenu_GuildInvite(rootDescription, data)
+	end)
+
+	Menu.ModifyMenu("MENU_UNIT_BN_FRIEND", function(_, rootDescription, data)
+		local fullName
+		local gameAccountInfo = data.accountInfo and data.accountInfo.gameAccountInfo
+		if gameAccountInfo then
+			local characterName = gameAccountInfo.characterName
+			local realmName = gameAccountInfo.realmName
+			if characterName and realmName then
+				fullName = characterName .. "-" .. realmName
+			end
+		end
+
+		Module:CustomMenu_AddFriend(rootDescription, data, fullName)
+		Module:CustomMenu_GuildInvite(rootDescription, data, fullName)
+		Module:CustomMenu_CopyName(rootDescription, data, fullName)
+	end)
+
+	Menu.ModifyMenu("MENU_UNIT_PARTY", function(_, rootDescription, data)
+		Module:CustomMenu_GuildInvite(rootDescription, data)
+	end)
+
+	Menu.ModifyMenu("MENU_UNIT_RAID", function(_, rootDescription, data)
+		Module:CustomMenu_AddFriend(rootDescription, data)
+		Module:CustomMenu_GuildInvite(rootDescription, data)
+		Module:CustomMenu_CopyName(rootDescription, data)
+		Module:CustomMenu_Whisper(rootDescription, data)
+	end)
+
+	Menu.ModifyMenu("MENU_UNIT_RAID_PLAYER", function(_, rootDescription, data)
+		Module:CustomMenu_GuildInvite(rootDescription, data)
+	end)
 end
 
 -- Update Max Camera Zoom

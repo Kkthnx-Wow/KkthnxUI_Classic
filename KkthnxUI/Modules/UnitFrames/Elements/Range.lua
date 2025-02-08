@@ -49,6 +49,10 @@ local function friendlyIsInRange(realUnit)
 end
 
 function Module:UpdateRange()
+	if not C["Unitframe"].Range then
+		return
+	end
+
 	local range = self.Range
 	if not range then
 		return

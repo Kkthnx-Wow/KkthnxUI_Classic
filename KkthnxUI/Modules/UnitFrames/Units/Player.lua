@@ -430,7 +430,8 @@ function Module:CreatePlayer()
 
 	if C["Unitframe"].PvPIndicator then
 		local PvPIndicator = self:CreateTexture(nil, "OVERLAY")
-		PvPIndicator:SetSize(30, 33)
+		PvPIndicator:SetSize(32, 36)
+		PvPIndicator:SetAlpha(0.9)
 		if playerPortraitStyle ~= "NoPortraits" and playerPortraitStyle ~= "OverlayPortrait" then
 			PvPIndicator:SetPoint("RIGHT", self.Portrait, "LEFT", -2, 0)
 		else

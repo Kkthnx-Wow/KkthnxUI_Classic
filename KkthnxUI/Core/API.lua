@@ -368,44 +368,40 @@ local function SkinButton(self, override, ...)
 	self:HookScript("OnLeave", Button_OnLeave)
 end
 
--- Skin Close Button
+-- Applies custom skinning to a close button with optional positioning and sizing
 local function SkinCloseButton(self, parent, xOffset, yOffset, size)
-	-- Define the parent frame and x,y offset of the close button
 	parent = parent or self:GetParent()
 	xOffset = xOffset or -6
 	yOffset = yOffset or -6
 	size = size or 16
 
-	-- Set the size of the close button and its position relative to the parent frame
+	if not parent then
+		print("Warning: No valid parent frame for SkinCloseButton")
+		return
+	end
+
 	self:SetSize(size, size)
 	self:ClearAllPoints()
 	self:SetPoint("TOPRIGHT", parent, "TOPRIGHT", xOffset, yOffset)
 
-	-- Remove any textures that may already be applied to the button
 	self:StripTextures()
-	-- Check if there is a Border attribute, if so set its alpha to 0
 	if self.Border then
 		self.Border:SetAlpha(0)
 	end
 
-	-- Create a border for the button with specific color and alpha values
 	self:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, { 0.85, 0.25, 0.25 })
-	-- Apply the 'StyleButton' function to the button
 	self:StyleButton()
 
-	-- Remove the default disabled texture
 	self:SetDisabledTexture("")
-	-- Get the disabled texture and set its color and draw layer
 	local dis = self:GetDisabledTexture()
-	dis:SetVertexColor(0, 0, 0, 0.4)
-	dis:SetDrawLayer("OVERLAY")
-	dis:SetAllPoints()
+	if dis then
+		dis:SetVertexColor(0, 0, 0, 0.4)
+		dis:SetDrawLayer("OVERLAY")
+		dis:SetAllPoints()
+	end
 
-	-- Create a texture for the button
-	local tex = self:CreateTexture()
-	-- Set the texture to CustomCloseButton
+	local tex = self.__texture or self:CreateTexture()
 	tex:SetTexture(CustomCloseButton)
-	-- Set the texture to cover the entire button
 	tex:SetAllPoints()
 	self.__texture = tex
 end
