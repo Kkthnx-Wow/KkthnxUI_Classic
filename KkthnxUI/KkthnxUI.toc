@@ -1,4 +1,4 @@
-## Interface: 11505
+## Interface: 11506
 ## Name: KkthnxUI
 ## Title: |cff5C8BCFKkthnxUI|r
 ## Notes: Empty toc for Curseforge
